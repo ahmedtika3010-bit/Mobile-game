@@ -1,12 +1,14 @@
 import type { GameModule } from './engine';
 import { quizModule } from './quiz';
+import { spyModule } from './spy';
 
 /**
- * Games playable in this build. The other nine launch games are not
+ * Games playable in this build. The other eight launch games are not
  * implemented yet and are deliberately absent, so nothing can start them.
  */
 const GAMES: Record<string, GameModule<any, any, any>> = {
   quiz: quizModule,
+  spy: spyModule,
 };
 
 export function getGame(id: string): GameModule<any, any, any> | undefined {

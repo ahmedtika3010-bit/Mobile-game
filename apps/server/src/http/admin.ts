@@ -5,7 +5,7 @@
 import { Router } from 'express';
 import { parse } from 'csv-parse/sync';
 import { z } from 'zod';
-import { QUIZ_CATEGORIES } from '@sahra/shared';
+import { QUIZ_CATEGORIES, SPY_CATEGORIES } from '@sahra/shared';
 import { prisma } from '../db';
 import { audit } from '../safety/audit';
 import { HttpError, requireAdmin, wrap } from './app';
@@ -20,7 +20,25 @@ const quizPayload = z
   .refine((p) => p.correct < p.choices.length, { message: 'correct out of range' })
   .refine((p) => new Set(p.choices).size === p.choices.length, { message: 'duplicate choices' });
 
-const itemSchema = z.object({
+/** Spy: one reviewable pack per category (secret words + approved questions). */
+const spyPayload = z
+  .object({
+    words: z.array(z.string().trim().min(1).max(40)).min(8).max(60),
+    questions: z.array(z.string().trim().min(5).max(120)).min(6).max(60),
+  })
+  .refine((p) => new Set(p.words).size === p.words.length, { message: 'duplicate words' });
+
+const spyItemSchema = z.object({
+  gameId: z.literal('spy'),
+  category: z.enum(SPY_CATEGORIES as [string, ...string[]]),
+  difficulty: z.literal('medium').default('medium'),
+  language: z.string().default('ar'),
+  locale: z.string().optional(),
+  payload: spyPayload,
+  source: z.enum(['human', 'ai_suggested']).default('human'),
+});
+
+const quizItemSchema = z.object({
   gameId: z.literal('quiz'),
   category: z.enum(QUIZ_CATEGORIES as [string, ...string[]]),
   difficulty: z.enum(['easy', 'medium', 'hard']),
@@ -31,6 +49,8 @@ const itemSchema = z.object({
   expiresAt: z.string().date().optional(),
   source: z.enum(['human', 'ai_suggested']).default('human'),
 });
+
+const itemSchema = z.discriminatedUnion('gameId', [quizItemSchema, spyItemSchema]);
 
 /** CSV columns for quiz imports (UTF-8, header row required). */
 export const QUIZ_CSV_COLUMNS = [
@@ -43,8 +63,9 @@ export function adminRouter() {
   /* ---------------- content ---------------- */
   r.get('/content', requireAdmin('content_editor'), wrap(async (req, res) => {
     const status = z.enum(['draft', 'in_review', 'approved', 'rejected', 'retired']).optional().parse(req.query.status);
+    const gameId = z.enum(['quiz', 'spy']).default('quiz').parse(req.query.gameId);
     const items = await prisma.contentItem.findMany({
-      where: { gameId: 'quiz', ...(status ? { status } : {}) },
+      where: { gameId, ...(status ? { status } : {}) },
       orderBy: { createdAt: 'desc' },
       take: 200,
     });
@@ -64,8 +85,8 @@ export function adminRouter() {
           payload: body.payload,
           source: body.source,
           status: 'in_review',
-          factAsOf: body.factAsOf ? new Date(body.factAsOf) : null,
-          expiresAt: body.expiresAt ? new Date(body.expiresAt) : null,
+          factAsOf: body.gameId === 'quiz' && body.factAsOf ? new Date(body.factAsOf) : null,
+          expiresAt: body.gameId === 'quiz' && body.expiresAt ? new Date(body.expiresAt) : null,
         },
       });
       await audit(tx, req.userId!, 'content_create', 'content', created.id);
@@ -84,10 +105,10 @@ export function adminRouter() {
       throw new HttpError(400, 'csv_unreadable');
     }
     const errors: { row: number; error: string }[] = [];
-    const valid: z.infer<typeof itemSchema>[] = [];
+    const valid: z.infer<typeof quizItemSchema>[] = [];
     rows.forEach((row, i) => {
       const choices = [row.choice1, row.choice2, row.choice3, row.choice4].filter((c): c is string => !!c);
-      const parsed = itemSchema.safeParse({
+      const parsed = quizItemSchema.safeParse({
         gameId: 'quiz',
         category: row.category,
         difficulty: row.difficulty,

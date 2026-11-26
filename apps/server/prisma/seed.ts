@@ -5,6 +5,8 @@
  *  - the question bank in prisma/content/quiz_ar_v1.csv (admin CSV format).
  *    It was drafted with AI help, so it is inserted as `in_review` with
  *    source `ai_suggested` and must be fact-checked before release.
+ * Spy packs (prisma/content/spy_ar_v1.json: words + approved questions per
+ * category) follow the same rule: AI-assisted, `in_review` until approved.
  * For local testing only, `npm run db:seed -- --approve-for-local-testing`
  * approves everything directly. Re-running only adds questions whose prompt
  * is not in the database yet.
@@ -58,8 +60,31 @@ function loadBank(): Row[] {
   }));
 }
 
+type SpyPackFile = { category: string; words: string[]; questions: string[] }[];
+
+async function seedSpy(approve: boolean) {
+  const packs: SpyPackFile = JSON.parse(readFileSync(join(__dirname, 'content', 'spy_ar_v1.json'), 'utf8'));
+  const existing = await prisma.contentItem.findMany({ where: { gameId: 'spy' }, select: { category: true } });
+  const have = new Set(existing.map((e) => e.category));
+  const fresh = packs.filter((p) => !have.has(p.category));
+  if (fresh.length === 0) return console.log(`spy content up to date (${existing.length} packs)`);
+  await prisma.contentItem.createMany({
+    data: fresh.map((p) => ({
+      gameId: 'spy',
+      category: p.category,
+      difficulty: 'medium',
+      payload: { words: p.words, questions: p.questions },
+      source: 'ai_suggested' as const,
+      status: approve ? ('approved' as const) : ('in_review' as const),
+      publishedAt: approve ? new Date() : null,
+    })),
+  });
+  console.log(`inserted ${fresh.length} spy packs as ${approve ? 'approved (local testing)' : 'in_review'}`);
+}
+
 async function main() {
   const approve = process.argv.includes('--approve-for-local-testing');
+  await seedSpy(approve);
   const all: Row[] = [
     ...QUESTIONS.map(([category, difficulty, prompt, choices, explanation]) => ({
       category, difficulty, prompt, choices, correct: 0, explanation: explanation ?? null, source: 'human' as const,

@@ -111,7 +111,7 @@ export function createApp(presence: Presence) {
       games: listGames().map((g) => {
         const game = getGame(g.id)!;
         const def = game.defaultConfig('casual');
-        return { ...g, expectedDurationSec: game.expectedDurationSec(def) };
+        return { ...g, expectedDurationSec: game.expectedDurationSec(def), practice: Boolean(game.botPlan) };
       }),
     });
   });
@@ -197,6 +197,7 @@ export function createApp(presence: Presence) {
     const game = getGame(gameId);
     if (!game) throw new HttpError(404, 'unknown_game');
     if (mode === 'ranked' && !game.capabilities.ranked) throw new HttpError(400, 'ranked_unavailable');
+    if (mode === 'practice' && !game.botPlan) throw new HttpError(400, 'practice_unavailable');
     const u = await prisma.user.findUniqueOrThrow({ where: { id: req.userId! } });
     if (!u.onboarded || u.status !== 'active' || u.ageBand === 'under_13' || u.ageBand === 'unknown') {
       throw new HttpError(403, 'account_not_eligible');

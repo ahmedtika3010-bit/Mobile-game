@@ -5,7 +5,7 @@
  */
 import type { CommMode } from './age';
 
-export type GameId = 'quiz';
+export type GameId = 'quiz' | 'spy';
 /** practice = one player against labelled bots; no rewards, nothing saved. */
 export type MatchMode = 'casual' | 'ranked' | 'private' | 'practice';
 export type Difficulty = 'easy' | 'medium' | 'hard';
