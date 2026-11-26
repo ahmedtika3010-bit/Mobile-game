@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:sahra_client/sahra_client.dart';
 
 import '../app_state.dart';
@@ -42,15 +43,14 @@ class _QuizHubScreenState extends State<QuizHubScreen> {
     try {
       final session = await connect(app);
       if (!mounted) return;
-      await Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => RoomScreen(session: session)));
+      await Navigator.of(context).push(SoftRoute(RoomScreen(session: session)));
     } on ApiException catch (e) {
-      setState(() => _error = e.code == 'room_not_found'
-          ? '${S.of('roomCode')}: ✗'
-          : S.of('error'));
+      setState(() => _error =
+          e.code == 'room_not_found' ? S.of('roomNotFound') : S.of('error'));
     } catch (e) {
       // Test builds show the technical reason to help testers report issues.
-      setState(() => _error = AppConfig.devSignIn ? '${S.of('error')}\n$e' : S.of('error'));
+      setState(() => _error =
+          AppConfig.devSignIn ? '${S.of('error')}\n$e' : S.of('error'));
     } finally {
       if (mounted) setState(() => _busy = null);
     }
@@ -58,101 +58,266 @@ class _QuizHubScreenState extends State<QuizHubScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Tokens.night,
-      appBar:
-          AppBar(foregroundColor: Colors.white, title: Text(S.of('game_quiz'))),
-      body: SafeArea(
-        child: ListView(padding: const EdgeInsets.all(Tokens.s24), children: [
-          const Center(child: Text('🧠', style: TextStyle(fontSize: 72))),
-          const SizedBox(height: Tokens.s8),
+    final idle = _busy == null;
+    return NightScaffold(
+      glow: Tokens.sky,
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(
+            Tokens.s20, Tokens.s8, Tokens.s20, Tokens.s32),
+        children: [
+          Center(
+            child: Bob(
+              child: GameIcon(emoji: '🧠', color: Tokens.sky, size: 104),
+            ),
+          ),
+          const SizedBox(height: Tokens.s16),
+          Text(S.of('game_quiz'),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineMedium),
+          const SizedBox(height: Tokens.s4),
           Text(S.of('game_quiz_desc'),
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white70, fontSize: 16)),
+              style: const TextStyle(color: Tokens.textDim, fontSize: 16)),
           if (_durationSec != null) ...[
-            const SizedBox(height: Tokens.s8),
+            const SizedBox(height: Tokens.s12),
             Center(
                 child: Pill(
                     text:
                         '${S.of('expectedDuration')}: ~${(_durationSec! / 60).ceil()} ${S.of('minutes')}',
                     color: Tokens.sun,
-                    icon: Icons.timer_outlined)),
+                    emoji: '⏱️')),
           ],
-          const SizedBox(height: Tokens.s32),
-          GameButton(
-            key: const Key('quickPlay'),
-            label: S.of('quickPlay'),
-            icon: Icons.bolt_rounded,
-            color: Tokens.sun,
-            busy: _busy == 'quick',
-            onPressed: _busy == null
-                ? () => _go(
-                    'quick',
-                    (a) => GameSession.quickPlay(a.api, a.client,
-                        gameId: 'quiz', mode: 'casual'))
-                : null,
-          ),
-          const SizedBox(height: Tokens.s12),
-          GameButton(
-            label: S.of('ranked'),
-            icon: Icons.emoji_events_rounded,
-            color: Tokens.coral,
-            busy: _busy == 'ranked',
-            onPressed: _busy == null
-                ? () => _go(
-                    'ranked',
-                    (a) => GameSession.quickPlay(a.api, a.client,
-                        gameId: 'quiz', mode: 'ranked'))
-                : null,
-          ),
-          const SizedBox(height: Tokens.s12),
-          GameButton(
-            key: const Key('createRoom'),
-            label: S.of('createRoom'),
-            icon: Icons.add_home_rounded,
-            color: Tokens.mint,
-            busy: _busy == 'create',
-            onPressed: _busy == null
-                ? () => _go(
-                    'create',
-                    (a) => GameSession.createPrivate(a.api, a.client,
-                        gameId: 'quiz',
-                        config: {'questionCount': 10, 'answerSeconds': 15}))
-                : null,
-          ),
           const SizedBox(height: Tokens.s24),
-          Row(children: [
-            Expanded(
-              child: TextField(
-                controller: _code,
-                textCapitalization: TextCapitalization.characters,
-                textDirection: TextDirection.ltr,
-                maxLength: 6,
-                decoration: InputDecoration(
-                    labelText: S.of('roomCode'), counterText: ''),
-              ),
-            ),
-            const SizedBox(width: Tokens.s12),
-            GameButton(
-              label: S.of('join'),
-              expand: false,
-              color: Tokens.sky,
-              busy: _busy == 'join',
-              onPressed: _busy == null
+          FadeSlideIn(
+            child: _ModeCard(
+              key: const Key('quickPlay'),
+              emoji: '⚡',
+              title: S.of('quickPlay'),
+              subtitle: S.of('quickPlayDesc'),
+              color: Tokens.sun,
+              primary: true,
+              busy: _busy == 'quick',
+              onTap: idle
                   ? () => _go(
-                      'join',
-                      (a) => GameSession.joinByCode(a.api, a.client,
-                          gameId: 'quiz', code: _code.text.trim()))
+                      'quick',
+                      (a) => GameSession.quickPlay(a.api, a.client,
+                          gameId: 'quiz', mode: 'casual'))
                   : null,
             ),
-          ]),
+          ),
+          const SizedBox(height: Tokens.s12),
+          FadeSlideIn(
+            delay: const Duration(milliseconds: 70),
+            child: _ModeCard(
+              emoji: '🏆',
+              title: S.of('ranked'),
+              subtitle: S.of('rankedDesc'),
+              color: Tokens.coral,
+              busy: _busy == 'ranked',
+              onTap: idle
+                  ? () => _go(
+                      'ranked',
+                      (a) => GameSession.quickPlay(a.api, a.client,
+                          gameId: 'quiz', mode: 'ranked'))
+                  : null,
+            ),
+          ),
+          const SizedBox(height: Tokens.s12),
+          FadeSlideIn(
+            delay: const Duration(milliseconds: 140),
+            child: _ModeCard(
+              key: const Key('createRoom'),
+              emoji: '🏠',
+              title: S.of('createRoom'),
+              subtitle: S.of('createRoomDesc'),
+              color: Tokens.mint,
+              busy: _busy == 'create',
+              onTap: idle
+                  ? () => _go(
+                      'create',
+                      (a) => GameSession.createPrivate(a.api, a.client,
+                          gameId: 'quiz',
+                          config: {'questionCount': 10, 'answerSeconds': 15}))
+                  : null,
+            ),
+          ),
+          const SizedBox(height: Tokens.s24),
+          FadeSlideIn(
+            delay: const Duration(milliseconds: 210),
+            child: GlassCard(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(children: [
+                      const Text('🎟️', style: TextStyle(fontSize: 20)),
+                      const SizedBox(width: Tokens.s8),
+                      Text(S.of('haveCode'),
+                          style: Theme.of(context).textTheme.titleMedium),
+                    ]),
+                    const SizedBox(height: Tokens.s12),
+                    Row(children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _code,
+                          textCapitalization: TextCapitalization.characters,
+                          textDirection: TextDirection.ltr,
+                          textAlign: TextAlign.center,
+                          maxLength: 6,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                                RegExp('[A-Za-z0-9]')),
+                            TextInputFormatter.withFunction((o, n) =>
+                                n.copyWith(text: n.text.toUpperCase())),
+                          ],
+                          style: const TextStyle(
+                              fontFamily: Tokens.body,
+                              fontSize: 22,
+                              letterSpacing: 6,
+                              fontWeight: FontWeight.w900),
+                          decoration: InputDecoration(
+                              hintText: 'ABC123',
+                              hintStyle: const TextStyle(
+                                  letterSpacing: 6,
+                                  color: Tokens.textFaint,
+                                  fontFamily: Tokens.body),
+                              semanticCounterText: '',
+                              labelText: S.of('roomCode'),
+                              counterText: ''),
+                        ),
+                      ),
+                      const SizedBox(width: Tokens.s12),
+                      GameButton(
+                        label: S.of('join'),
+                        expand: false,
+                        color: Tokens.sky,
+                        busy: _busy == 'join',
+                        onPressed: idle
+                            ? () => _go(
+                                'join',
+                                (a) => GameSession.joinByCode(a.api, a.client,
+                                    gameId: 'quiz', code: _code.text.trim()))
+                            : null,
+                      ),
+                    ]),
+                  ]),
+            ),
+          ),
           if (_error != null) ...[
             const SizedBox(height: Tokens.s16),
-            Text(_error!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Tokens.coral)),
+            Shake(
+              key: ValueKey(_error),
+              child: Text(_error!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      color: Tokens.coral, fontWeight: FontWeight.w700)),
+            ),
           ],
-        ]),
+        ],
+      ),
+    );
+  }
+}
+
+class _ModeCard extends StatelessWidget {
+  const _ModeCard(
+      {super.key,
+      required this.emoji,
+      required this.title,
+      required this.subtitle,
+      required this.color,
+      required this.onTap,
+      this.primary = false,
+      this.busy = false});
+  final String emoji;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback? onTap;
+  final bool primary;
+  final bool busy;
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = primary ? Tokens.onColor(color) : Colors.white;
+    final enabled = onTap != null || busy;
+    return Semantics(
+      button: true,
+      enabled: onTap != null,
+      label: title,
+      hint: subtitle,
+      onTap: onTap,
+      excludeSemantics: true,
+      child: Opacity(
+        opacity: enabled ? 1 : 0.5,
+        child: Pressable(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(Tokens.s16),
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Tokens.r24),
+              gradient: primary
+                  ? Tokens.gradient(Tokens.tint(color, 0.05), Tokens.orange)
+                  : LinearGradient(colors: [
+                      color.withValues(alpha: 0.22),
+                      color.withValues(alpha: 0.08)
+                    ]),
+              border: Border.all(
+                  color: primary
+                      ? Colors.white.withValues(alpha: 0.35)
+                      : color.withValues(alpha: 0.4),
+                  width: 1.5),
+              boxShadow: primary
+                  ? [
+                      BoxShadow(
+                          color: color.withValues(alpha: 0.4),
+                          blurRadius: 24,
+                          offset: const Offset(0, 10))
+                    ]
+                  : null,
+            ),
+            child: Row(children: [
+              Container(
+                width: 56,
+                height: 56,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: primary
+                      ? Colors.white.withValues(alpha: 0.35)
+                      : color.withValues(alpha: 0.25),
+                  borderRadius: const BorderRadius.all(Tokens.r16),
+                ),
+                child: Text(emoji, style: const TextStyle(fontSize: 30)),
+              ),
+              const SizedBox(width: Tokens.s16),
+              Expanded(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title,
+                          style: TextStyle(
+                              color: fg,
+                              fontSize: 20,
+                              height: 1.25,
+                              fontWeight: FontWeight.w800)),
+                      Text(subtitle,
+                          style: TextStyle(
+                              color: fg.withValues(alpha: 0.75),
+                              fontSize: 13.5,
+                              height: 1.4,
+                              fontWeight: FontWeight.w600)),
+                    ]),
+              ),
+              const SizedBox(width: Tokens.s8),
+              if (busy)
+                SizedBox.square(
+                    dimension: 24,
+                    child: CircularProgressIndicator(strokeWidth: 3, color: fg))
+              else
+                Icon(Icons.arrow_forward_ios_rounded,
+                    color: fg.withValues(alpha: 0.7), size: 18),
+            ]),
+          ),
+        ),
       ),
     );
   }

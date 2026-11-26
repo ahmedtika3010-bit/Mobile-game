@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../app_state.dart';
-import '../config.dart';
 import '../design/chibi_avatar.dart';
 import '../design/tokens.dart';
 import '../design/widgets.dart';
@@ -27,9 +26,9 @@ final _games = [
       playable: true, desc: S.of('game_quiz_desc')),
   const _GameInfo('football', 'تحديات الكورة', '⚽', Tokens.mint),
   const _GameInfo('spy', 'الجاسوس', '🕵️', Tokens.grape),
-  const _GameInfo('stop', 'أتوبيس كومبليت', '🚌', Tokens.sun),
+  const _GameInfo('stop', 'أتوبيس كومبليت', '🚌', Tokens.orange),
   const _GameInfo('liar', 'مين الكداب؟', '🤥', Tokens.coral),
-  const _GameInfo('who', 'مين فينا؟', '👀', Color(0xFFF472B6)),
+  const _GameInfo('who', 'مين فينا؟', '👀', Tokens.pink),
   const _GameInfo('draw', 'ارسم وخمّن', '🎨', Tokens.sky),
   const _GameInfo('emoji', 'خمّن بالإيموجي', '😎', Tokens.sun),
   const _GameInfo('memory', 'تحديات الذاكرة', '🧩', Tokens.mint),
@@ -39,101 +38,237 @@ final _games = [
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  void _open(BuildContext context, _GameInfo g) {
+  Future<void> _open(BuildContext context) async {
     final app = AppScope.read(context);
+    final nav = Navigator.of(context);
     if (!app.signedIn) {
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (_) => const SignInScreen()));
+      await nav.push(SoftRoute(const SignInScreen()));
     } else if (!app.canPlay) {
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (_) => const OnboardingScreen()));
+      await nav.push(SoftRoute(const OnboardingScreen()));
     } else {
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (_) => const QuizHubScreen()));
+      await nav.push(SoftRoute(const QuizHubScreen()));
+      app.refreshWallet();
     }
+  }
+
+  void _profileSheet(BuildContext context) {
+    final app = AppScope.read(context);
+    final u = app.user!;
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding:
+              const EdgeInsets.fromLTRB(Tokens.s24, 0, Tokens.s24, Tokens.s24),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            ChibiAvatar(avatarId: u.avatarId, size: 96),
+            const SizedBox(height: Tokens.s8),
+            Text(u.displayName ?? '',
+                style:
+                    const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            const SizedBox(height: Tokens.s16),
+            _SheetAction(
+                icon: Icons.shield_rounded,
+                color: Tokens.mint,
+                label: S.of('safetyCenter'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Navigator.of(context)
+                      .push(SoftRoute(const SafetyCenterScreen()));
+                }),
+            const SizedBox(height: Tokens.s8),
+            _SheetAction(
+                icon: Icons.logout_rounded,
+                color: Tokens.coral,
+                label: S.of('signOut'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  app.signOut();
+                }),
+          ]),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
     final user = app.user;
-    return Scaffold(
-      body: SafeArea(
-        child: CustomScrollView(slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
-                Tokens.s16, Tokens.s16, Tokens.s16, Tokens.s8),
-            sliver: SliverToBoxAdapter(
-              child: Row(children: [
-                Expanded(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(AppConfig.appName,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineMedium
-                                ?.copyWith(color: Tokens.grape)),
-                        Text(S.of('tagline'),
-                            style: const TextStyle(color: Tokens.inkSoft)),
-                      ]),
-                ),
-                if (user != null)
-                  PopupMenuButton<String>(
-                    tooltip: user.displayName ?? '',
-                    onSelected: (v) {
-                      if (v == 'safety') {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => const SafetyCenterScreen()));
-                      }
-                      if (v == 'out') app.signOut();
-                    },
-                    itemBuilder: (_) => [
-                      PopupMenuItem(
-                          value: 'safety', child: Text(S.of('safetyCenter'))),
-                      PopupMenuItem(value: 'out', child: Text(S.of('signOut'))),
-                    ],
-                    child: ChibiAvatar(avatarId: user.avatarId, size: 48),
-                  )
-                else
-                  TextButton(
-                    onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (_) => const SignInScreen())),
-                    child: Text(S.of('signIn')),
+    final w = app.wallet;
+    return NightScaffold(
+      showBack: false,
+      body: CustomScrollView(slivers: [
+        SliverPadding(
+          padding:
+              const EdgeInsets.fromLTRB(Tokens.s20, Tokens.s16, Tokens.s20, 0),
+          sliver: SliverToBoxAdapter(
+            child: Row(children: [
+              const Flexible(
+                child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Logo(size: 30)),
+              ),
+              const Spacer(),
+              if (user != null)
+                Pressable(
+                  semanticLabel: user.displayName,
+                  onTap: () => _profileSheet(context),
+                  child: Container(
+                    padding: const EdgeInsetsDirectional.fromSTEB(4, 4, 14, 4),
+                    decoration: const BoxDecoration(
+                      color: Tokens.glass,
+                      borderRadius: BorderRadius.all(Radius.circular(99)),
+                      border: Border.fromBorderSide(
+                          BorderSide(color: Tokens.glassBorder)),
+                    ),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      ChibiAvatar(avatarId: user.avatarId, size: 36),
+                      const SizedBox(width: Tokens.s8),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 110),
+                        child: Text(user.displayName ?? '',
+                            overflow: TextOverflow.ellipsis,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.w800)),
+                      ),
+                    ]),
                   ),
-              ]),
+                )
+              else
+                GameButton(
+                  label: S.of('signIn'),
+                  expand: false,
+                  size: GameButtonSize.medium,
+                  color: Tokens.grape,
+                  onPressed: () => Navigator.of(context)
+                      .push(SoftRoute(const SignInScreen())),
+                ),
+            ]),
+          ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(
+              Tokens.s20, Tokens.s24, Tokens.s20, Tokens.s16),
+          sliver: SliverToBoxAdapter(
+            child: FadeSlideIn(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                        user?.displayName != null
+                            ? '${S.of('homeHello')} ${user!.displayName} 👋'
+                            : S.of('homeGuest'),
+                        style: Theme.of(context).textTheme.headlineSmall),
+                    const SizedBox(height: 2),
+                    Text(S.of('homeSub'),
+                        style: const TextStyle(
+                            color: Tokens.textDim, fontSize: 15)),
+                    if (w != null) ...[
+                      const SizedBox(height: Tokens.s12),
+                      Wrap(
+                          spacing: Tokens.s8,
+                          runSpacing: Tokens.s8,
+                          children: [
+                            Pill(
+                                emoji: '⭐',
+                                text: '${S.of('level')} ${w['level'] ?? 1}',
+                                color: Tokens.sun),
+                            Pill(
+                                emoji: '🪙',
+                                text: '${w['coins'] ?? 0}',
+                                color: Tokens.orange),
+                            Pill(
+                                emoji: '💎',
+                                text: '${w['gems'] ?? 0}',
+                                color: Tokens.sky),
+                          ]),
+                    ],
+                  ]),
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: Tokens.s16),
-            sliver: SliverToBoxAdapter(
-                child: _FeaturedCard(
-                    game: _games.first,
-                    onPlay: () => _open(context, _games.first))),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: Tokens.s20),
+          sliver: SliverToBoxAdapter(
+              child: FadeSlideIn(
+                  delay: const Duration(milliseconds: 120),
+                  child: _FeaturedCard(
+                      game: _games.first, onPlay: () => _open(context)))),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(
+              Tokens.s20, Tokens.s32, Tokens.s20, Tokens.s12),
+          sliver: SliverToBoxAdapter(
+            child: Row(children: [
+              Flexible(
+                child: Text(S.of('comingSoonTitle'),
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleLarge),
+              ),
+              const SizedBox(width: Tokens.s8),
+              Pill(text: '${_games.length - 1}', color: Tokens.pink),
+            ]),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
-                Tokens.s16, Tokens.s24, Tokens.s16, Tokens.s8),
-            sliver: SliverToBoxAdapter(
-                child: Text(S.of('games'),
-                    style: Theme.of(context).textTheme.titleLarge)),
+        ),
+        SliverPadding(
+          padding:
+              const EdgeInsets.fromLTRB(Tokens.s20, 0, Tokens.s20, Tokens.s32),
+          sliver: SliverGrid.count(
+            crossAxisCount: 3,
+            mainAxisSpacing: Tokens.s12,
+            crossAxisSpacing: Tokens.s12,
+            childAspectRatio: 0.82,
+            children: [
+              for (final (i, g) in _games.skip(1).indexed)
+                FadeSlideIn(
+                    delay: Duration(milliseconds: 200 + i * 50),
+                    child: _ComingTile(game: g)),
+            ],
           ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
-                Tokens.s16, 0, Tokens.s16, Tokens.s24),
-            sliver: SliverGrid.count(
-              crossAxisCount: 3,
-              mainAxisSpacing: Tokens.s12,
-              crossAxisSpacing: Tokens.s12,
-              childAspectRatio: 0.72,
-              children: [for (final g in _games.skip(1)) _GameTile(game: g)],
-            ),
-          ),
-        ]),
-      ),
+        ),
+      ]),
     );
   }
+}
+
+class _SheetAction extends StatelessWidget {
+  const _SheetAction(
+      {required this.icon,
+      required this.color,
+      required this.label,
+      required this.onTap});
+  final IconData icon;
+  final Color color;
+  final String label;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) => Pressable(
+        onTap: onTap,
+        semanticLabel: label,
+        child: GlassCard(
+          padding: const EdgeInsets.symmetric(
+              horizontal: Tokens.s16, vertical: Tokens.s12),
+          radius: Tokens.r20,
+          child: Row(children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.2),
+                  borderRadius: const BorderRadius.all(Tokens.r12)),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(width: Tokens.s12),
+            Expanded(
+                child: Text(label,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w700, fontSize: 16))),
+            const Icon(Icons.chevron_left_rounded, color: Tokens.textFaint),
+          ]),
+        ),
+      );
 }
 
 class _FeaturedCard extends StatelessWidget {
@@ -144,82 +279,162 @@ class _FeaturedCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(Tokens.s16),
-      decoration: const BoxDecoration(
-          color: Tokens.night, borderRadius: BorderRadius.all(Tokens.r24)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Container(
-            width: 64,
-            height: 64,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-                color: game.color,
-                borderRadius: const BorderRadius.all(Tokens.r16)),
-            child: Text(game.emoji, style: const TextStyle(fontSize: 34)),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Tokens.r32),
+        gradient: const LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [Color(0xFF3DA5FF), Color(0xFF6A5CFF), Color(0xFF9B4DFF)]),
+        border:
+            Border.all(color: Colors.white.withValues(alpha: 0.25), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+              color: Tokens.grape.withValues(alpha: 0.45),
+              blurRadius: 30,
+              offset: const Offset(0, 14)),
+        ],
+      ),
+      child: Stack(children: [
+        // Decorative bubbles.
+        PositionedDirectional(
+            top: -40, start: -30, child: _Circle(size: 150, alpha: 0.10)),
+        PositionedDirectional(
+            bottom: 60, end: -40, child: _Circle(size: 120, alpha: 0.08)),
+        PositionedDirectional(
+          top: 18,
+          end: 14,
+          child: Bob(
+            amplitude: 7,
+            child: Transform.rotate(
+              angle: -0.12,
+              child: Text(game.emoji, style: const TextStyle(fontSize: 84)),
+            ),
           ),
-          const SizedBox(width: Tokens.s12),
-          Expanded(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(game.name,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800)),
-              const SizedBox(height: 4),
-              Text(game.desc ?? '',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.8))),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(Tokens.s20),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Pill(
+                text: 'جديد', emoji: '🔥', color: Colors.white, solid: true),
+            const SizedBox(height: Tokens.s12),
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: 110),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(game.name,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 30,
+                            height: 1.15,
+                            fontWeight: FontWeight.w800)),
+                    const SizedBox(height: Tokens.s4),
+                    Text(game.desc ?? '',
+                        style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.88),
+                            fontSize: 15,
+                            height: 1.4)),
+                  ]),
+            ),
+            const SizedBox(height: Tokens.s16),
+            Wrap(spacing: Tokens.s8, runSpacing: Tokens.s8, children: [
+              _Tag(emoji: '👥', text: S.of('tagPlayers')),
+              _Tag(emoji: '⏱️', text: S.of('tagQuick')),
+              _Tag(emoji: '🏆', text: S.of('tagRanked')),
             ]),
-          ),
-        ]),
-        const SizedBox(height: Tokens.s16),
-        GameButton(
-            label: S.of('play'),
-            icon: Icons.play_arrow_rounded,
-            color: Tokens.sun,
-            onPressed: onPlay),
+            const SizedBox(height: Tokens.s20),
+            GameButton(
+                label: S.of('playNow'),
+                icon: Icons.play_arrow_rounded,
+                color: Tokens.sun,
+                onPressed: onPlay),
+          ]),
+        ),
       ]),
     );
   }
 }
 
-class _GameTile extends StatelessWidget {
-  const _GameTile({required this.game});
+class _Circle extends StatelessWidget {
+  const _Circle({required this.size, required this.alpha});
+  final double size;
+  final double alpha;
+  @override
+  Widget build(BuildContext context) => Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white.withValues(alpha: alpha)));
+}
+
+class _Tag extends StatelessWidget {
+  const _Tag({required this.emoji, required this.text});
+  final String emoji;
+  final String text;
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.16),
+          borderRadius: const BorderRadius.all(Radius.circular(99)),
+        ),
+        child: Text('$emoji  $text',
+            style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 13)),
+      );
+}
+
+class _ComingTile extends StatelessWidget {
+  const _ComingTile({required this.game});
   final _GameInfo game;
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       label: '${game.name}، ${S.of('comingSoon')}',
+      excludeSemantics: true,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.all(Tokens.r16),
-          border: Border.all(color: Tokens.ink.withValues(alpha: 0.06)),
+          borderRadius: const BorderRadius.all(Tokens.r24),
+          gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                game.color.withValues(alpha: 0.30),
+                game.color.withValues(alpha: 0.10),
+              ]),
+          border:
+              Border.all(color: game.color.withValues(alpha: 0.35), width: 1.2),
         ),
-        padding: const EdgeInsets.all(Tokens.s8),
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Container(
-            width: 52,
-            height: 52,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-                color: game.color.withValues(alpha: 0.18),
-                borderRadius: const BorderRadius.all(Tokens.r16)),
-            child: Text(game.emoji, style: const TextStyle(fontSize: 28)),
+        padding: const EdgeInsets.fromLTRB(6, 12, 6, 10),
+        child: Column(children: [
+          Expanded(
+            child: Center(
+                child: Text(game.emoji, style: const TextStyle(fontSize: 38))),
           ),
-          const SizedBox(height: Tokens.s8),
-          Flexible(
-            child: Text(game.name,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style:
-                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-          ),
+          Text(game.name,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                  fontWeight: FontWeight.w800, fontSize: 13.5, height: 1.3)),
           const SizedBox(height: 4),
-          Pill(text: S.of('comingSoon'), color: Tokens.inkSoft),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+            decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.22),
+                borderRadius: const BorderRadius.all(Radius.circular(99))),
+            child: Text('🔒 ${S.of('comingSoon')}',
+                style: const TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: Tokens.textDim)),
+          ),
         ]),
       ),
     );

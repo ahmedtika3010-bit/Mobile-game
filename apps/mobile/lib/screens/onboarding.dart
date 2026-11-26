@@ -53,94 +53,172 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now().year;
-    return Scaffold(
-      appBar: AppBar(title: Text(S.of('onboardingTitle'))),
-      body: SafeArea(
-        child: ListView(padding: const EdgeInsets.all(Tokens.s24), children: [
-          Text(S.of('chooseAvatar'),
-              style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: Tokens.s12),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-            for (final (i, id) in ChibiAvatar.starterIds.indexed)
-              Semantics(
-                button: true,
-                selected: _avatar == id,
-                label: '${S.of('chooseAvatar')} ${i + 1}',
-                child: GestureDetector(
-                  onTap: () => setState(() => _avatar = id),
-                  child: AnimatedContainer(
-                    duration: Tokens.fast,
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                          color:
-                              _avatar == id ? Tokens.grape : Colors.transparent,
-                          width: 3),
-                    ),
-                    child: ChibiAvatar(
-                        avatarId: id, size: _avatar == id ? 72 : 60),
-                  ),
+    final accent = ChibiAvatar.colorFor(_avatar);
+    return NightScaffold(
+      glow: accent,
+      title: Text(S.of('onboardingTitle')),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(
+            Tokens.s24, Tokens.s8, Tokens.s24, Tokens.s32),
+        children: [
+          // Big preview of the chosen character.
+          Center(
+            child: Stack(alignment: Alignment.center, children: [
+              Container(
+                width: 170,
+                height: 170,
+                decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [
+                  BoxShadow(
+                      color: accent.withValues(alpha: 0.55),
+                      blurRadius: 40,
+                      spreadRadius: 4)
+                ]),
+              ),
+              AnimatedSwitcher(
+                duration: Tokens.medium,
+                transitionBuilder: (c, a) => ScaleTransition(
+                    scale: CurvedAnimation(parent: a, curve: Curves.elasticOut),
+                    child: c),
+                child: Bob(
+                  key: ValueKey(_avatar),
+                  child: ChibiFullBody(avatarId: _avatar, height: 240),
                 ),
               ),
-          ]),
+            ]),
+          ),
+          if (ChibiAvatar.artFor(_avatar) != null)
+            Center(
+              child: Pill(
+                  text: ChibiAvatar.artFor(_avatar)!.name,
+                  color: accent,
+                  solid: true),
+            ),
+          const SizedBox(height: Tokens.s16),
+          Text(S.of('chooseAvatar'),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: Tokens.s12),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: Tokens.s12,
+            runSpacing: Tokens.s12,
+            children: [
+              for (final (i, id) in ChibiAvatar.starterIds.indexed)
+                Semantics(
+                  button: true,
+                  selected: _avatar == id,
+                  label: '${S.of('chooseAvatar')} ${i + 1}',
+                  onTap: () => setState(() => _avatar = id),
+                  excludeSemantics: true,
+                  child: Pressable(
+                    onTap: () => setState(() => _avatar = id),
+                    child: AnimatedContainer(
+                      duration: Tokens.fast,
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color: _avatar == id
+                                ? Tokens.sun
+                                : Colors.white.withValues(alpha: 0.15),
+                            width: 3),
+                      ),
+                      child: ChibiAvatar(avatarId: id, size: 60),
+                    ),
+                  ),
+                ),
+            ],
+          ),
           const SizedBox(height: Tokens.s24),
           TextField(
             key: const Key('displayName'),
             controller: _name,
             maxLength: 20,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             onChanged: (_) => setState(() {}),
             decoration: InputDecoration(
                 labelText: S.of('displayName'),
+                prefixIcon:
+                    const Icon(Icons.badge_rounded, color: Tokens.textDim),
                 helperText: S.of('displayNameHint')),
           ),
           if (!_dobKnown) ...[
             const SizedBox(height: Tokens.s16),
-            Text(S.of('birthDate'),
-                style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: Tokens.s8),
-            Row(children: [
-              Expanded(
-                  child: _drop(
-                      S.of('day'),
-                      _day,
-                      List.generate(31, (i) => i + 1),
-                      (v) => setState(() => _day = v),
-                      'dobDay')),
-              const SizedBox(width: Tokens.s8),
-              Expanded(
-                  child: _drop(
-                      S.of('month'),
-                      _month,
-                      List.generate(12, (i) => i + 1),
-                      (v) => setState(() => _month = v),
-                      'dobMonth')),
-              const SizedBox(width: Tokens.s8),
-              Expanded(
-                flex: 2,
-                child: _drop(
-                    S.of('year'),
-                    _year,
-                    List.generate(100, (i) => now - i),
-                    (v) => setState(() => _year = v),
-                    'dobYear'),
-              ),
-            ]),
-            const SizedBox(height: Tokens.s8),
-            Text(S.of('birthDateNote'),
-                style: const TextStyle(color: Tokens.inkSoft, fontSize: 13)),
+            GlassCard(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(children: [
+                      const Text('🎂', style: TextStyle(fontSize: 20)),
+                      const SizedBox(width: Tokens.s8),
+                      Text(S.of('birthDate'),
+                          style: Theme.of(context).textTheme.titleMedium),
+                    ]),
+                    const SizedBox(height: Tokens.s12),
+                    Row(children: [
+                      Expanded(
+                          child: _drop(
+                              S.of('day'),
+                              _day,
+                              List.generate(31, (i) => i + 1),
+                              (v) => setState(() => _day = v),
+                              'dobDay')),
+                      const SizedBox(width: Tokens.s8),
+                      Expanded(
+                          child: _drop(
+                              S.of('month'),
+                              _month,
+                              List.generate(12, (i) => i + 1),
+                              (v) => setState(() => _month = v),
+                              'dobMonth')),
+                      const SizedBox(width: Tokens.s8),
+                      Expanded(
+                        flex: 2,
+                        child: _drop(
+                            S.of('year'),
+                            _year,
+                            List.generate(100, (i) => now - i),
+                            (v) => setState(() => _year = v),
+                            'dobYear'),
+                      ),
+                    ]),
+                    const SizedBox(height: Tokens.s12),
+                    Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.lock_rounded,
+                              size: 16, color: Tokens.textFaint),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(S.of('birthDateNote'),
+                                style: const TextStyle(
+                                    color: Tokens.textFaint,
+                                    fontSize: 13,
+                                    height: 1.5)),
+                          ),
+                        ]),
+                  ]),
+            ),
           ],
           if (_error != null) ...[
             const SizedBox(height: Tokens.s16),
-            Text(_error!, style: const TextStyle(color: Tokens.danger)),
+            Shake(
+              key: ValueKey(_error),
+              child: Text(_error!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      color: Tokens.coral, fontWeight: FontWeight.w700)),
+            ),
           ],
           const SizedBox(height: Tokens.s24),
           GameButton(
               key: const Key('onboardSubmit'),
               label: S.of('continue'),
+              icon: Icons.rocket_launch_rounded,
+              color: Tokens.sun,
               busy: _busy,
               onPressed: _valid ? _submit : null),
-        ]),
+        ],
       ),
     );
   }
@@ -151,6 +229,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         key: Key(key),
         initialValue: value,
         isExpanded: true,
+        dropdownColor: Tokens.night,
+        borderRadius: const BorderRadius.all(Tokens.r16),
+        menuMaxHeight: 320,
+        icon: const Icon(Icons.expand_more_rounded, color: Tokens.textDim),
+        style: const TextStyle(
+            fontFamily: Tokens.display,
+            fontFamilyFallback: [Tokens.body],
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: Colors.white),
         // Label always floats so short fields never truncate it to "الـ...".
         decoration: InputDecoration(
           labelText: label,
@@ -158,7 +246,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
         ),
-        hint: const Text('—'),
+        hint: const Text('—', style: TextStyle(color: Tokens.textFaint)),
         items: [
           for (final i in items) DropdownMenuItem(value: i, child: Text('$i'))
         ],

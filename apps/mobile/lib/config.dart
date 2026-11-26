@@ -10,7 +10,10 @@ class AppConfig {
     const fromEnv = String.fromEnvironment('SERVER_URL');
     if (fromEnv.isNotEmpty) return Uri.parse(fromEnv);
     // Web build served by the game server itself: same origin.
-    if (kIsWeb) return Uri(scheme: Uri.base.scheme, host: Uri.base.host, port: Uri.base.port);
+    if (kIsWeb) {
+      return Uri(
+          scheme: Uri.base.scheme, host: Uri.base.host, port: Uri.base.port);
+    }
     // Android emulator reaches the host machine at 10.0.2.2.
     return defaultTargetPlatform == TargetPlatform.android
         ? Uri.parse('http://10.0.2.2:2567')

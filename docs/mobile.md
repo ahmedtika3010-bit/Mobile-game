@@ -4,7 +4,9 @@
 package `packages/sahra_client` (HTTP API + a small Colyseus 0.16 client), so the
 networking can be tested without Flutter.
 
-Arabic and right-to-left are the default. All player-facing text lives in
+Arabic and right-to-left are the default. The look (night-sky background, Baloo
+Bhaijaan 2 for game text with Cairo as fallback, 3D buttons, motion) lives in
+`lib/design/`; all fonts are SIL Open Font License and bundled. All player-facing text lives in
 `lib/l10n/strings.dart`; design tokens are in `lib/design/tokens.dart`.
 
 ## Build-time settings (`--dart-define`)
@@ -71,6 +73,6 @@ store listings, because it cannot change after publishing.
 - No Android or iOS device build has been made from this environment (no Android
   SDK or Mac here). The app was verified with widget tests and as a web build
   driven by a browser through a full match against the real server.
-- Chibi avatars are placeholder drawings (`lib/design/chibi_avatar.dart`) until
-  an artist delivers the real set.
+- Characters are still images cut from the designer's sheets (`design/characters`
+  → `assets/characters`). Animated versions (Rive) and more expressions are pending.
 - Only the General Knowledge Quiz is playable; the other games show "قريباً".

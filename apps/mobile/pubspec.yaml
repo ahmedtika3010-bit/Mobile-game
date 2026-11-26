@@ -24,9 +24,24 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    # Cut out from the designer's character sheets (design/characters).
+    - assets/characters/
   fonts:
     # Cairo (SIL Open Font License, see assets/fonts/OFL.txt). Bundled so Arabic
     # renders the same on every device and works offline.
     - family: Cairo
       fonts:
         - asset: assets/fonts/Cairo.ttf
+    # Baloo Bhaijaan 2 (SIL Open Font License, see assets/fonts/OFL-BalooBhaijaan2.txt):
+    # rounded, playful display face for titles, buttons and game text.
+    - family: Baloo
+      fonts:
+        - asset: assets/fonts/BalooBhaijaan2-500.ttf
+          weight: 500
+        - asset: assets/fonts/BalooBhaijaan2-600.ttf
+          weight: 600
+        - asset: assets/fonts/BalooBhaijaan2-700.ttf
+          weight: 700
+        - asset: assets/fonts/BalooBhaijaan2-800.ttf
+          weight: 800

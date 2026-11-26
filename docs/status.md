@@ -31,7 +31,7 @@ Updated: 2026-11-26. "Done" means connected end to end and covered by tests.
 
 - Google and Apple sign-in: code is in place, but needs your OAuth client ids and Apple capability (see `docs/mobile.md`). Apple is iOS only.
 - Android and iOS builds: not built or run on a device yet (no Android SDK or Mac in this environment).
-- Chibi avatars: placeholder drawings only.
+- Characters: four designer characters (Kairo, Sira, Forest spirit, Rithia), cut out of the character sheets in `design/characters` as still images. Expressions and animation (Rive) are still to come; ideally the designer delivers separate transparent PNGs or Rive files per pose.
 
 ## Pending (not started or not usable yet)
 

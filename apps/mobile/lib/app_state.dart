@@ -23,12 +23,16 @@ class AppState extends ChangeNotifier {
   UserProfile? user;
   bool loading = true;
 
+  /// Coins, gems, xp and level from the server; null until loaded.
+  Map<String, dynamic>? wallet;
+
   bool get signedIn => user != null;
   bool get canPlay => user?.onboarded == true && user?.status == 'active';
 
   Future<void> init() async {
     try {
       if (await api.isSignedIn) user = await api.me();
+      if (canPlay) await refreshWallet(notify: false);
     } catch (_) {
       user = null;
     } finally {
@@ -39,7 +43,17 @@ class AppState extends ChangeNotifier {
 
   Future<void> afterSignIn(UserProfile p) async {
     user = p;
+    if (canPlay) await refreshWallet(notify: false);
     notifyListeners();
+  }
+
+  Future<void> refreshWallet({bool notify = true}) async {
+    try {
+      wallet = await api.wallet();
+    } catch (_) {
+      // Wallet is decorative on these screens; keep the last value.
+    }
+    if (notify) notifyListeners();
   }
 
   Future<void> onboard(
@@ -50,12 +64,14 @@ class AppState extends ChangeNotifier {
         displayName: displayName,
         dateOfBirth: user?.ageBand == 'unknown' ? dob : null,
         avatarId: avatarId);
+    if (canPlay) await refreshWallet(notify: false);
     notifyListeners();
   }
 
   Future<void> signOut() async {
     await api.signOut();
     user = null;
+    wallet = null;
     notifyListeners();
   }
 }
