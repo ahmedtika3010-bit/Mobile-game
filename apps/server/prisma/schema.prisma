@@ -1,0 +1,348 @@
+// Sahra platform database schema.
+// Economy balances are never edited directly: every change is a LedgerEntry
+// with a unique idempotency key, so retries and reconnects cannot double-grant.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AgeBand {
+  under_13
+  unknown
+  teen_13_15
+  teen_16_17
+  adult
+}
+
+enum AccountStatus {
+  active
+  restricted // immediate protective restriction pending review
+  suspended
+  deleted
+}
+
+enum AuthProvider {
+  google
+  apple
+  dev // local development only, disabled unless DEV_AUTH=1
+}
+
+model User {
+  id            String         @id @default(uuid())
+  displayName   String?
+  avatarId      String         @default("chibi_base_1")
+  /// Stored for age-eligibility checks only; never exposed through public APIs.
+  dateOfBirth   DateTime?      @db.Date
+  ageBand       AgeBand        @default(unknown)
+  status        AccountStatus  @default(active)
+  onboarded     Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  identities    AuthIdentity[]
+  refreshTokens RefreshToken[]
+  matchPlayers  MatchPlayer[]
+  ratings       SkillRating[]
+  ledger        LedgerEntry[]
+  progress      Progression?
+  reportsMade   Report[]       @relation("reporter")
+  reportsAbout  Report[]       @relation("reported")
+  blocks        Block[]        @relation("blocker")
+  blockedBy     Block[]        @relation("blocked")
+  sanctions     Sanction[]
+  adminRole     AdminRole?
+}
+
+model AuthIdentity {
+  id         String       @id @default(uuid())
+  provider   AuthProvider
+  subject    String
+  email      String?
+  userId     String
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime     @default(now())
+
+  @@unique([provider, subject])
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+}
+
+// ---------------- Content ----------------
+
+enum ContentStatus {
+  draft
+  in_review
+  approved
+  rejected
+  retired
+}
+
+enum ContentSource {
+  human
+  import_csv
+  ai_suggested // never playable until a human approves it
+}
+
+model ContentItem {
+  id            String          @id @default(uuid())
+  gameId        String
+  category      String
+  language      String          @default("ar")
+  locale        String?         // dialect/region, e.g. "ar-EG"
+  difficulty    String          // easy | medium | hard
+  /// Game-specific payload, e.g. { prompt, choices[], correct, explanation }
+  payload       Json
+  acceptedAnswers String[]      @default([])
+  status        ContentStatus   @default(draft)
+  source        ContentSource   @default(human)
+  /// For time-sensitive facts (e.g. football): the date the fact refers to.
+  factAsOf      DateTime?       @db.Date
+  expiresAt     DateTime?
+  publishedAt   DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  reviews       ContentReview[]
+  importBatchId String?
+  importBatch   ImportBatch?    @relation(fields: [importBatchId], references: [id])
+
+  @@index([gameId, status, language, difficulty])
+}
+
+model ContentReview {
+  id         String        @id @default(uuid())
+  itemId     String
+  item       ContentItem   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  reviewerId String
+  decision   ContentStatus
+  note       String?
+  createdAt  DateTime      @default(now())
+}
+
+model ImportBatch {
+  id         String        @id @default(uuid())
+  uploadedBy String
+  fileName   String
+  rowCount   Int
+  errorCount Int
+  errors     Json          @default("[]")
+  createdAt  DateTime      @default(now())
+  items      ContentItem[]
+}
+
+// ---------------- Matches ----------------
+
+enum MatchState {
+  in_progress
+  completed
+  aborted
+  provisional // a valid dispute is pending
+}
+
+model Match {
+  id          String        @id @default(uuid())
+  roomId      String
+  gameId      String
+  mode        String        // casual | ranked | private
+  commMode    String        // normal | safe
+  config      Json
+  seed        String
+  state       MatchState    @default(in_progress)
+  integrityOk Boolean       @default(true)
+  startedAt   DateTime      @default(now())
+  endedAt     DateTime?
+  players     MatchPlayer[]
+  events      MatchEvent[]
+}
+
+model MatchPlayer {
+  matchId     String
+  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  team        Int?
+  score       Int      @default(0)
+  place       Int?
+  /// Normalized 0..1 performance for cross-game summaries (Game Night).
+  performance Float?
+  leftEarly   Boolean  @default(false)
+
+  @@id([matchId, userId])
+}
+
+model MatchEvent {
+  id        BigInt   @id @default(autoincrement())
+  matchId   String
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  at        DateTime @default(now())
+  userId    String?
+  kind      String
+  data      Json
+
+  @@index([matchId])
+}
+
+// ---------------- Ratings & progression ----------------
+
+model SkillRating {
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  gameId      String
+  mu          Float
+  sigma       Float
+  matches     Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  @@id([userId, gameId])
+}
+
+model RatingChange {
+  id        String   @id @default(uuid())
+  matchId   String
+  userId    String
+  gameId    String
+  muBefore  Float
+  muAfter   Float
+  sigmaBefore Float
+  sigmaAfter  Float
+  createdAt DateTime @default(now())
+
+  @@unique([matchId, userId])
+}
+
+model Progression {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id])
+  xp        Int      @default(0)
+  level     Int      @default(1)
+  updatedAt DateTime @updatedAt
+}
+
+enum Currency {
+  coins
+  gems
+  xp
+}
+
+model LedgerEntry {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  currency       Currency
+  amount         Int
+  reason         String   // match_reward | purchase | mission | admin_adjust ...
+  /// Unique per logical grant, e.g. "match:<matchId>:<userId>:coins".
+  idempotencyKey String   @unique
+  refId          String?
+  createdAt      DateTime @default(now())
+
+  @@index([userId, currency])
+}
+
+// ---------------- Safety ----------------
+
+enum ReportSeverity {
+  critical
+  high
+  medium
+  low
+}
+
+enum ReportStatus {
+  open
+  in_review
+  actioned
+  dismissed
+}
+
+model Report {
+  id          String         @id @default(uuid())
+  reporterId  String
+  reporter    User           @relation("reporter", fields: [reporterId], references: [id])
+  reportedId  String
+  reported    User           @relation("reported", fields: [reportedId], references: [id])
+  reason      String
+  severity    ReportSeverity
+  status      ReportStatus   @default(open)
+  matchId     String?
+  roomId      String?
+  note        String?
+  /// Minimal evidence (e.g. recent match events); purged after retention period.
+  evidence    Json?
+  evidenceExpiresAt DateTime?
+  createdAt   DateTime       @default(now())
+  resolvedAt  DateTime?
+  resolvedBy  String?
+
+  @@index([status, severity])
+}
+
+model Block {
+  blockerId String
+  blocker   User     @relation("blocker", fields: [blockerId], references: [id])
+  blockedId String
+  blocked   User     @relation("blocked", fields: [blockedId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@id([blockerId, blockedId])
+}
+
+enum SanctionKind {
+  warning
+  comm_restriction
+  ranked_ban
+  suspension
+}
+
+model Sanction {
+  id        String       @id @default(uuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id])
+  kind      SanctionKind
+  reason    String
+  reportId  String?
+  issuedBy  String
+  startsAt  DateTime     @default(now())
+  endsAt    DateTime?
+  revokedAt DateTime?
+  appeal    String?
+  createdAt DateTime     @default(now())
+}
+
+// ---------------- Admin ----------------
+
+enum AdminRoleKind {
+  owner
+  moderator
+  content_editor
+}
+
+model AdminRole {
+  userId    String        @id
+  user      User          @relation(fields: [userId], references: [id])
+  role      AdminRoleKind
+  createdAt DateTime      @default(now())
+}
+
+model AuditLog {
+  id        BigInt   @id @default(autoincrement())
+  actorId   String
+  action    String
+  targetType String
+  targetId  String?
+  data      Json?
+  at        DateTime @default(now())
+
+  @@index([targetType, targetId])
+}
