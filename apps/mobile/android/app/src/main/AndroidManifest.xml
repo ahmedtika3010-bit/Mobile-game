@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Online multiplayer needs network access in every build. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="sahra"
+        android:label="سهرة"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
