@@ -19,9 +19,23 @@ Updated: 2026-11-26. "Done" means connected end to end and covered by tests.
 | Safety | Reports with severity, automatic restriction on critical reports, auto-block on report, blocking API, evidence retention date |
 | Admin API | Report queue and resolution with sanctions, content create, CSV import as drafts, human approval, audit log, basic stats; roles ready for moderators |
 
+## Done (app)
+
+| Area | Notes |
+| --- | --- |
+| Dart client | HTTP API with token refresh, Colyseus 0.16 protocol, MessagePack, clock sync, automatic reconnect within 90 s. Tested live against the server |
+| Flutter app | Arabic RTL, home with the game list, sign-in, onboarding (name, avatar, date of birth), quiz hub (quick, ranked, private create, join by code), lobby, countdown, question, reveal, results with rewards, approved phrases, Safe Mode badge, report and block, reconnecting banner, safety center |
+| Verified | Widget tests, and a browser-driven web build playing a full private match against a bot through to the results screen |
+
+## Partial
+
+- Google and Apple sign-in: code is in place, but needs your OAuth client ids and Apple capability (see `docs/mobile.md`). Apple is iOS only.
+- Android and iOS builds: not built or run on a device yet (no Android SDK or Mac in this environment).
+- Chibi avatars: placeholder drawings only.
+
 ## Pending (not started or not usable yet)
 
-- Flutter mobile app (next step), design system, Chibi avatars (needs an artist)
+- Final Chibi art and animation (needs an artist), sound, haptics polish
 - Web admin dashboard UI (API exists)
 - The other nine games, Game Night, friends, presence, direct messages, notifications
 - Missions, achievements, leaderboards, cosmetics shop, Gems purchases (store billing), rewarded ads

@@ -12,11 +12,12 @@ See [`docs/status.md`](docs/status.md) for exactly what works today.
 | `packages/shared` | Types and rules shared by server and clients: wire protocol, Arabic answer normalization, age bands and Safe Mode policy |
 | `apps/server` | Authoritative game server (Colyseus over WebSocket) + HTTP API (Express), PostgreSQL via Prisma |
 | `apps/server/prisma` | Database schema, migrations, sample seed |
-| `apps/mobile` | Flutter app (coming next) |
+| `packages/sahra_client` | Pure-Dart client for the API and game server (used by the app, testable without Flutter) |
+| `apps/mobile` | Flutter app for Android and iOS, see [`docs/mobile.md`](docs/mobile.md) |
 
 ## Run locally
 
-Requirements: Node 20+, PostgreSQL 16 (or `docker compose up -d`).
+Requirements: Node 20+, PostgreSQL 16 (or `docker compose up -d`). Flutter 3.47 (the version tested) for the app.
 
 ```bash
 npm install
