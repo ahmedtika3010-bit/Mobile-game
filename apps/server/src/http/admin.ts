@@ -5,7 +5,7 @@
 import { Router } from 'express';
 import { parse } from 'csv-parse/sync';
 import { z } from 'zod';
-import { QUIZ_CATEGORIES, SPY_CATEGORIES } from '@sahra/shared';
+import { LIAR_CATEGORIES, QUIZ_CATEGORIES, SPY_CATEGORIES } from '@sahra/shared';
 import { prisma } from '../db';
 import { audit } from '../safety/audit';
 import { HttpError, requireAdmin, wrap } from './app';
@@ -38,6 +38,25 @@ const spyItemSchema = z.object({
   source: z.enum(['human', 'ai_suggested']).default('human'),
 });
 
+const liarPayload = z
+  .object({
+    main: z.string().trim().min(5).max(140),
+    odd: z.string().trim().min(5).max(140),
+    options: z.array(z.string().trim().min(1).max(40)).min(3).max(6),
+  })
+  .refine((p) => p.main !== p.odd, { message: 'questions must differ' })
+  .refine((p) => new Set(p.options).size === p.options.length, { message: 'duplicate options' });
+
+const liarItemSchema = z.object({
+  gameId: z.literal('liar'),
+  category: z.enum(LIAR_CATEGORIES as [string, ...string[]]),
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+  language: z.string().default('ar'),
+  locale: z.string().optional(),
+  payload: liarPayload,
+  source: z.enum(['human', 'ai_suggested']).default('human'),
+});
+
 const quizItemSchema = z.object({
   gameId: z.literal('quiz'),
   category: z.enum(QUIZ_CATEGORIES as [string, ...string[]]),
@@ -50,7 +69,7 @@ const quizItemSchema = z.object({
   source: z.enum(['human', 'ai_suggested']).default('human'),
 });
 
-const itemSchema = z.discriminatedUnion('gameId', [quizItemSchema, spyItemSchema]);
+const itemSchema = z.discriminatedUnion('gameId', [quizItemSchema, spyItemSchema, liarItemSchema]);
 
 /** CSV columns for quiz imports (UTF-8, header row required). */
 export const QUIZ_CSV_COLUMNS = [
@@ -63,7 +82,7 @@ export function adminRouter() {
   /* ---------------- content ---------------- */
   r.get('/content', requireAdmin('content_editor'), wrap(async (req, res) => {
     const status = z.enum(['draft', 'in_review', 'approved', 'rejected', 'retired']).optional().parse(req.query.status);
-    const gameId = z.enum(['quiz', 'spy']).default('quiz').parse(req.query.gameId);
+    const gameId = z.enum(['quiz', 'spy', 'liar']).default('quiz').parse(req.query.gameId);
     const items = await prisma.contentItem.findMany({
       where: { gameId, ...(status ? { status } : {}) },
       orderBy: { createdAt: 'desc' },

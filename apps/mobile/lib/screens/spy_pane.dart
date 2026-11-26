@@ -219,7 +219,7 @@ class _SpyPaneState extends State<SpyPane> {
           padding: const EdgeInsets.only(bottom: Tokens.s8),
           child: Opacity(
             opacity: _target == null ? 0.55 : 1,
-            child: _OptionTile(
+            child: OptionTile(
               key: Key('spyQuestion$i'),
               text: q,
               color: Tokens.choiceColors[i % Tokens.choiceColors.length],
@@ -261,14 +261,14 @@ class _SpyPaneState extends State<SpyPane> {
       const SizedBox(height: Tokens.s12),
       // Asker → target, and the question card.
       Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        _MiniPlayer(player: asker),
+        MiniPlayer(player: asker),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: Tokens.s12),
           child: Icon(Icons.arrow_forward_rounded,
               color: Tokens.textDim,
               size: 30), // mirrors in RTL: points to the target
         ),
-        _MiniPlayer(player: target, highlight: true),
+        MiniPlayer(player: target, highlight: true),
       ]),
       const SizedBox(height: Tokens.s12),
       PopIn(
@@ -305,7 +305,7 @@ class _SpyPaneState extends State<SpyPane> {
         for (var i = 0; i < 5; i++)
           Padding(
             padding: const EdgeInsets.only(bottom: Tokens.s8),
-            child: _OptionTile(
+            child: OptionTile(
               key: Key('spyAnswer$i'),
               text: S.of('spyAnswer_$i'),
               color: _answerColors[i],
@@ -355,7 +355,7 @@ class _SpyPaneState extends State<SpyPane> {
       Text(S.of('discussHint'),
           style: const TextStyle(color: Tokens.textDim, height: 1.4)),
       const SizedBox(height: Tokens.s12),
-      _PlayerGrid(
+      PartyPlayerGrid(
         players: widget.view.players,
         you: you,
         bubbles: widget.bubbles,
@@ -400,7 +400,7 @@ class _SpyPaneState extends State<SpyPane> {
       const SizedBox(height: Tokens.s16),
       Expanded(
         child: SingleChildScrollView(
-          child: _PlayerGrid(
+          child: PartyPlayerGrid(
             players: widget.view.players,
             you: you,
             bubbles: widget.bubbles,
@@ -602,8 +602,8 @@ class _RoleStripState extends State<_RoleStrip> {
   }
 }
 
-class _MiniPlayer extends StatelessWidget {
-  const _MiniPlayer({required this.player, this.highlight = false});
+class MiniPlayer extends StatelessWidget {
+  const MiniPlayer({super.key, required this.player, this.highlight = false});
   final PublicPlayer? player;
   final bool highlight;
   @override
@@ -655,8 +655,8 @@ class _AnswerChip extends StatelessWidget {
   }
 }
 
-class _OptionTile extends StatelessWidget {
-  const _OptionTile(
+class OptionTile extends StatelessWidget {
+  const OptionTile(
       {super.key,
       required this.text,
       required this.color,
@@ -725,7 +725,7 @@ class _AvatarPicker extends StatelessWidget {
                   child: Opacity(
                     opacity:
                         selected == null || selected == p.playerId ? 1 : 0.5,
-                    child: _MiniPlayer(
+                    child: MiniPlayer(
                         player: p, highlight: selected == p.playerId),
                   ),
                 ),
@@ -735,9 +735,10 @@ class _AvatarPicker extends StatelessWidget {
       );
 }
 
-class _PlayerGrid extends StatelessWidget {
-  const _PlayerGrid(
-      {required this.players,
+class PartyPlayerGrid extends StatelessWidget {
+  const PartyPlayerGrid(
+      {super.key,
+      required this.players,
       required this.you,
       required this.bubbles,
       required this.selected,

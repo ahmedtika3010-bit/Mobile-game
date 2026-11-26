@@ -54,9 +54,21 @@ final _games = [
         ('🤫', S.of('tagSecretRoles')),
         ('🗳️', S.of('tagVoting')),
       ]),
+  _GameInfo('liar', S.of('game_liar'), '🤥', Tokens.coral,
+      playable: true,
+      desc: S.of('game_liar_desc'),
+      gradient: const [
+        Color(0xFFFFB03D),
+        Color(0xFFFF5A7A),
+        Color(0xFFB0328F)
+      ],
+      tags: [
+        ('👥', S.of('tagSpyPlayers')),
+        ('🔁', S.of('tagLiarRounds')),
+        ('🗳️', S.of('tagVoting')),
+      ]),
   const _GameInfo('football', 'تحديات الكورة', '⚽', Tokens.mint),
   const _GameInfo('stop', 'أتوبيس كومبليت', '🚌', Tokens.orange),
-  const _GameInfo('liar', 'مين الكداب؟', '🤥', Tokens.coral),
   const _GameInfo('who', 'مين فينا؟', '👀', Tokens.pink),
   const _GameInfo('draw', 'ارسم وخمّن', '🎨', Tokens.sky),
   const _GameInfo('emoji', 'خمّن بالإيموجي', '😎', Tokens.sun),
@@ -368,8 +380,8 @@ class _FeaturedCard extends StatelessWidget {
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Pill(
-                text: S.of(game.id == 'spy' ? 'newTag' : 'popularTag'),
-                emoji: game.id == 'spy' ? '✨' : '🔥',
+                text: S.of(game.id != 'quiz' ? 'newTag' : 'popularTag'),
+                emoji: game.id != 'quiz' ? '✨' : '🔥',
                 color: Colors.white,
                 solid: true),
             const SizedBox(height: Tokens.s12),

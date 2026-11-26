@@ -28,6 +28,12 @@ const _hubs = {
     ('🗳️', 'spyRule3'),
     ('🎯', 'spyRule4'),
   ]),
+  'liar': _HubInfo('🤥', Tokens.coral, {}, rules: [
+    ('🤫', 'liarRule1'),
+    ('✍️', 'liarRule2'),
+    ('👀', 'liarRule3'),
+    ('🗳️', 'liarRule4'),
+  ]),
 };
 
 /// Entry screen of a game: quick play, practice, ranked, private rooms.
@@ -47,6 +53,7 @@ class _GameHubScreenState extends State<GameHubScreen> {
   bool _ranked = false;
   bool _practice = false;
   int _spies = 1;
+  String _difficulty = 'medium';
 
   String get gameId => widget.gameId;
   _HubInfo get info => _hubs[gameId]!;
@@ -195,6 +202,7 @@ class _GameHubScreenState extends State<GameHubScreen> {
                               config: {
                                 ...info.privateConfig,
                                 if (gameId == 'spy') 'spies': _spies,
+                                if (gameId == 'liar') 'difficulty': _difficulty,
                               }))
                   : null,
             ),
@@ -203,6 +211,12 @@ class _GameHubScreenState extends State<GameHubScreen> {
             const SizedBox(height: Tokens.s8),
             _SpyCountPicker(
                 value: _spies, onChanged: (n) => setState(() => _spies = n)),
+          ],
+          if (gameId == 'liar') ...[
+            const SizedBox(height: Tokens.s8),
+            _DifficultyPicker(
+                value: _difficulty,
+                onChanged: (d) => setState(() => _difficulty = d)),
           ],
           const SizedBox(height: Tokens.s24),
           FadeSlideIn(
@@ -346,6 +360,49 @@ class _SpyCountPicker extends StatelessWidget {
               ),
             ),
           ),
+      ]);
+}
+
+class _DifficultyPicker extends StatelessWidget {
+  const _DifficultyPicker({required this.value, required this.onChanged});
+  final String value;
+  final ValueChanged<String> onChanged;
+  static const _emoji = {'easy': '🌱', 'medium': '🔥', 'hard': '🌶️'};
+  @override
+  Widget build(BuildContext context) =>
+      Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          Expanded(
+            child: Text(S.of('difficulty'),
+                style: const TextStyle(
+                    color: Tokens.textDim, fontWeight: FontWeight.w700)),
+          ),
+          for (final d in const ['easy', 'medium', 'hard'])
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: Tokens.s8),
+              child: Pressable(
+                onTap: () => onChanged(d),
+                semanticLabel: '${S.of('difficulty')} ${S.of('diff_$d')}',
+                child: AnimatedContainer(
+                  duration: Tokens.fast,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: Tokens.s12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: value == d ? Tokens.mint : Tokens.glass,
+                    borderRadius: const BorderRadius.all(Radius.circular(99)),
+                    border: Border.all(color: Tokens.glassBorder),
+                  ),
+                  child: Text('${_emoji[d]} ${S.of('diff_$d')}',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: value == d ? Tokens.ink : Colors.white)),
+                ),
+              ),
+            ),
+        ]),
+        const SizedBox(height: 4),
+        Text(S.of('liarDifficultyHint'),
+            style: const TextStyle(color: Tokens.textFaint, fontSize: 12.5)),
       ]);
 }
 

@@ -23,7 +23,7 @@ Future<void> _settle(WidgetTester tester) async {
 void main() {
   testWidgets('home is right-to-left and lets guests browse games',
       (tester) async {
-    tester.view.physicalSize = const Size(1170, 6000);
+    tester.view.physicalSize = const Size(1170, 8000);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(SahraApp(state: _state()));
@@ -31,8 +31,8 @@ void main() {
     expect(Directionality.of(tester.element(find.text('تحدي المعلومات'))),
         TextDirection.rtl);
     expect(find.text('تحدي المعلومات'), findsOneWidget);
-    // The other nine games are visible but clearly not playable yet.
-    expect(find.textContaining('قريباً'), findsNWidgets(8));
+    // The other seven games are visible but clearly not playable yet.
+    expect(find.textContaining('قريباً'), findsNWidgets(7));
   });
 
   testWidgets('playing without an account asks the guest to sign in',

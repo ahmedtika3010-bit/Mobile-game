@@ -6,7 +6,8 @@
  *    It was drafted with AI help, so it is inserted as `in_review` with
  *    source `ai_suggested` and must be fact-checked before release.
  * Spy packs (prisma/content/spy_ar_v1.json: words + approved questions per
- * category) follow the same rule: AI-assisted, `in_review` until approved.
+ * category) and Liar question pairs (prisma/content/liar_ar_v1.json) follow
+ * the same rule: AI-assisted, `in_review` until approved.
  * For local testing only, `npm run db:seed -- --approve-for-local-testing`
  * approves everything directly. Re-running only adds questions whose prompt
  * is not in the database yet.
@@ -82,9 +83,32 @@ async function seedSpy(approve: boolean) {
   console.log(`inserted ${fresh.length} spy packs as ${approve ? 'approved (local testing)' : 'in_review'}`);
 }
 
+type LiarPairFile = { category: string; difficulty: string; main: string; odd: string; options: string[] }[];
+
+async function seedLiar(approve: boolean) {
+  const pairs: LiarPairFile = JSON.parse(readFileSync(join(__dirname, 'content', 'liar_ar_v1.json'), 'utf8'));
+  const existing = await prisma.contentItem.findMany({ where: { gameId: 'liar' }, select: { payload: true } });
+  const have = new Set(existing.map((e) => (e.payload as { main?: string }).main));
+  const fresh = pairs.filter((p) => !have.has(p.main));
+  if (fresh.length === 0) return console.log(`liar content up to date (${existing.length} pairs)`);
+  await prisma.contentItem.createMany({
+    data: fresh.map((p) => ({
+      gameId: 'liar',
+      category: p.category,
+      difficulty: p.difficulty,
+      payload: { main: p.main, odd: p.odd, options: p.options },
+      source: 'ai_suggested' as const,
+      status: approve ? ('approved' as const) : ('in_review' as const),
+      publishedAt: approve ? new Date() : null,
+    })),
+  });
+  console.log(`inserted ${fresh.length} liar pairs as ${approve ? 'approved (local testing)' : 'in_review'}`);
+}
+
 async function main() {
   const approve = process.argv.includes('--approve-for-local-testing');
   await seedSpy(approve);
+  await seedLiar(approve);
   const all: Row[] = [
     ...QUESTIONS.map(([category, difficulty, prompt, choices, explanation]) => ({
       category, difficulty, prompt, choices, correct: 0, explanation: explanation ?? null, source: 'human' as const,

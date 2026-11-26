@@ -168,6 +168,10 @@ class GameSession {
   void spyVote(String target) => action({'kind': 'vote', 'target': target});
   void spyGuess(int choice) => action({'kind': 'guess', 'choice': choice});
 
+  // Who Is the Liar? (suspect / ready / vote share the Spy actions' shape)
+  void liarAnswer(int round, int choice) =>
+      action({'kind': 'answer', 'round': round, 'choice': choice});
+
   void setReady(bool ready) => _room.send('ready', {'ready': ready});
   void start() => _room.send('start', {});
   void sendPhrase(String phraseId) =>

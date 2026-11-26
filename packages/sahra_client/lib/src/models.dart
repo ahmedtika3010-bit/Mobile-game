@@ -118,7 +118,10 @@ class RoomView {
             : QuizView.fromJson((j['game'] as Map).cast()),
         spy = j['game'] == null || j['gameId'] != 'spy'
             ? null
-            : SpyView.fromJson((j['game'] as Map).cast());
+            : SpyView.fromJson((j['game'] as Map).cast()),
+        liar = j['game'] == null || j['gameId'] != 'liar'
+            ? null
+            : LiarView.fromJson((j['game'] as Map).cast());
   final String roomId;
   final String? code;
   final String gameId;
@@ -132,6 +135,7 @@ class RoomView {
   final int expectedDurationSec;
   final QuizView? quiz;
   final SpyView? spy;
+  final LiarView? liar;
 
   PublicPlayer? get me => players.where((p) => p.playerId == you).firstOrNull;
   bool get isSafeMode => commMode == 'safe';
@@ -237,6 +241,93 @@ class SpyView {
   final SpyFinal? final_;
 
   bool get isSpy => role == 'spy';
+}
+
+/// Who Is the Liar? (مين الكداب؟). See packages/shared/src/liar.ts.
+class LiarRoundResult {
+  LiarRoundResult.fromJson(Map<String, dynamic> j)
+      : round = _int(j['round']),
+        liar = j['liar'] as String,
+        mainQuestion = j['mainQuestion'] as String,
+        oddQuestion = j['oddQuestion'] as String,
+        voteCounts =
+            (j['voteCounts'] as Map).map((k, v) => MapEntry('$k', _int(v))),
+        accused = j['accused'] as String?,
+        caught = j['caught'] == true,
+        points = (j['points'] as Map).map((k, v) => MapEntry('$k', _int(v)));
+  final int round;
+  final String liar;
+  final String mainQuestion;
+  final String oddQuestion;
+  final Map<String, int> voteCounts;
+  final String? accused;
+  final bool caught;
+  final Map<String, int> points;
+}
+
+class LiarFinal {
+  LiarFinal.fromJson(Map<String, dynamic> j)
+      : rounds = (j['rounds'] as List)
+            .map((e) => LiarRoundResult.fromJson((e as Map).cast()))
+            .toList(),
+        ranking = (j['ranking'] as List)
+            .map((e) => RankingEntry.fromJson(
+                {...(e as Map).cast<String, dynamic>(), 'correct': 0}))
+            .toList();
+  final List<LiarRoundResult> rounds;
+  final List<RankingEntry> ranking;
+}
+
+class LiarView {
+  LiarView.fromJson(Map<String, dynamic> j)
+      : stage = j['stage'] as String,
+        stageEndsAt = _int(j['stageEndsAt']),
+        round = _int(j['round']),
+        rounds = _int(j['rounds']),
+        difficulty = j['difficulty'] as String,
+        yourQuestion = j['yourQuestion'] as String?,
+        mainQuestion = j['mainQuestion'] as String?,
+        options = (j['options'] as List).cast<String>(),
+        yourAnswer = j['yourAnswer'] == null ? null : _int(j['yourAnswer']),
+        answeredCount = _int(j['answeredCount']),
+        answers = (j['answers'] as Map?)
+            ?.map((k, v) => MapEntry('$k', v == null ? null : _int(v))),
+        youAreLiar = j['youAreLiar'] as bool?,
+        suspicions =
+            (j['suspicions'] as Map).map((k, v) => MapEntry('$k', v as String)),
+        readyCount = _int(j['readyCount']),
+        youReady = j['youReady'] == true,
+        yourVote = j['yourVote'] as String?,
+        votedCount = _int(j['votedCount']),
+        scores = (j['scores'] as Map).map((k, v) => MapEntry('$k', _int(v))),
+        lastRound = j['lastRound'] == null
+            ? null
+            : LiarRoundResult.fromJson((j['lastRound'] as Map).cast()),
+        final_ = j['final'] == null
+            ? null
+            : LiarFinal.fromJson((j['final'] as Map).cast());
+
+  /// answer | discuss | vote | roundEnd | finished
+  final String stage;
+  final int stageEndsAt;
+  final int round;
+  final int rounds;
+  final String difficulty;
+  final String? yourQuestion;
+  final String? mainQuestion;
+  final List<String> options;
+  final int? yourAnswer;
+  final int answeredCount;
+  final Map<String, int?>? answers;
+  final bool? youAreLiar;
+  final Map<String, String> suspicions;
+  final int readyCount;
+  final bool youReady;
+  final String? yourVote;
+  final int votedCount;
+  final Map<String, int> scores;
+  final LiarRoundResult? lastRound;
+  final LiarFinal? final_;
 }
 
 class MatchSummary {
