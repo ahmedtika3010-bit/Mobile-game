@@ -6,7 +6,8 @@
 import type { CommMode } from './age';
 
 export type GameId = 'quiz';
-export type MatchMode = 'casual' | 'ranked' | 'private';
+/** practice = one player against labelled bots; no rewards, nothing saved. */
+export type MatchMode = 'casual' | 'ranked' | 'private' | 'practice';
 export type Difficulty = 'easy' | 'medium' | 'hard';
 export type SessionLength = 'quick' | 'standard' | 'extended';
 
@@ -21,6 +22,8 @@ export interface PublicPlayer {
   isHost: boolean;
   /** Joined mid-match: waits in the lobby until the next match. */
   waiting: boolean;
+  /** A computer player (practice mode only); always shown as a bot. */
+  isBot?: boolean;
 }
 
 export interface RoomView<GameView = unknown> {

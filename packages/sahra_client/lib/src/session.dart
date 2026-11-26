@@ -63,6 +63,16 @@ class GameSession {
             'game', {...t.joinOptions, if (config != null) 'config': config}));
   }
 
+  /// One player against labelled bots. Starts by itself; no rewards.
+  static Future<GameSession> practice(SahraApi api, ColyseusClient client,
+      {required String gameId, Map<String, dynamic>? config}) async {
+    final t = await api.ticket(gameId, 'practice');
+    return _start(
+        client,
+        await client.create(
+            'game', {...t.joinOptions, if (config != null) 'config': config}));
+  }
+
   static Future<GameSession> joinByCode(SahraApi api, ColyseusClient client,
       {required String gameId, required String code}) async {
     final roomId = await api.roomIdForCode(code);

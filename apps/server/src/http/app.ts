@@ -94,7 +94,7 @@ const profileSchema = z.object({
 
 const ticketSchema = z.object({
   gameId: z.string(),
-  mode: z.enum(['casual', 'ranked', 'private']),
+  mode: z.enum(['casual', 'ranked', 'private', 'practice']),
 });
 
 export function createApp(presence: Presence) {
@@ -207,7 +207,7 @@ export function createApp(presence: Presence) {
       ticket,
       roomName: 'game',
       // Clients pass these as join options; the room re-checks them against the ticket.
-      options: { gameId, mode: mode as MatchMode, ageBucket: mode === 'private' ? 'any' : ageBucket },
+      options: { gameId, mode: mode as MatchMode, ageBucket: mode === 'private' || mode === 'practice' ? 'any' : ageBucket },
     });
   }));
 

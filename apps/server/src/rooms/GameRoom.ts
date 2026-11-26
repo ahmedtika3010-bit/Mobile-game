@@ -39,7 +39,17 @@ interface Member {
   ready: boolean;
   connected: boolean;
   waiting: boolean;
+  /** Practice-mode computer player: no connection, no account, never host. */
+  isBot?: boolean;
+  botSkill?: number;
 }
+
+/** Practice bots: clearly named as bots, using the starter characters. */
+const PRACTICE_BOTS = [
+  { name: 'بوت نور', avatarId: 'chibi_rithia', skill: 0.55 },
+  { name: 'بوت كريم', avatarId: 'chibi_kairo', skill: 0.65 },
+  { name: 'بوت ورقة', avatarId: 'chibi_forest', skill: 0.75 },
+];
 
 export interface CreateOptions {
   gameId: string;
@@ -77,12 +87,15 @@ export class GameRoom extends Room {
   private countdownEndsAt: number | null = null;
   private countdownTimer: Delayed | null = null;
   private wakeTimer: Delayed | null = null;
+  private resetTimer: Delayed | null = null;
   private gameState: any = null;
   private matchId: string | null = null;
   private matchPlayers: string[] = [];
   private leftEarly = new Set<string>();
   private actionLog: ActionLogEntry[] = [];
   private finalizing: Promise<void> | null = null;
+  private botTimers = new Map<string, { key: string; timer: Delayed }>();
+  private botRng = new Rng(randomUUID());
 
   async onCreate(options: CreateOptions) {
     const game = getGame(options.gameId);
@@ -98,6 +111,11 @@ export class GameRoom extends Room {
     if (this.mode === 'private') {
       this.code = await this.allocateCode();
       // Private rooms are joined by code only, never by public matchmaking.
+      await this.setPrivate(true);
+    }
+    if (this.mode === 'practice') {
+      // One person against bots; nobody else can find or join this room.
+      this.maxClients = 1;
       await this.setPrivate(true);
     }
     await this.setMetadata({
@@ -144,7 +162,7 @@ export class GameRoom extends Room {
     if (this.ageBucket !== 'any' && matchmakingAgeBucket(user.ageBand) !== this.ageBucket) throw new Error('age_bucket_mismatch');
 
     // In public rooms, never seat players who have blocked each other.
-    if (this.mode !== 'private' && this.members.size > 0) {
+    if (this.mode !== 'private' && this.mode !== 'practice' && this.members.size > 0) {
       const others = [...this.members.keys()];
       const conflict = await prisma.block.count({
         where: {
@@ -180,6 +198,11 @@ export class GameRoom extends Room {
     };
     this.members.set(auth.userId, member);
     if (!this.hostId || !this.members.get(this.hostId)?.connected) this.hostId = auth.userId;
+    if (this.mode === 'practice' && ![...this.members.values()].some((m) => m.isBot)) {
+      this.addPracticeBots();
+      this.updateCommMode();
+      return this.beginCountdown(ROOM_TIMING.privateCountdownMs);
+    }
     this.updateCommMode();
     this.maybeAutoCountdown();
     this.broadcastViews();
@@ -221,7 +244,49 @@ export class GameRoom extends Room {
     this.afterStateChange();
   }
 
+  private addPracticeBots() {
+    PRACTICE_BOTS.forEach((b, i) => {
+      const userId = `bot_${i + 1}`;
+      this.members.set(userId, {
+        userId,
+        sessionId: userId,
+        client: null,
+        displayName: b.name,
+        avatarId: b.avatarId,
+        ageBand: 'adult',
+        ready: true,
+        connected: true,
+        waiting: false,
+        isBot: true,
+        botSkill: b.skill,
+      });
+    });
+  }
+
+  /** Schedules each bot's next move once per decision (e.g. once per question). */
+  private scheduleBots() {
+    if (!this.game.botPlan || !this.gameState) return;
+    for (const m of this.members.values()) {
+      if (!m.isBot || !this.matchPlayers.includes(m.userId)) continue;
+      const plan = this.game.botPlan(this.gameState, m.userId, this.botRng, m.botSkill ?? 0.6);
+      if (!plan || this.botTimers.get(m.userId)?.key === plan.key) continue;
+      this.botTimers.get(m.userId)?.timer.clear();
+      const timer = this.clock.setTimeout(() => {
+        if (this.phase !== 'playing' || !this.gameState) return;
+        const now = Date.now();
+        if (this.game.onAction(this.gameState, m.userId, plan.action, now).ok) this.advance(now);
+      }, Math.max(0, plan.at - Date.now()));
+      this.botTimers.set(m.userId, { key: plan.key, timer });
+    }
+  }
+
+  private clearBotTimers() {
+    for (const t of this.botTimers.values()) t.timer.clear();
+    this.botTimers.clear();
+  }
+
   async onDispose() {
+    this.clearBotTimers();
     if (this.code) await this.presence.hdel(CODE_KEY, this.code);
     if (this.phase === 'playing' && this.matchId) {
       await prisma.match.update({ where: { id: this.matchId }, data: { state: 'aborted', endedAt: new Date() } }).catch(() => {});
@@ -237,11 +302,17 @@ export class GameRoom extends Room {
     this.broadcastViews();
   }
 
-  private handleStart(client: Client) {
+  private async handleStart(client: Client) {
     const m = this.memberBySession(client.sessionId);
     if (!m) return;
-    if (this.mode !== 'private') return this.sendError(client, 'not_allowed', 'Public matches start automatically');
+    if (this.mode !== 'private' && this.mode !== 'practice') {
+      return this.sendError(client, 'not_allowed', 'Public matches start automatically');
+    }
     if (m.userId !== this.hostId) return this.sendError(client, 'not_host', 'Only the host can start');
+    // Practice "play again" skips the wait on the results screen.
+    if (this.mode === 'practice' && this.phase === 'results' && this.resetTimer) {
+      await this.resetToLobby();
+    }
     if (this.phase !== 'lobby') return;
     if (this.eligiblePlayers().length < this.game.capabilities.minPlayers) {
       return this.sendError(client, 'not_enough_players', 'Not enough players');
@@ -275,7 +346,7 @@ export class GameRoom extends Room {
   }
 
   private maybeAutoCountdown() {
-    if (this.mode === 'private' || this.phase !== 'lobby') return;
+    if (this.mode === 'private' || this.mode === 'practice' || this.phase !== 'lobby') return;
     const n = this.eligiblePlayers().length;
     if (n < this.game.capabilities.minPlayers) return;
     const full = n >= this.maxClients;
@@ -309,7 +380,8 @@ export class GameRoom extends Room {
       this.phase = 'lobby';
       return this.broadcastViews();
     }
-    if (this.mode !== 'private') await this.lock();
+    const persisted = this.mode !== 'practice';
+    if (this.mode !== 'private' && persisted) await this.lock();
 
     const seed = randomUUID();
     const rng = new Rng(seed);
@@ -321,18 +393,21 @@ export class GameRoom extends Room {
       this.leftEarly.clear();
       this.actionLog = [];
       this.gameState = this.game.setup(this.matchPlayers, this.gameConfig, content, rng, now);
-      const match = await prisma.match.create({
-        data: {
-          roomId: this.roomId,
-          gameId: this.gameId,
-          mode: this.mode,
-          commMode: this.commMode,
-          config: this.gameConfig as object,
-          seed,
-          players: { create: this.matchPlayers.map((userId) => ({ userId })) },
-        },
-      });
-      this.matchId = match.id;
+      this.clearBotTimers();
+      if (persisted) {
+        const match = await prisma.match.create({
+          data: {
+            roomId: this.roomId,
+            gameId: this.gameId,
+            mode: this.mode as Exclude<MatchMode, 'practice'>,
+            commMode: this.commMode,
+            config: this.gameConfig as object,
+            seed,
+            players: { create: this.matchPlayers.map((userId) => ({ userId })) },
+          },
+        });
+        this.matchId = match.id;
+      }
       for (const p of players) p.waiting = false;
       this.phase = 'playing';
       this.advance(Date.now());
@@ -340,7 +415,7 @@ export class GameRoom extends Room {
       this.matchPlayers = [];
       this.gameState = null;
       this.phase = 'lobby';
-      if (this.mode !== 'private') await this.unlock();
+      if (this.mode !== 'private' && persisted) await this.unlock();
       const code = e instanceof Error && e.message === 'not_enough_content' ? 'not_enough_content' : 'start_failed';
       this.broadcast('error', { code, message: 'Could not start the match' });
       this.broadcastViews();
@@ -366,9 +441,21 @@ export class GameRoom extends Room {
     this.wakeTimer?.clear();
     this.wakeTimer = at === null ? null : this.clock.setTimeout(() => this.advance(Date.now()), Math.max(0, at - now));
     this.broadcastViews();
+    this.scheduleBots();
   }
 
   private async finish() {
+    this.clearBotTimers();
+    if (this.mode === 'practice') {
+      // Practice pays nothing and saves nothing, so bots cannot be farmed.
+      for (const m of this.members.values()) {
+        m.client?.send('matchSummary', {
+          summary: { matchId: 'practice', xp: 0, coins: 0, rating: null, notes: ['practice_no_rewards'] },
+        });
+      }
+      this.resetTimer = this.clock.setTimeout(() => this.resetToLobby(), ROOM_TIMING.resultsHoldMs);
+      return;
+    }
     if (this.finalizing || !this.matchId) return;
     const matchId = this.matchId;
     this.finalizing = finalizeMatch({
@@ -391,11 +478,13 @@ export class GameRoom extends Room {
       })
       .finally(() => {
         this.finalizing = null;
-        this.clock.setTimeout(() => this.resetToLobby(), ROOM_TIMING.resultsHoldMs);
+        this.resetTimer = this.clock.setTimeout(() => this.resetToLobby(), ROOM_TIMING.resultsHoldMs);
       });
   }
 
   private async resetToLobby() {
+    this.resetTimer?.clear();
+    this.resetTimer = null;
     this.phase = 'lobby';
     this.gameState = null;
     this.matchId = null;
@@ -405,7 +494,7 @@ export class GameRoom extends Room {
       m.waiting = false;
       m.ready = false;
     }
-    if (this.mode !== 'private') await this.unlock();
+    if (this.mode !== 'private' && this.mode !== 'practice') await this.unlock();
     this.maybeAutoCountdown();
     this.broadcastViews();
   }
@@ -418,7 +507,7 @@ export class GameRoom extends Room {
   }
 
   private updateCommMode() {
-    const mode = roomCommMode([...this.members.values()].map((m) => m.ageBand));
+    const mode = roomCommMode([...this.members.values()].filter((m) => !m.isBot).map((m) => m.ageBand));
     // Safe Mode is sticky for the room's lifetime: it never switches back to
     // Normal Mode automatically when a minor leaves.
     if (this.commMode === 'normal' && mode === 'safe') this.commMode = 'safe';
@@ -431,7 +520,7 @@ export class GameRoom extends Room {
   private reassignHostIfNeeded() {
     const host = this.hostId ? this.members.get(this.hostId) : undefined;
     if (host?.connected) return;
-    const next = [...this.members.values()].find((m) => m.connected);
+    const next = [...this.members.values()].find((m) => m.connected && !m.isBot);
     this.hostId = next?.userId ?? null;
   }
 
@@ -457,6 +546,7 @@ export class GameRoom extends Room {
       ready: m.ready,
       isHost: m.userId === this.hostId,
       waiting: m.waiting,
+      ...(m.isBot ? { isBot: true } : {}),
     }));
   }
 

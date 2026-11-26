@@ -10,7 +10,8 @@ class PublicPlayer {
         connected = j['connected'] as bool,
         ready = j['ready'] as bool,
         isHost = j['isHost'] as bool,
-        waiting = j['waiting'] as bool;
+        waiting = j['waiting'] as bool,
+        isBot = j['isBot'] == true;
   final String playerId;
   final String displayName;
   final String avatarId;
@@ -18,6 +19,9 @@ class PublicPlayer {
   final bool ready;
   final bool isHost;
   final bool waiting;
+
+  /// Practice-mode computer player.
+  final bool isBot;
 }
 
 class QuizQuestion {
@@ -43,11 +47,16 @@ class QuizReveal {
       : index = _int(j['index']),
         correctChoice = _int(j['correctChoice']),
         explanation = j['explanation'] as String?,
-        points = (j['points'] as Map).map((k, v) => MapEntry('$k', _int(v)));
+        points = (j['points'] as Map).map((k, v) => MapEntry('$k', _int(v))),
+        picks = ((j['picks'] as Map?) ?? const {})
+            .map((k, v) => MapEntry('$k', _int(v)));
   final int index;
   final int correctChoice;
   final String? explanation;
   final Map<String, int> points;
+
+  /// What each player picked, revealed after the question closes.
+  final Map<String, int> picks;
 }
 
 class RankingEntry {

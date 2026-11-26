@@ -3,11 +3,13 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'app_state.dart';
 import 'config.dart';
+import 'design/sfx.dart';
 import 'design/theme.dart';
 import 'screens/home.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  Sfx.load();
   final state = AppState()..init();
   runApp(SahraApp(state: state));
 }

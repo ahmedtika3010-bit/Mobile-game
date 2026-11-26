@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../config.dart';
+import 'sfx.dart';
 import 'tokens.dart';
 
 bool _reduceMotion(BuildContext context) =>
@@ -235,6 +236,7 @@ class _GameButtonState extends State<GameButton> {
             ? (_) {
                 setState(() => _down = false);
                 HapticFeedback.selectionClick();
+                Sfx.play('tap', volume: 0.4);
                 widget.onPressed!();
               }
             : null,

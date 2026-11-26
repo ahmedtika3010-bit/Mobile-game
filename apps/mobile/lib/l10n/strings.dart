@@ -3,6 +3,19 @@
 class S {
   static const _ar = <String, String>{
     'questionComing': 'السؤال جاي...',
+    'practice': 'تدريب ضد البوتات',
+    'practiceDesc': 'العب فوراً لوحدك وسخّن إيدك',
+    'practiceLobby': 'هتلعب ضد بوتات. مفيش جوايز في التدريب.',
+    'note_practice_no_rewards':
+        'التدريب ملوش XP ولا عملات. العب سريع أو تنافسي عشان تكسب.',
+    'soundOn': 'شغّل الصوت',
+    'soundOff': 'اكتم الصوت',
+    'shareResult': 'شارك نتيجتك',
+    'shareFailed': 'معرفناش نشارك دلوقتي. جرّب تاني.',
+    'shareText':
+        'جبت المركز {place} من {total} في تحدي المعلومات على سهرة بـ {score} نقطة 🔥 تقدر تغلبني؟',
+    'canYouBeatMe': 'تقدر تغلبني؟ 😏',
+    'correctAnswers': 'إجابات صح',
     'homeHello': 'أهلاً يا',
     'homeGuest': 'سهرتك تبدأ هنا ✨',
     'homeSub': 'اختار لعبة وادعي صحابك يلعبوا معاك',

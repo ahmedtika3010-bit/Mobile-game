@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../design/chibi_avatar.dart';
+import '../design/sfx.dart';
 import '../design/tokens.dart';
 import '../design/widgets.dart';
 import '../l10n/strings.dart';
@@ -76,6 +77,19 @@ class HomeScreen extends StatelessWidget {
                   Navigator.of(context)
                       .push(SoftRoute(const SafetyCenterScreen()));
                 }),
+            const SizedBox(height: Tokens.s8),
+            StatefulBuilder(
+              builder: (ctx, setSheet) => _SheetAction(
+                  icon: Sfx.enabled
+                      ? Icons.volume_up_rounded
+                      : Icons.volume_off_rounded,
+                  color: Tokens.sky,
+                  label: S.of(Sfx.enabled ? 'soundOff' : 'soundOn'),
+                  onTap: () async {
+                    await Sfx.setEnabled(!Sfx.enabled);
+                    setSheet(() {});
+                  }),
+            ),
             const SizedBox(height: Tokens.s8),
             _SheetAction(
                 icon: Icons.logout_rounded,

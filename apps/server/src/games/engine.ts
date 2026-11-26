@@ -54,6 +54,11 @@ export interface GameModule<State, Config, View> {
   viewFor(state: State, viewer: string, now: number): View;
   isFinished(state: State): boolean;
   results(state: State): GameResults;
+  /**
+   * Optional: what a practice bot does next. `key` identifies the decision
+   * (e.g. the question index) so the room schedules each one only once.
+   */
+  botPlan?(state: State, botId: string, rng: Rng, skill: number): { key: string; at: number; action: unknown } | null;
 }
 
 /** Small deterministic PRNG (mulberry32) seeded from a string; seeds are stored per match. */

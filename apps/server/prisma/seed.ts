@@ -1,9 +1,17 @@
 /**
- * Sample quiz questions so a local build is playable. They are written by the
- * developer and NOT yet reviewed: they are inserted as `in_review` and only
- * become playable after approval in the admin panel. For local testing only,
- * `npm run db:seed -- --approve-for-local-testing` approves them directly.
+ * Quiz content for a local build. Nothing here is playable until a human
+ * approves it in the admin panel:
+ *  - a few developer-written samples, inserted as `in_review`;
+ *  - the question bank in prisma/content/quiz_ar_v1.csv (admin CSV format).
+ *    It was drafted with AI help, so it is inserted as `in_review` with
+ *    source `ai_suggested` and must be fact-checked before release.
+ * For local testing only, `npm run db:seed -- --approve-for-local-testing`
+ * approves everything directly. Re-running only adds questions whose prompt
+ * is not in the database yet.
  */
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { parse } from 'csv-parse/sync';
 import { prisma } from '../src/db';
 
 type Q = [category: string, difficulty: string, prompt: string, choices: string[], explanation?: string];
@@ -32,24 +40,51 @@ const QUESTIONS: Q[] = [
   ['general', 'easy', 'كم عدد أيام السنة الميلادية الكبيسة؟', ['366', '365', '364', '367']],
 ];
 
+type Row = { category: string; difficulty: string; prompt: string; choices: string[]; correct: number; explanation: string | null; source: 'human' | 'ai_suggested' };
+
+const COLUMNS = ['category', 'difficulty', 'prompt', 'choice1', 'choice2', 'choice3', 'choice4', 'correct', 'explanation'] as const;
+
+function loadBank(): Row[] {
+  const csv = readFileSync(join(__dirname, 'content', 'quiz_ar_v1.csv'), 'utf8');
+  const rows: Record<(typeof COLUMNS)[number], string>[] = parse(csv, { columns: true, skip_empty_lines: true, trim: true, bom: true });
+  return rows.map((r) => ({
+    category: r.category,
+    difficulty: r.difficulty,
+    prompt: r.prompt,
+    choices: [r.choice1, r.choice2, r.choice3, r.choice4].filter(Boolean),
+    correct: Number(r.correct) - 1,
+    explanation: r.explanation || null,
+    source: 'ai_suggested' as const,
+  }));
+}
+
 async function main() {
   const approve = process.argv.includes('--approve-for-local-testing');
-  const existing = await prisma.contentItem.count({ where: { gameId: 'quiz' } });
-  if (existing > 0) {
-    console.log(`quiz content already present (${existing} items); skipping`);
+  const all: Row[] = [
+    ...QUESTIONS.map(([category, difficulty, prompt, choices, explanation]) => ({
+      category, difficulty, prompt, choices, correct: 0, explanation: explanation ?? null, source: 'human' as const,
+    })),
+    ...loadBank(),
+  ];
+  const existing = await prisma.contentItem.findMany({ where: { gameId: 'quiz' }, select: { payload: true } });
+  const known = new Set(existing.map((e) => String((e.payload as { prompt?: string })?.prompt ?? '')));
+  const fresh = all.filter((q) => !known.has(q.prompt) && (known.add(q.prompt), true));
+  if (fresh.length === 0) {
+    console.log(`quiz content up to date (${existing.length} items)`);
     return;
   }
   await prisma.contentItem.createMany({
-    data: QUESTIONS.map(([category, difficulty, prompt, choices, explanation]) => ({
+    data: fresh.map((q) => ({
       gameId: 'quiz',
-      category,
-      difficulty,
-      payload: { prompt, choices, correct: 0, explanation: explanation ?? null },
+      category: q.category,
+      difficulty: q.difficulty,
+      payload: { prompt: q.prompt, choices: q.choices, correct: q.correct, explanation: q.explanation },
+      source: q.source,
       status: approve ? ('approved' as const) : ('in_review' as const),
       publishedAt: approve ? new Date() : null,
     })),
   });
-  console.log(`inserted ${QUESTIONS.length} sample questions as ${approve ? 'approved (local testing)' : 'in_review'}`);
+  console.log(`inserted ${fresh.length} quiz questions as ${approve ? 'approved (local testing)' : 'in_review'}`);
 }
 
 main().finally(() => prisma.$disconnect());

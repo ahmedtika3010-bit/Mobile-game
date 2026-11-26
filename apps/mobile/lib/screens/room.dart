@@ -1,11 +1,15 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:sahra_client/sahra_client.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../app_state.dart';
 import '../design/chibi_avatar.dart';
+import '../design/sfx.dart';
 import '../design/tokens.dart';
 import '../design/widgets.dart';
 import '../l10n/strings.dart';
@@ -59,25 +63,30 @@ class _RoomScreenState extends State<RoomScreen> {
   ConnectionStatus _status = ConnectionStatus.connected;
   final Map<String, String> _bubbles = {};
   Timer? _tick;
+  int? _lastCount;
 
   @override
   void initState() {
     super.initState();
-    _subs.add(s.views.listen((v) => setState(() {
-          final q = v.quiz;
-          if ((v.phase == 'results' || q?.stage == 'finished') &&
-              q?.ranking != null) {
-            _results = v;
-          } else if (v.phase == 'countdown' || v.phase == 'playing') {
-            if (_results != null) _summary = null;
-            _results = null;
-          }
-          _view = v;
-        })));
+    _subs.add(s.views.listen((v) {
+      _soundsFor(_view, v);
+      setState(() {
+        final q = v.quiz;
+        if ((v.phase == 'results' || q?.stage == 'finished') &&
+            q?.ranking != null) {
+          _results = v;
+        } else if (v.phase == 'countdown' || v.phase == 'playing') {
+          if (_results != null) _summary = null;
+          _results = null;
+        }
+        _view = v;
+      });
+    }));
     _subs.add(s.summaries.listen((m) => setState(() => _summary = m)));
     _subs.add(s.statusChanges.listen((st) => setState(() => _status = st)));
     _subs.add(s.errors.listen(_onError));
     _subs.add(s.quickChat.listen((c) {
+      Sfx.play('pop', volume: 0.45);
       setState(() => _bubbles[c.from] = c.phraseId);
       Timer(const Duration(seconds: 3), () {
         if (mounted) setState(() => _bubbles.remove(c.from));
@@ -86,8 +95,37 @@ class _RoomScreenState extends State<RoomScreen> {
     // Re-sync the clock now and then; repaint countdowns every 250 ms.
     _tick = Timer.periodic(const Duration(milliseconds: 250), (t) {
       if (t.tick % 40 == 0) s.syncClock();
-      if (mounted && (_view?.phase == 'countdown')) setState(() {});
+      final v = _view;
+      if (mounted && v?.phase == 'countdown' && v?.countdownEndsAt != null) {
+        final n = ((v!.countdownEndsAt! - s.serverNow) / 1000).ceil();
+        if (n != _lastCount && n >= 1 && n <= 5) Sfx.play('tick', volume: 0.5);
+        _lastCount = n;
+        setState(() {});
+      }
     });
+  }
+
+  /// Plays the sound that matches what just changed in the room.
+  void _soundsFor(RoomView? old, RoomView v) {
+    if (old == null) return;
+    if ((v.phase == 'lobby' || v.phase == 'countdown') &&
+        v.players.length > old.players.length) {
+      Sfx.play('join', volume: 0.5);
+    }
+    if (old.phase == 'countdown' && v.phase == 'playing') Sfx.play('go');
+    final finishedNow = v.quiz?.ranking != null &&
+        (v.phase == 'results' || v.quiz?.stage == 'finished') &&
+        old.quiz?.ranking == null;
+    if (finishedNow) {
+      final mine =
+          v.quiz!.ranking!.where((r) => r.playerId == v.you).firstOrNull;
+      if (mine?.place == 1) {
+        Sfx.play('win');
+        HapticFeedback.heavyImpact();
+      } else {
+        Sfx.play('finish');
+      }
+    }
   }
 
   void _onError(String code) {
@@ -123,13 +161,24 @@ class _RoomScreenState extends State<RoomScreen> {
       title:
           v?.code != null ? _CodeChip(code: v!.code!, onCopy: _copyCode) : null,
       actions: [
-        if (v?.isSafeMode == true)
+        RoundIconButton(
+          icon:
+              Sfx.enabled ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+          tooltip: S.of(Sfx.enabled ? 'soundOff' : 'soundOn'),
+          onPressed: () async {
+            await Sfx.setEnabled(!Sfx.enabled);
+            if (mounted) setState(() {});
+          },
+        ),
+        if (v?.isSafeMode == true) ...[
+          const SizedBox(width: Tokens.s8),
           Tooltip(
               message: S.of('safeModeInfo'),
               child: Pill(
                   text: S.of('safeMode'),
                   color: Tokens.mint,
                   icon: Icons.shield_rounded)),
+        ],
       ],
       bottom: _PhraseBar(onSend: s.sendPhrase),
       body: Column(children: [
@@ -202,10 +251,13 @@ class _RoomScreenState extends State<RoomScreen> {
           key: const ValueKey('results'),
           view: _results!,
           summary: _summary,
-          canRematch: v.mode == 'private' || v.phase == 'lobby',
+          canRematch:
+              v.mode == 'private' || v.mode == 'practice' || v.phase == 'lobby',
           onRematch: () => setState(() {
                 _results = null;
                 _summary = null;
+                // Practice restarts straight away (the server skips the wait).
+                if (v.mode == 'practice') s.start();
               }),
           onPlayer: _playerSheet);
     }
@@ -417,12 +469,16 @@ class _Lobby extends StatelessWidget {
     final me = view.me;
     final isHost = me?.isHost == true;
     final private = view.mode == 'private';
+    final practice = view.mode == 'practice';
+    final hostStarts = private || practice;
     final enough = view.players.length >= 2;
     return Padding(
       padding: const EdgeInsets.fromLTRB(Tokens.s20, 0, Tokens.s20, Tokens.s16),
       child: Column(children: [
         if (private && view.code != null)
           FadeSlideIn(child: _CodeCard(code: view.code!, onCopy: onCopy))
+        else if (practice)
+          const FadeSlideIn(child: _PracticeCard())
         else
           FadeSlideIn(child: _Searching(mode: view.mode)),
         const SizedBox(height: Tokens.s20),
@@ -450,7 +506,7 @@ class _Lobby extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: Tokens.s12),
               child: Text(S.of('needMorePlayers'),
                   style: const TextStyle(color: Tokens.textDim))),
-        if (private && isHost && view.phase == 'lobby')
+        if (hostStarts && isHost && view.phase == 'lobby')
           GameButton(
               key: const Key('startMatch'),
               label: S.of('start'),
@@ -469,6 +525,28 @@ class _Lobby extends StatelessWidget {
       ]),
     );
   }
+}
+
+class _PracticeCard extends StatelessWidget {
+  const _PracticeCard();
+  @override
+  Widget build(BuildContext context) => GlassCard(
+        padding: const EdgeInsets.all(Tokens.s20),
+        child: Row(children: [
+          const Bob(child: Text('🤖', style: TextStyle(fontSize: 40))),
+          const SizedBox(width: Tokens.s16),
+          Expanded(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(S.of('practice'),
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.w800)),
+              Text(S.of('practiceLobby'),
+                  style: const TextStyle(color: Tokens.textDim, height: 1.4)),
+            ]),
+          ),
+        ]),
+      );
 }
 
 class _CodeCard extends StatelessWidget {
@@ -664,6 +742,16 @@ class _PlayerSeat extends StatelessWidget {
           if (p.isHost)
             const Positioned(
                 top: -10, child: Text('👑', style: TextStyle(fontSize: 20))),
+          if (p.isBot)
+            PositionedDirectional(
+                bottom: 0,
+                start: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(
+                      color: Tokens.night, shape: BoxShape.circle),
+                  child: const Text('🤖', style: TextStyle(fontSize: 14)),
+                )),
           if (showReady && p.ready)
             const PositionedDirectional(
                 bottom: 0,
@@ -882,8 +970,18 @@ class _QuestionPaneState extends State<_QuestionPane> {
   @override
   void initState() {
     super.initState();
-    final q = widget.view.quiz!.question;
+    final quiz = widget.view.quiz!;
+    final q = quiz.question;
     if (q == null) return;
+    final reveal = quiz.reveal;
+    if (reveal != null) {
+      // Each question/stage gets a fresh pane, so this runs once per reveal.
+      if ((reveal.points[widget.view.you] ?? 0) > 0) {
+        Sfx.correct();
+      } else if (quiz.yourChoice != null) {
+        Sfx.wrong();
+      }
+    }
     final wait = q.revealAt - widget.session.serverNow;
     if (wait <= 0) {
       _show(q.index);
@@ -894,6 +992,7 @@ class _QuestionPaneState extends State<_QuestionPane> {
 
   void _show(int index) {
     if (!mounted) return;
+    if (widget.view.quiz?.reveal == null) Sfx.play('whoosh', volume: 0.5);
     setState(() => _visible = true);
     WidgetsBinding.instance
         .addPostFrameCallback((_) => widget.session.markQuestionShown(index));
@@ -913,6 +1012,13 @@ class _QuestionPaneState extends State<_QuestionPane> {
     final chosen = quiz.yourChoice ?? _picked;
     if (q == null) return const SizedBox.shrink();
     final myPoints = reveal?.points[widget.view.you];
+    final avatarOf = {
+      for (final p in widget.view.players) p.playerId: p.avatarId
+    };
+    List<String> pickersOf(int i) => [
+          for (final e in (reveal?.picks ?? const <String, int>{}).entries)
+            if (e.value == i && avatarOf[e.key] != null) avatarOf[e.key]!
+        ];
     final grid =
         q.choices.length == 4 && q.choices.every((c) => c.length <= 16);
 
@@ -923,6 +1029,7 @@ class _QuestionPaneState extends State<_QuestionPane> {
           text: q.choices[i],
           color: Tokens.choiceColors[i % Tokens.choiceColors.length],
           tall: grid,
+          pickers: pickersOf(i),
           state: reveal != null
               ? (i == reveal.correctChoice
                   ? _ChoiceState.correct
@@ -933,6 +1040,7 @@ class _QuestionPaneState extends State<_QuestionPane> {
           onTap: (_visible && chosen == null && reveal == null)
               ? () {
                   HapticFeedback.mediumImpact();
+                  Sfx.play('pop', volume: 0.6);
                   setState(() => _picked = i);
                   widget.session.answer(q.index, i);
                 }
@@ -1102,6 +1210,7 @@ class _ChoiceTile extends StatelessWidget {
       required this.color,
       required this.state,
       this.tall = false,
+      this.pickers = const [],
       this.onTap});
   final String label;
   final IconData shape;
@@ -1109,6 +1218,9 @@ class _ChoiceTile extends StatelessWidget {
   final Color color;
   final _ChoiceState state;
   final bool tall;
+
+  /// Avatars of the players who picked this choice (shown after the reveal).
+  final List<String> pickers;
   final VoidCallback? onTap;
 
   @override
@@ -1182,7 +1294,7 @@ class _ChoiceTile extends StatelessWidget {
               ]),
       ),
     );
-    return Semantics(
+    final tile = Semantics(
       button: true,
       label: '$label: $text',
       onTap: onTap,
@@ -1201,6 +1313,60 @@ class _ChoiceTile extends StatelessWidget {
               onTap == null ? content : Pressable(onTap: onTap, child: content),
         ),
       ),
+    );
+    if (pickers.isEmpty) return tile;
+    return Stack(clipBehavior: Clip.none, fit: StackFit.passthrough, children: [
+      tile,
+      PositionedDirectional(
+        top: -10,
+        end: 6,
+        child: PopIn(child: _Pickers(avatarIds: pickers)),
+      ),
+    ]);
+  }
+}
+
+/// A small overlapping stack of the avatars that picked a choice.
+class _Pickers extends StatelessWidget {
+  const _Pickers({required this.avatarIds});
+  final List<String> avatarIds;
+  static const _size = 30.0, _step = 19.0, _max = 4;
+  @override
+  Widget build(BuildContext context) {
+    final shown = avatarIds.take(_max).toList();
+    final extra = avatarIds.length - shown.length;
+    final count = shown.length + (extra > 0 ? 1 : 0);
+    return SizedBox(
+      width: _size + _step * (count - 1),
+      height: _size,
+      child: Stack(children: [
+        for (final (i, id) in shown.indexed)
+          PositionedDirectional(
+            start: i * _step,
+            child: Container(
+              decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2)),
+              child: ChibiAvatar(avatarId: id, size: _size - 4),
+            ),
+          ),
+        if (extra > 0)
+          PositionedDirectional(
+            start: shown.length * _step,
+            child: Container(
+              width: _size,
+              height: _size,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                  color: Tokens.night,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2)),
+              child: Text('+$extra',
+                  style: const TextStyle(
+                      fontSize: 11, fontWeight: FontWeight.w800)),
+            ),
+          ),
+      ]),
     );
   }
 }
@@ -1306,7 +1472,7 @@ class _ScoreStrip extends StatelessWidget {
 
 /* --------------------------------- results --------------------------------- */
 
-class _Results extends StatelessWidget {
+class _Results extends StatefulWidget {
   const _Results(
       {super.key,
       required this.view,
@@ -1319,6 +1485,48 @@ class _Results extends StatelessWidget {
   final void Function(PublicPlayer) onPlayer;
   final VoidCallback onRematch;
   final bool canRematch;
+
+  @override
+  State<_Results> createState() => _ResultsState();
+}
+
+class _ResultsState extends State<_Results> {
+  final _shareKey = GlobalKey();
+  bool _sharing = false;
+
+  RoomView get view => widget.view;
+  MatchSummary? get summary => widget.summary;
+  void Function(PublicPlayer) get onPlayer => widget.onPlayer;
+
+  Future<void> _share(RankingEntry mine, int total) async {
+    setState(() => _sharing = true);
+    try {
+      final boundary = _shareKey.currentContext!.findRenderObject()!
+          as RenderRepaintBoundary;
+      final image = await boundary.toImage(pixelRatio: 3);
+      final data = await image.toByteData(format: ui.ImageByteFormat.png);
+      final text = S
+          .of('shareText')
+          .replaceAll('{place}', '${mine.place}')
+          .replaceAll('{total}', '$total')
+          .replaceAll('{score}', '${mine.score}');
+      await SharePlus.instance.share(ShareParams(
+        text: text,
+        files: [
+          XFile.fromData(data!.buffer.asUint8List(),
+              mimeType: 'image/png', name: 'sahra-result.png')
+        ],
+        fileNameOverrides: ['sahra-result.png'],
+      ));
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(S.of('shareFailed'))));
+      }
+    } finally {
+      if (mounted) setState(() => _sharing = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1382,6 +1590,29 @@ class _Results extends StatelessWidget {
                 ]),
               ),
             ),
+          if (mine != null && player(mine.playerId) != null) ...[
+            const SizedBox(height: Tokens.s20),
+            FadeSlideIn(
+              delay: const Duration(milliseconds: 650),
+              child: RepaintBoundary(
+                key: _shareKey,
+                child: _ShareCard(
+                    entry: mine,
+                    player: player(mine.playerId)!,
+                    total: ranking.length,
+                    questions: view.quiz?.question?.total),
+              ),
+            ),
+            const SizedBox(height: Tokens.s12),
+            GameButton(
+                key: const Key('shareResult'),
+                label: S.of('shareResult'),
+                icon: Icons.ios_share_rounded,
+                color: Tokens.sky,
+                size: GameButtonSize.medium,
+                busy: _sharing,
+                onPressed: () => _share(mine, ranking.length)),
+          ],
           const SizedBox(height: Tokens.s20),
           if (summary != null)
             FadeSlideIn(
@@ -1390,37 +1621,41 @@ class _Results extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(
                     horizontal: Tokens.s8, vertical: Tokens.s16),
                 child: Column(children: [
-                  Text(S.of('rewards'),
-                      style: const TextStyle(
-                          color: Tokens.textDim, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: Tokens.s8),
-                  Row(children: [
-                    Expanded(
-                        child: _Stat(
-                            icon: '⭐',
-                            label: S.of('xp'),
-                            value: summary!.xp,
-                            color: Tokens.sun)),
-                    Expanded(
-                        child: _Stat(
-                            icon: '🪙',
-                            label: S.of('coins'),
-                            value: summary!.coins,
-                            color: Tokens.orange)),
-                    if (summary!.ratingAfter != null)
+                  if (view.mode != 'practice') ...[
+                    Text(S.of('rewards'),
+                        style: const TextStyle(
+                            color: Tokens.textDim,
+                            fontWeight: FontWeight.w700)),
+                    const SizedBox(height: Tokens.s8),
+                    Row(children: [
                       Expanded(
-                        child: _Stat(
-                          icon: '🏆',
-                          label: summary!.provisional
-                              ? S.of('provisional')
-                              : S.of('rating'),
-                          value: summary!.ratingAfter!,
-                          plain: true,
-                          delta: summary!.ratingAfter! - summary!.ratingBefore!,
-                          color: Tokens.sky,
+                          child: _Stat(
+                              icon: '⭐',
+                              label: S.of('xp'),
+                              value: summary!.xp,
+                              color: Tokens.sun)),
+                      Expanded(
+                          child: _Stat(
+                              icon: '🪙',
+                              label: S.of('coins'),
+                              value: summary!.coins,
+                              color: Tokens.orange)),
+                      if (summary!.ratingAfter != null)
+                        Expanded(
+                          child: _Stat(
+                            icon: '🏆',
+                            label: summary!.provisional
+                                ? S.of('provisional')
+                                : S.of('rating'),
+                            value: summary!.ratingAfter!,
+                            plain: true,
+                            delta:
+                                summary!.ratingAfter! - summary!.ratingBefore!,
+                            color: Tokens.sky,
+                          ),
                         ),
-                      ),
-                  ]),
+                    ]),
+                  ],
                   for (final n in summary!.notes)
                     if (S.has('note_$n'))
                       Padding(
@@ -1444,12 +1679,12 @@ class _Results extends StatelessWidget {
               ),
             ),
           const SizedBox(height: Tokens.s24),
-          if (canRematch) ...[
+          if (widget.canRematch) ...[
             GameButton(
                 label: S.of('playAgain'),
                 icon: Icons.replay_rounded,
                 color: Tokens.sun,
-                onPressed: onRematch),
+                onPressed: widget.onRematch),
             const SizedBox(height: Tokens.s12),
           ],
           GameButton(
@@ -1461,6 +1696,81 @@ class _Results extends StatelessWidget {
       ),
       if (won) const Positioned.fill(child: Confetti()),
     ]);
+  }
+}
+
+/// The player's own result, drawn as a card that can be shared as an image.
+class _ShareCard extends StatelessWidget {
+  const _ShareCard(
+      {required this.entry,
+      required this.player,
+      required this.total,
+      this.questions});
+  final RankingEntry entry;
+  final PublicPlayer player;
+  final int total;
+  final int? questions;
+  @override
+  Widget build(BuildContext context) {
+    const medals = {1: '🥇', 2: '🥈', 3: '🥉'};
+    return Container(
+      padding: const EdgeInsets.fromLTRB(Tokens.s16, Tokens.s16, Tokens.s16, 0),
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Tokens.r24),
+        gradient: const LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [Color(0xFF3A1F86), Tokens.night, Tokens.nightDeep]),
+        border: Border.all(color: Tokens.sun.withValues(alpha: 0.6), width: 2),
+      ),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: Tokens.s16),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Logo(size: 22),
+              const SizedBox(height: Tokens.s12),
+              Text(player.displayName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.w800)),
+              Text(
+                  '${medals[entry.place] ?? '🎯'} ${S.of('place')} ${entry.place} ${S.of('of')} $total',
+                  style: const TextStyle(
+                      color: Tokens.sun,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800)),
+              const SizedBox(height: Tokens.s8),
+              Row(children: [
+                Text('${entry.score}',
+                    style: const TextStyle(
+                        fontFamily: Tokens.display,
+                        fontSize: 40,
+                        height: 1.1,
+                        fontWeight: FontWeight.w800)),
+                const SizedBox(width: 6),
+                Text(S.of('points'),
+                    style: const TextStyle(
+                        color: Tokens.textDim, fontWeight: FontWeight.w700)),
+              ]),
+              Text(
+                  '✅ ${S.of('correctAnswers')}: ${entry.correct}${questions != null ? '/$questions' : ''}',
+                  style: const TextStyle(
+                      color: Tokens.textDim, fontWeight: FontWeight.w700)),
+              const SizedBox(height: Tokens.s8),
+              Text(S.of('canYouBeatMe'),
+                  style: const TextStyle(
+                      color: Tokens.mint,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800)),
+            ]),
+          ),
+        ),
+        ChibiFullBody(avatarId: player.avatarId, height: 150),
+      ]),
+    );
   }
 }
 

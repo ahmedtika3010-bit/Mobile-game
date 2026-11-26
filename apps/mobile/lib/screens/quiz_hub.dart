@@ -107,6 +107,25 @@ class _QuizHubScreenState extends State<QuizHubScreen> {
           ),
           const SizedBox(height: Tokens.s12),
           FadeSlideIn(
+            delay: const Duration(milliseconds: 35),
+            child: _ModeCard(
+              key: const Key('practice'),
+              emoji: '🤖',
+              title: S.of('practice'),
+              subtitle: S.of('practiceDesc'),
+              color: Tokens.grape,
+              busy: _busy == 'practice',
+              onTap: idle
+                  ? () => _go(
+                      'practice',
+                      (a) => GameSession.practice(a.api, a.client,
+                          gameId: 'quiz',
+                          config: {'questionCount': 10, 'answerSeconds': 15}))
+                  : null,
+            ),
+          ),
+          const SizedBox(height: Tokens.s12),
+          FadeSlideIn(
             delay: const Duration(milliseconds: 70),
             child: _ModeCard(
               emoji: '🏆',
