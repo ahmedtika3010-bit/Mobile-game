@@ -48,9 +48,10 @@ class MsgPackReader {
       case 0xce:
         return _u32();
       case 0xcf:
-        final v = _d.getUint64(_o);
+        // 64-bit reads via two 32-bit halves so this also works when compiled to JavaScript.
+        final hi = _d.getUint32(_o), lo = _d.getUint32(_o + 4);
         _o += 8;
-        return v;
+        return hi * 4294967296 + lo;
       case 0xd0:
         final v = _d.getInt8(_o);
         _o += 1;
@@ -64,9 +65,9 @@ class MsgPackReader {
         _o += 4;
         return v;
       case 0xd3:
-        final v = _d.getInt64(_o);
+        final hi = _d.getInt32(_o), lo = _d.getUint32(_o + 4);
         _o += 8;
-        return v;
+        return hi * 4294967296 + lo;
       case 0xd9:
         return _str(_u8());
       case 0xda:
@@ -185,15 +186,28 @@ class MsgPackWriter {
       _out.addByte(v);
     } else if (v < 0 && v >= -32) {
       _out.addByte(0x100 + v);
+    } else if (v >= 0 && v <= 0xffffffff) {
+      final d = ByteData(5)
+        ..setUint8(0, 0xce)
+        ..setUint32(1, v);
+      _out.add(d.buffer.asUint8List());
+    } else if (v < 0 && v >= -0x80000000) {
+      final d = ByteData(5)
+        ..setUint8(0, 0xd2)
+        ..setInt32(1, v);
+      _out.add(d.buffer.asUint8List());
     } else {
+      // Beyond 32 bits (e.g. millisecond timestamps): float64 is exact up to 2^53
+      // and needs no 64-bit integer support (not available when compiled to JavaScript).
       final d = ByteData(9)
-        ..setUint8(0, 0xd3)
-        ..setInt64(1, v);
+        ..setUint8(0, 0xcb)
+        ..setFloat64(1, v.toDouble());
       _out.add(d.buffer.asUint8List());
     }
   }
 
-  List<int> _be32(int n) => [(n >> 24) & 0xff, (n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
+  List<int> _be32(int n) =>
+      [(n >> 24) & 0xff, (n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
 
   Uint8List takeBytes() => _out.takeBytes();
 }

@@ -25,7 +25,8 @@ class MatchmakeException implements Exception {
 }
 
 class SeatReservation {
-  SeatReservation(this.sessionId, this.roomId, this.processId, this.reconnectionToken);
+  SeatReservation(
+      this.sessionId, this.roomId, this.processId, this.reconnectionToken);
   final String sessionId;
   final String roomId;
   final String processId;
@@ -33,13 +34,15 @@ class SeatReservation {
 }
 
 class ColyseusClient {
-  ColyseusClient(this.baseUrl, {http.Client? httpClient}) : _http = httpClient ?? http.Client();
+  ColyseusClient(this.baseUrl, {http.Client? httpClient})
+      : _http = httpClient ?? http.Client();
 
   /// e.g. http://10.0.2.2:2567
   final Uri baseUrl;
   final http.Client _http;
 
-  Future<ColyseusRoom> joinOrCreate(String roomName, Map<String, dynamic> options) =>
+  Future<ColyseusRoom> joinOrCreate(
+          String roomName, Map<String, dynamic> options) =>
       _matchmake('joinOrCreate/$roomName', options);
   Future<ColyseusRoom> create(String roomName, Map<String, dynamic> options) =>
       _matchmake('create/$roomName', options);
@@ -52,18 +55,25 @@ class ColyseusClient {
     if (i <= 0) throw ArgumentError('bad reconnection token');
     final roomId = token.substring(0, i);
     final secret = token.substring(i + 1);
-    return _matchmake('reconnect/$roomId', {'reconnectionToken': secret}, reconnectionToken: secret);
+    return _matchmake('reconnect/$roomId', {'reconnectionToken': secret},
+        reconnectionToken: secret);
   }
 
-  Future<ColyseusRoom> _matchmake(String path, Map<String, dynamic> options, {String? reconnectionToken}) async {
+  Future<ColyseusRoom> _matchmake(String path, Map<String, dynamic> options,
+      {String? reconnectionToken}) async {
     final res = await _http.post(
       baseUrl.resolve('/matchmake/$path'),
-      headers: {'content-type': 'application/json', 'accept': 'application/json'},
+      headers: {
+        'content-type': 'application/json',
+        'accept': 'application/json'
+      },
       body: jsonEncode(options),
     );
     final body = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
     if (body['error'] != null) {
-      throw MatchmakeException((body['code'] as num?)?.toInt() ?? res.statusCode, '${body['error']}');
+      throw MatchmakeException(
+          (body['code'] as num?)?.toInt() ?? res.statusCode,
+          '${body['error']}');
     }
     final room = body['room'] as Map<String, dynamic>;
     final seat = SeatReservation(
@@ -101,19 +111,35 @@ class ColyseusRoom {
     final scheme = base.scheme == 'https' ? 'wss' : 'ws';
     final query = {
       'sessionId': seat.sessionId,
-      if (seat.reconnectionToken != null) 'reconnectionToken': seat.reconnectionToken!,
+      if (seat.reconnectionToken != null)
+        'reconnectionToken': seat.reconnectionToken!,
     };
-    final url = base.replace(scheme: scheme, path: '/${seat.processId}/${seat.roomId}', queryParameters: query);
+    final url = Uri(
+        scheme: scheme,
+        host: base.host,
+        port: base.port,
+        path: '/${seat.processId}/${seat.roomId}',
+        queryParameters: query);
     final channel = WebSocketChannel.connect(url);
     final room = ColyseusRoom._(seat.roomId, seat.sessionId, channel);
     final joined = Completer<void>();
     channel.stream.listen(
       (data) {
-        final bytes = data is Uint8List ? data : Uint8List.fromList((data as List).cast<int>());
+        // Native: Uint8List/List<int>. Browser: ByteBuffer.
+        final Uint8List bytes = switch (data) {
+          Uint8List b => b,
+          ByteBuffer b => b.asUint8List(),
+          List<int> l => Uint8List.fromList(l),
+          String s => Uint8List.fromList(utf8.encode(s)),
+          _ => Uint8List(0),
+        };
         room._onFrame(bytes, joined);
       },
       onDone: () {
-        if (!joined.isCompleted) joined.completeError(MatchmakeException(channel.closeCode ?? 0, channel.closeReason ?? 'closed'));
+        if (!joined.isCompleted) {
+          joined.completeError(MatchmakeException(
+              channel.closeCode ?? 0, channel.closeReason ?? 'closed'));
+        }
         if (!room._closed.isCompleted) room._closed.complete(channel.closeCode);
         room._messages.close();
       },
@@ -139,7 +165,8 @@ class ColyseusRoom {
         final r = MsgPackReader(b, 1);
         final code = (r.read() as num?)?.toInt() ?? 0;
         final message = '${r.read()}';
-        _messages.add(RoomMessage('__error', {'code': code, 'message': message}));
+        _messages
+            .add(RoomMessage('__error', {'code': code, 'message': message}));
       case 13: // ROOM_DATA
         final r = MsgPackReader(b, 1);
         final type = '${r.read()}';
@@ -151,7 +178,9 @@ class ColyseusRoom {
   }
 
   void send(String type, [Object? payload]) {
-    final w = MsgPackWriter()..writeByte(13)..write(type);
+    final w = MsgPackWriter()
+      ..writeByte(13)
+      ..write(type);
     if (payload != null) w.write(payload);
     _channel.sink.add(w.takeBytes());
   }

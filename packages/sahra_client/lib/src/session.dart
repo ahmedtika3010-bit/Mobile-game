@@ -35,7 +35,8 @@ class GameSession {
   Stream<RoomView> get views => _replay(_views.stream, view);
   Stream<MatchSummary> get summaries => _replay(_summaries.stream, lastSummary);
 
-  static Stream<T> _replay<T>(Stream<T> source, T? latest) => Stream<T>.multi((c) {
+  static Stream<T> _replay<T>(Stream<T> source, T? latest) =>
+      Stream<T>.multi((c) {
         if (latest != null) c.add(latest);
         final sub = source.listen(c.add, onError: c.addError, onDone: c.close);
         c.onCancel = sub.cancel;
@@ -47,7 +48,8 @@ class GameSession {
 
   static const reconnectWindow = Duration(seconds: 90);
 
-  static Future<GameSession> quickPlay(SahraApi api, ColyseusClient client, {required String gameId, required String mode}) async {
+  static Future<GameSession> quickPlay(SahraApi api, ColyseusClient client,
+      {required String gameId, required String mode}) async {
     final t = await api.ticket(gameId, mode);
     return _start(client, await client.joinOrCreate('game', t.joinOptions));
   }
@@ -55,10 +57,14 @@ class GameSession {
   static Future<GameSession> createPrivate(SahraApi api, ColyseusClient client,
       {required String gameId, Map<String, dynamic>? config}) async {
     final t = await api.ticket(gameId, 'private');
-    return _start(client, await client.create('game', {...t.joinOptions, if (config != null) 'config': config}));
+    return _start(
+        client,
+        await client.create(
+            'game', {...t.joinOptions, if (config != null) 'config': config}));
   }
 
-  static Future<GameSession> joinByCode(SahraApi api, ColyseusClient client, {required String gameId, required String code}) async {
+  static Future<GameSession> joinByCode(SahraApi api, ColyseusClient client,
+      {required String gameId, required String code}) async {
     final roomId = await api.roomIdForCode(code);
     final t = await api.ticket(gameId, 'private');
     return _start(client, await client.joinById(roomId, {'ticket': t.ticket}));
@@ -94,7 +100,8 @@ class GameSession {
         view = v;
         _views.add(v);
       case 'matchSummary':
-        lastSummary = MatchSummary.fromJson(((m.payload as Map)['summary'] as Map).cast());
+        lastSummary = MatchSummary.fromJson(
+            ((m.payload as Map)['summary'] as Map).cast());
         _summaries.add(lastSummary!);
       case 'pong':
         final p = (m.payload as Map).cast<String, dynamic>();
@@ -104,31 +111,42 @@ class GameSession {
         clockOffsetMs = server - (sent + (now - sent) ~/ 2);
       case 'quickChat':
         final p = (m.payload as Map).cast<String, dynamic>();
-        _chat.add((from: p['from'] as String, phraseId: p['phraseId'] as String));
+        _chat.add(
+            (from: p['from'] as String, phraseId: p['phraseId'] as String));
       case 'error':
       case '__error':
         _errors.add('${(m.payload as Map)['code']}');
     }
   }
 
-  void syncClock() => _room.send('ping', {'clientTime': DateTime.now().millisecondsSinceEpoch});
+  void syncClock() =>
+      _room.send('ping', {'clientTime': DateTime.now().millisecondsSinceEpoch});
 
   /// The UI calls this when the question is actually painted on screen.
   void markQuestionShown(int index) {
-    if (_shownIndex == index && _shownAtLocal == null) _shownAtLocal = DateTime.now().millisecondsSinceEpoch;
+    if (_shownIndex == index && _shownAtLocal == null) {
+      _shownAtLocal = DateTime.now().millisecondsSinceEpoch;
+    }
   }
 
   void answer(int questionIndex, int choice) {
     final shown = _shownAtLocal;
-    final elapsed = shown == null ? null : DateTime.now().millisecondsSinceEpoch - shown;
+    final elapsed =
+        shown == null ? null : DateTime.now().millisecondsSinceEpoch - shown;
     _room.send('action', {
-      'action': {'kind': 'answer', 'questionIndex': questionIndex, 'choice': choice, if (elapsed != null) 'clientElapsedMs': elapsed},
+      'action': {
+        'kind': 'answer',
+        'questionIndex': questionIndex,
+        'choice': choice,
+        if (elapsed != null) 'clientElapsedMs': elapsed
+      },
     });
   }
 
   void setReady(bool ready) => _room.send('ready', {'ready': ready});
   void start() => _room.send('start', {});
-  void sendPhrase(String phraseId) => _room.send('quickChat', {'phraseId': phraseId});
+  void sendPhrase(String phraseId) =>
+      _room.send('quickChat', {'phraseId': phraseId});
 
   Future<void> _reconnect() async {
     final token = _room.reconnectionToken;
@@ -145,7 +163,8 @@ class GameSession {
         return;
       } catch (_) {
         await Future<void>.delayed(delay);
-        delay = Duration(milliseconds: (delay.inMilliseconds * 2).clamp(500, 5000));
+        delay =
+            Duration(milliseconds: (delay.inMilliseconds * 2).clamp(500, 5000));
       }
     }
     _setStatus(ConnectionStatus.lost);

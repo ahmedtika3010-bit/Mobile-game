@@ -8,6 +8,8 @@ void main() {
       'n': 300,
       'neg': -5,
       'big': 1764160000000,
+      'u32': 4000000000,
+      'i32': -70000,
       'f': 1.5,
       'ok': true,
       'nil': null,
@@ -15,7 +17,10 @@ void main() {
       'list': [1, 'ب', false],
     };
     final w = MsgPackWriter()..write(value);
-    final back = MsgPackReader(w.takeBytes()).read();
-    expect(back, value);
+    final back = MsgPackReader(w.takeBytes()).read() as Map;
+    expect(back.keys, value.keys);
+    for (final k in value.keys) {
+      expect(back[k], value[k], reason: k);
+    }
   });
 }

@@ -222,6 +222,10 @@ export function createApp(presence: Presence) {
   app.use('/safety', requireAuth, safetyRouter());
   app.use('/admin', requireAuth, adminRouter());
   app.use('/admin-ui', express.static(join(__dirname, '..', '..', 'admin-ui')));
+  if (config.devAuth) {
+    // Local development only: serve the Flutter web build (flutter build web --base-href /play/).
+    app.use('/play', express.static(join(__dirname, '..', '..', '..', 'mobile', 'build', 'web')));
+  }
 
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof HttpError) return res.status(err.status).json({ error: err.code });

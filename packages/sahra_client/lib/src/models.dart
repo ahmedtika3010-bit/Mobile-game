@@ -65,14 +65,20 @@ class RankingEntry {
 class QuizView {
   QuizView.fromJson(Map<String, dynamic> j)
       : stage = j['stage'] as String,
-        question = j['question'] == null ? null : QuizQuestion.fromJson((j['question'] as Map).cast()),
+        question = j['question'] == null
+            ? null
+            : QuizQuestion.fromJson((j['question'] as Map).cast()),
         yourChoice = j['yourChoice'] == null ? null : _int(j['yourChoice']),
         answeredCount = _int(j['answeredCount']),
-        reveal = j['reveal'] == null ? null : QuizReveal.fromJson((j['reveal'] as Map).cast()),
+        reveal = j['reveal'] == null
+            ? null
+            : QuizReveal.fromJson((j['reveal'] as Map).cast()),
         scores = (j['scores'] as Map).map((k, v) => MapEntry('$k', _int(v))),
         ranking = j['final'] == null
             ? null
-            : ((j['final'] as Map)['ranking'] as List).map((e) => RankingEntry.fromJson((e as Map).cast())).toList();
+            : ((j['final'] as Map)['ranking'] as List)
+                .map((e) => RankingEntry.fromJson((e as Map).cast()))
+                .toList();
   final String stage; // question | reveal | finished
   final QuizQuestion? question;
   final int? yourChoice;
@@ -90,12 +96,17 @@ class RoomView {
         mode = j['mode'] as String,
         phase = j['phase'] as String,
         commMode = j['commMode'] as String,
-        players = (j['players'] as List).map((e) => PublicPlayer.fromJson((e as Map).cast())).toList(),
+        players = (j['players'] as List)
+            .map((e) => PublicPlayer.fromJson((e as Map).cast()))
+            .toList(),
         you = j['you'] as String,
         serverNow = _int(j['serverNow']),
-        countdownEndsAt = j['countdownEndsAt'] == null ? null : _int(j['countdownEndsAt']),
+        countdownEndsAt =
+            j['countdownEndsAt'] == null ? null : _int(j['countdownEndsAt']),
         expectedDurationSec = _int(j['expectedDurationSec']),
-        quiz = j['game'] == null ? null : QuizView.fromJson((j['game'] as Map).cast());
+        quiz = j['game'] == null
+            ? null
+            : QuizView.fromJson((j['game'] as Map).cast());
   final String roomId;
   final String? code;
   final String gameId;
@@ -118,9 +129,13 @@ class MatchSummary {
       : matchId = j['matchId'] as String,
         xp = _int(j['xp']),
         coins = _int(j['coins']),
-        ratingBefore = j['rating'] == null ? null : _int((j['rating'] as Map)['before']),
-        ratingAfter = j['rating'] == null ? null : _int((j['rating'] as Map)['after']),
-        provisional = j['rating'] == null ? false : (j['rating'] as Map)['provisional'] as bool,
+        ratingBefore =
+            j['rating'] == null ? null : _int((j['rating'] as Map)['before']),
+        ratingAfter =
+            j['rating'] == null ? null : _int((j['rating'] as Map)['after']),
+        provisional = j['rating'] == null
+            ? false
+            : (j['rating'] as Map)['provisional'] as bool,
         notes = (j['notes'] as List).cast<String>();
   final String matchId;
   final int xp;
