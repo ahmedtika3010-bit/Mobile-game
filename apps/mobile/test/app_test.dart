@@ -31,8 +31,8 @@ void main() {
     expect(Directionality.of(tester.element(find.text('تحدي المعلومات'))),
         TextDirection.rtl);
     expect(find.text('تحدي المعلومات'), findsOneWidget);
-    // The other seven games are visible but clearly not playable yet.
-    expect(find.textContaining('قريباً'), findsNWidgets(7));
+    // The other six games are visible but clearly not playable yet.
+    expect(find.textContaining('قريباً'), findsNWidgets(6));
   });
 
   testWidgets('playing without an account asks the guest to sign in',

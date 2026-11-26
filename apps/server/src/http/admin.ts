@@ -5,7 +5,7 @@
 import { Router } from 'express';
 import { parse } from 'csv-parse/sync';
 import { z } from 'zod';
-import { LIAR_CATEGORIES, QUIZ_CATEGORIES, SPY_CATEGORIES } from '@sahra/shared';
+import { LIAR_CATEGORIES, QUIZ_CATEGORIES, SPY_CATEGORIES, WHO_CATEGORIES } from '@sahra/shared';
 import { prisma } from '../db';
 import { audit } from '../safety/audit';
 import { HttpError, requireAdmin, wrap } from './app';
@@ -57,6 +57,16 @@ const liarItemSchema = z.object({
   source: z.enum(['human', 'ai_suggested']).default('human'),
 });
 
+const whoItemSchema = z.object({
+  gameId: z.literal('who'),
+  category: z.enum(WHO_CATEGORIES as [string, ...string[]]),
+  difficulty: z.literal('medium').default('medium'),
+  language: z.string().default('ar'),
+  locale: z.string().optional(),
+  payload: z.object({ text: z.string().trim().min(8).max(140) }),
+  source: z.enum(['human', 'ai_suggested']).default('human'),
+});
+
 const quizItemSchema = z.object({
   gameId: z.literal('quiz'),
   category: z.enum(QUIZ_CATEGORIES as [string, ...string[]]),
@@ -69,7 +79,7 @@ const quizItemSchema = z.object({
   source: z.enum(['human', 'ai_suggested']).default('human'),
 });
 
-const itemSchema = z.discriminatedUnion('gameId', [quizItemSchema, spyItemSchema, liarItemSchema]);
+const itemSchema = z.discriminatedUnion('gameId', [quizItemSchema, spyItemSchema, liarItemSchema, whoItemSchema]);
 
 /** CSV columns for quiz imports (UTF-8, header row required). */
 export const QUIZ_CSV_COLUMNS = [
@@ -82,7 +92,7 @@ export function adminRouter() {
   /* ---------------- content ---------------- */
   r.get('/content', requireAdmin('content_editor'), wrap(async (req, res) => {
     const status = z.enum(['draft', 'in_review', 'approved', 'rejected', 'retired']).optional().parse(req.query.status);
-    const gameId = z.enum(['quiz', 'spy', 'liar']).default('quiz').parse(req.query.gameId);
+    const gameId = z.enum(['quiz', 'spy', 'liar', 'who']).default('quiz').parse(req.query.gameId);
     const items = await prisma.contentItem.findMany({
       where: { gameId, ...(status ? { status } : {}) },
       orderBy: { createdAt: 'desc' },

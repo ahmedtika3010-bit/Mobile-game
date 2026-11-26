@@ -15,6 +15,7 @@ import '../design/widgets.dart';
 import '../l10n/strings.dart';
 import 'liar_pane.dart';
 import 'spy_pane.dart';
+import 'who_pane.dart';
 
 const _phrases = ['gg', 'nice', 'wow', 'good_luck', 'thanks', 'oops', 'hurry'];
 const _phraseEmoji = {
@@ -77,7 +78,8 @@ class _RoomScreenState extends State<RoomScreen> {
         if (((v.phase == 'results' || q?.stage == 'finished') &&
                 q?.ranking != null) ||
             v.spy?.final_ != null ||
-            v.liar?.final_ != null) {
+            v.liar?.final_ != null ||
+            v.who?.final_ != null) {
           _results = v;
         } else if (v.phase == 'countdown' || v.phase == 'playing') {
           if (_results != null) _summary = null;
@@ -119,17 +121,21 @@ class _RoomScreenState extends State<RoomScreen> {
     if (old.phase == 'countdown' && v.phase == 'playing') Sfx.play('go');
     final spyDone = v.spy?.final_ != null && old.spy?.final_ == null;
     final liarDone = v.liar?.final_ != null && old.liar?.final_ == null;
+    final whoDone = v.who?.final_ != null && old.who?.final_ == null;
     final finishedNow = spyDone ||
         liarDone ||
+        whoDone ||
         (v.quiz?.ranking != null &&
             (v.phase == 'results' || v.quiz?.stage == 'finished') &&
             old.quiz?.ranking == null);
     if (finishedNow) {
       final f = v.spy?.final_;
       final ranking = v.liar?.final_?.ranking ?? v.quiz?.ranking ?? const [];
-      final won = f != null
-          ? (f.winner == 'spies') == f.spies.contains(v.you)
-          : ranking.where((r) => r.playerId == v.you).firstOrNull?.place == 1;
+      final won = whoDone ||
+          (f != null
+              ? (f.winner == 'spies') == f.spies.contains(v.you)
+              : ranking.where((r) => r.playerId == v.you).firstOrNull?.place ==
+                  1);
       if (won) {
         Sfx.play('win');
         HapticFeedback.heavyImpact();
@@ -257,7 +263,10 @@ class _RoomScreenState extends State<RoomScreen> {
 
   Widget _body(RoomView v) {
     final me = v.me;
-    if (_results != null && (_results!.spy != null || _results!.liar != null)) {
+    if (_results != null &&
+        (_results!.spy != null ||
+            _results!.liar != null ||
+            _results!.who != null)) {
       final rewards = _summary == null
           ? const SizedBox.shrink()
           : _SummaryCard(summary: _summary!);
@@ -279,6 +288,13 @@ class _RoomScreenState extends State<RoomScreen> {
             color: Tokens.grape,
             onPressed: () => Navigator.of(context).pop()),
       ];
+      if (_results!.who != null) {
+        return WhoResults(
+            key: const ValueKey('results'),
+            view: _results!,
+            rewards: rewards,
+            actions: actions);
+      }
       return _results!.liar != null
           ? LiarResults(
               key: const ValueKey('results'),
@@ -312,6 +328,10 @@ class _RoomScreenState extends State<RoomScreen> {
           view: v,
           bubbles: _bubbles,
           onPlayer: _playerSheet);
+    }
+    if (v.phase == 'playing' && v.who != null) {
+      return WhoPane(
+          key: const ValueKey('who'), view: v, session: s, bubbles: _bubbles);
     }
     if (v.phase == 'playing' && v.liar != null) {
       return LiarPane(
@@ -529,7 +549,7 @@ class _Lobby extends StatelessWidget {
     final practice = view.mode == 'practice';
     final hostStarts = private || practice;
     final enough = view.players.length >=
-        (view.gameId == 'spy' || view.gameId == 'liar' ? 3 : 2);
+        (const {'spy', 'liar', 'who'}.contains(view.gameId) ? 3 : 2);
     return Padding(
       padding: const EdgeInsets.fromLTRB(Tokens.s20, 0, Tokens.s20, Tokens.s16),
       child: Column(children: [

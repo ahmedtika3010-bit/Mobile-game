@@ -67,9 +67,21 @@ final _games = [
         ('🔁', S.of('tagLiarRounds')),
         ('🗳️', S.of('tagVoting')),
       ]),
+  _GameInfo('who', S.of('game_who'), '👀', Tokens.pink,
+      playable: true,
+      desc: S.of('game_who_desc'),
+      gradient: const [
+        Color(0xFFFF6FD8),
+        Color(0xFF8E5BFF),
+        Color(0xFF3DA5FF)
+      ],
+      tags: [
+        ('👥', S.of('tagWhoPlayers')),
+        ('🤫', S.of('tagAnonymous')),
+        ('😄', S.of('tagNoLosers')),
+      ]),
   const _GameInfo('football', 'تحديات الكورة', '⚽', Tokens.mint),
   const _GameInfo('stop', 'أتوبيس كومبليت', '🚌', Tokens.orange),
-  const _GameInfo('who', 'مين فينا؟', '👀', Tokens.pink),
   const _GameInfo('draw', 'ارسم وخمّن', '🎨', Tokens.sky),
   const _GameInfo('emoji', 'خمّن بالإيموجي', '😎', Tokens.sun),
   const _GameInfo('memory', 'تحديات الذاكرة', '🧩', Tokens.mint),

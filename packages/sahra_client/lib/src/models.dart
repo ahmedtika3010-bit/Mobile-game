@@ -121,7 +121,10 @@ class RoomView {
             : SpyView.fromJson((j['game'] as Map).cast()),
         liar = j['game'] == null || j['gameId'] != 'liar'
             ? null
-            : LiarView.fromJson((j['game'] as Map).cast());
+            : LiarView.fromJson((j['game'] as Map).cast()),
+        who = j['game'] == null || j['gameId'] != 'who'
+            ? null
+            : WhoView.fromJson((j['game'] as Map).cast());
   final String roomId;
   final String? code;
   final String gameId;
@@ -136,6 +139,7 @@ class RoomView {
   final QuizView? quiz;
   final SpyView? spy;
   final LiarView? liar;
+  final WhoView? who;
 
   PublicPlayer? get me => players.where((p) => p.playerId == you).firstOrNull;
   bool get isSafeMode => commMode == 'safe';
@@ -328,6 +332,71 @@ class LiarView {
   final Map<String, int> scores;
   final LiarRoundResult? lastRound;
   final LiarFinal? final_;
+}
+
+/// Who Among Us? (مين فينا؟). See packages/shared/src/who.ts.
+class WhoReveal {
+  WhoReveal.fromJson(Map<String, dynamic> j)
+      : kind = j['kind'] as String,
+        picks = (j['picks'] as List).cast<String>(),
+        votes = _int(j['votes']),
+        counts = (j['counts'] as Map?)?.map((k, v) => MapEntry('$k', _int(v)));
+
+  /// pick | too_few | spread
+  final String kind;
+  final List<String> picks;
+  final int votes;
+  final Map<String, int>? counts;
+}
+
+class WhoFinal {
+  WhoFinal.fromJson(Map<String, dynamic> j)
+      : questions = _int(j['questions']),
+        votesCast = _int(j['votesCast']),
+        skips = _int(j['skips']),
+        titles =
+            (j['titles'] as Map).map((k, v) => MapEntry('$k', v as String)),
+        highlights = (j['highlights'] as List)
+            .map((e) => (
+                  text: (e as Map)['text'] as String,
+                  picks: (e['picks'] as List).cast<String>()
+                ))
+            .toList();
+  final int questions;
+  final int votesCast;
+  final int skips;
+  final Map<String, String> titles;
+  final List<({String text, List<String> picks})> highlights;
+}
+
+class WhoView {
+  WhoView.fromJson(Map<String, dynamic> j)
+      : stage = j['stage'] as String,
+        stageEndsAt = _int(j['stageEndsAt']),
+        index = _int(j['index']),
+        total = _int(j['total']),
+        questionText = (j['question'] as Map?)?['text'] as String?,
+        category = (j['question'] as Map?)?['category'] as String?,
+        yourChoice = j['yourChoice'] as String?,
+        answeredCount = _int(j['answeredCount']),
+        reveal = j['reveal'] == null
+            ? null
+            : WhoReveal.fromJson((j['reveal'] as Map).cast()),
+        final_ = j['final'] == null
+            ? null
+            : WhoFinal.fromJson((j['final'] as Map).cast());
+
+  /// vote | reveal | finished
+  final String stage;
+  final int stageEndsAt;
+  final int index;
+  final int total;
+  final String? questionText;
+  final String? category;
+  final String? yourChoice;
+  final int answeredCount;
+  final WhoReveal? reveal;
+  final WhoFinal? final_;
 }
 
 class MatchSummary {

@@ -6,7 +6,8 @@
  *    It was drafted with AI help, so it is inserted as `in_review` with
  *    source `ai_suggested` and must be fact-checked before release.
  * Spy packs (prisma/content/spy_ar_v1.json: words + approved questions per
- * category) and Liar question pairs (prisma/content/liar_ar_v1.json) follow
+ * category), Liar question pairs (prisma/content/liar_ar_v1.json) and Who Among Us
+ * questions (prisma/content/who_ar_v1.json) follow
  * the same rule: AI-assisted, `in_review` until approved.
  * For local testing only, `npm run db:seed -- --approve-for-local-testing`
  * approves everything directly. Re-running only adds questions whose prompt
@@ -105,10 +106,31 @@ async function seedLiar(approve: boolean) {
   console.log(`inserted ${fresh.length} liar pairs as ${approve ? 'approved (local testing)' : 'in_review'}`);
 }
 
+async function seedWho(approve: boolean) {
+  const items: { category: string; text: string }[] = JSON.parse(readFileSync(join(__dirname, 'content', 'who_ar_v1.json'), 'utf8'));
+  const existing = await prisma.contentItem.findMany({ where: { gameId: 'who' }, select: { payload: true } });
+  const have = new Set(existing.map((e) => (e.payload as { text?: string }).text));
+  const fresh = items.filter((q) => !have.has(q.text));
+  if (fresh.length === 0) return console.log(`who content up to date (${existing.length} questions)`);
+  await prisma.contentItem.createMany({
+    data: fresh.map((q) => ({
+      gameId: 'who',
+      category: q.category,
+      difficulty: 'medium',
+      payload: { text: q.text },
+      source: 'ai_suggested' as const,
+      status: approve ? ('approved' as const) : ('in_review' as const),
+      publishedAt: approve ? new Date() : null,
+    })),
+  });
+  console.log(`inserted ${fresh.length} who questions as ${approve ? 'approved (local testing)' : 'in_review'}`);
+}
+
 async function main() {
   const approve = process.argv.includes('--approve-for-local-testing');
   await seedSpy(approve);
   await seedLiar(approve);
+  await seedWho(approve);
   const all: Row[] = [
     ...QUESTIONS.map(([category, difficulty, prompt, choices, explanation]) => ({
       category, difficulty, prompt, choices, correct: 0, explanation: explanation ?? null, source: 'human' as const,

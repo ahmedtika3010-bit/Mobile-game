@@ -35,6 +35,8 @@ export interface GameCapabilities {
   /** Must be true (after Safe Mode testing) before the game is offered to mixed-age rooms. */
   safeModeReady: boolean;
   spectators: 'none' | 'public_only';
+  /** 'participation': no winners; small flat rewards for taking part. */
+  rewards?: 'performance' | 'participation';
 }
 
 export interface GameModule<State, Config, View> {

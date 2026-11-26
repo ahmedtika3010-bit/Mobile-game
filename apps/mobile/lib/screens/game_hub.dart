@@ -34,6 +34,14 @@ const _hubs = {
     ('👀', 'liarRule3'),
     ('🗳️', 'liarRule4'),
   ]),
+  'who': _HubInfo('👀', Tokens.pink, {
+    'questionCount': 8
+  }, rules: [
+    ('❓', 'whoRule1'),
+    ('🤫', 'whoRule2'),
+    ('👑', 'whoRule3'),
+    ('🏅', 'whoRule4'),
+  ]),
 };
 
 /// Entry screen of a game: quick play, practice, ranked, private rooms.

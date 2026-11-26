@@ -8,6 +8,7 @@ import { config } from '../config';
 import { prisma } from '../db';
 import { coinsEarnedFromMatchesToday, grant } from '../economy/ledger';
 import type { GameResults } from '../games/engine';
+import { getGame } from '../games/registry';
 import { applyRatings } from '../rating/rating';
 
 export interface ActionLogEntry {
@@ -29,6 +30,7 @@ export interface FinalizeInput {
 
 export async function finalizeMatch(input: FinalizeInput): Promise<Map<string, MatchSummary>> {
   const { matchId, gameId, mode, results, players } = input;
+  const participationOnly = getGame(gameId)?.capabilities.rewards === 'participation';
   const left = new Set(input.leftEarly);
   const n = players.length;
 
@@ -65,8 +67,14 @@ export async function finalizeMatch(input: FinalizeInput): Promise<Map<string, M
       if (left.has(r.playerId)) {
         notes.push('left_early_no_rewards');
       } else {
-        xp = Math.min(100, 20 + 5 * (r.correct ?? 0));
-        coins = 10 + (r.place === 1 ? 10 : 0);
+        if (participationOnly) {
+          // No winners: small, flat rewards for taking part (`correct` = questions answered).
+          xp = Math.min(40, 20 + 2 * (r.correct ?? 0));
+          coins = 10;
+        } else {
+          xp = Math.min(100, 20 + 5 * (r.correct ?? 0));
+          coins = 10 + (r.place === 1 ? 10 : 0);
+        }
         if (mode === 'private') {
           // Limit reward extraction from private rooms.
           if (stayed.length < config.economy.privateRoomMinPlayersForCoins) {
