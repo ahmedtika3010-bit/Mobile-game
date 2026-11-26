@@ -265,7 +265,8 @@ class _SpyPaneState extends State<SpyPane> {
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: Tokens.s12),
           child: Icon(Icons.arrow_forward_rounded,
-              color: Tokens.textDim, size: 30), // mirrors in RTL: points to the target
+              color: Tokens.textDim,
+              size: 30), // mirrors in RTL: points to the target
         ),
         _MiniPlayer(player: target, highlight: true),
       ]),
@@ -502,7 +503,7 @@ class _RoleReveal extends StatelessWidget {
             if (!spy && view.word != null) ...[
               Text(S.of('theWordIs'),
                   style: const TextStyle(
-                      color: Tokens.inkSoft, fontWeight: FontWeight.w700)),
+                      color: Color(0xCC1B1340), fontWeight: FontWeight.w800)),
               Container(
                 margin: const EdgeInsets.only(top: Tokens.s8),
                 padding: const EdgeInsets.symmetric(
@@ -527,7 +528,10 @@ class _RoleReveal extends StatelessWidget {
             const SizedBox(height: Tokens.s12),
             Text(S.of(spy ? 'youAreSpyHint' : 'citizenHint'),
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Tokens.inkSoft, height: 1.5)),
+                style: const TextStyle(
+                    color: Color(0xCC1B1340),
+                    height: 1.5,
+                    fontWeight: FontWeight.w600)),
           ]),
         ),
       ),
