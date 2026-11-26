@@ -13,6 +13,7 @@ import '../design/sfx.dart';
 import '../design/tokens.dart';
 import '../design/widgets.dart';
 import '../l10n/strings.dart';
+import 'spy_pane.dart';
 
 const _phrases = ['gg', 'nice', 'wow', 'good_luck', 'thanks', 'oops', 'hurry'];
 const _phraseEmoji = {
@@ -72,8 +73,9 @@ class _RoomScreenState extends State<RoomScreen> {
       _soundsFor(_view, v);
       setState(() {
         final q = v.quiz;
-        if ((v.phase == 'results' || q?.stage == 'finished') &&
-            q?.ranking != null) {
+        if (((v.phase == 'results' || q?.stage == 'finished') &&
+                q?.ranking != null) ||
+            v.spy?.final_ != null) {
           _results = v;
         } else if (v.phase == 'countdown' || v.phase == 'playing') {
           if (_results != null) _summary = null;
@@ -113,13 +115,21 @@ class _RoomScreenState extends State<RoomScreen> {
       Sfx.play('join', volume: 0.5);
     }
     if (old.phase == 'countdown' && v.phase == 'playing') Sfx.play('go');
-    final finishedNow = v.quiz?.ranking != null &&
-        (v.phase == 'results' || v.quiz?.stage == 'finished') &&
-        old.quiz?.ranking == null;
+    final spyDone = v.spy?.final_ != null && old.spy?.final_ == null;
+    final finishedNow = spyDone ||
+        (v.quiz?.ranking != null &&
+            (v.phase == 'results' || v.quiz?.stage == 'finished') &&
+            old.quiz?.ranking == null);
     if (finishedNow) {
-      final mine =
-          v.quiz!.ranking!.where((r) => r.playerId == v.you).firstOrNull;
-      if (mine?.place == 1) {
+      final f = v.spy?.final_;
+      final won = f != null
+          ? (f.winner == 'spies') == f.spies.contains(v.you)
+          : v.quiz!.ranking!
+                  .where((r) => r.playerId == v.you)
+                  .firstOrNull
+                  ?.place ==
+              1;
+      if (won) {
         Sfx.play('win');
         HapticFeedback.heavyImpact();
       } else {
@@ -246,6 +256,33 @@ class _RoomScreenState extends State<RoomScreen> {
 
   Widget _body(RoomView v) {
     final me = v.me;
+    if (_results != null && _results!.spy != null) {
+      return SpyResults(
+        key: const ValueKey('results'),
+        view: _results!,
+        rewards: _summary == null
+            ? const SizedBox.shrink()
+            : _SummaryCard(summary: _summary!),
+        actions: [
+          if (v.mode == 'private' || v.phase == 'lobby') ...[
+            GameButton(
+                label: S.of('playAgain'),
+                icon: Icons.replay_rounded,
+                color: Tokens.sun,
+                onPressed: () => setState(() {
+                      _results = null;
+                      _summary = null;
+                    })),
+            const SizedBox(height: Tokens.s12),
+          ],
+          GameButton(
+              label: S.of('backHome'),
+              icon: Icons.home_rounded,
+              color: Tokens.grape,
+              onPressed: () => Navigator.of(context).pop()),
+        ],
+      );
+    }
     if (_results != null) {
       return _Results(
           key: const ValueKey('results'),
@@ -265,6 +302,14 @@ class _RoomScreenState extends State<RoomScreen> {
       return _Waiting(
           key: const ValueKey('waiting'),
           view: v,
+          bubbles: _bubbles,
+          onPlayer: _playerSheet);
+    }
+    if (v.phase == 'playing' && v.spy != null) {
+      return SpyPane(
+          key: const ValueKey('spy'),
+          view: v,
+          session: s,
           bubbles: _bubbles,
           onPlayer: _playerSheet);
     }
@@ -471,7 +516,7 @@ class _Lobby extends StatelessWidget {
     final private = view.mode == 'private';
     final practice = view.mode == 'practice';
     final hostStarts = private || practice;
-    final enough = view.players.length >= 2;
+    final enough = view.players.length >= (view.gameId == 'spy' ? 3 : 2);
     return Padding(
       padding: const EdgeInsets.fromLTRB(Tokens.s20, 0, Tokens.s20, Tokens.s16),
       child: Column(children: [
@@ -1772,6 +1817,46 @@ class _ShareCard extends StatelessWidget {
       ]),
     );
   }
+}
+
+/// XP / coins / rating earned in a match, with any notes.
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard({required this.summary});
+  final MatchSummary summary;
+  @override
+  Widget build(BuildContext context) => GlassCard(
+        padding: const EdgeInsets.symmetric(
+            horizontal: Tokens.s8, vertical: Tokens.s16),
+        child: Column(children: [
+          Text(S.of('rewards'),
+              style: const TextStyle(
+                  color: Tokens.textDim, fontWeight: FontWeight.w700)),
+          const SizedBox(height: Tokens.s8),
+          Row(children: [
+            Expanded(
+                child: _Stat(
+                    icon: '⭐',
+                    label: S.of('xp'),
+                    value: summary.xp,
+                    color: Tokens.sun)),
+            Expanded(
+                child: _Stat(
+                    icon: '🪙',
+                    label: S.of('coins'),
+                    value: summary.coins,
+                    color: Tokens.orange)),
+          ]),
+          for (final n in summary.notes)
+            if (S.has('note_$n'))
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                    Tokens.s8, Tokens.s12, Tokens.s8, 0),
+                child: Text('💡 ${S.of('note_$n')}',
+                    style: const TextStyle(
+                        color: Tokens.textDim, fontSize: 13.5, height: 1.5)),
+              ),
+        ]),
+      );
 }
 
 class _Podium extends StatelessWidget {

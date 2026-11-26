@@ -7,26 +7,54 @@ import '../design/tokens.dart';
 import '../design/widgets.dart';
 import '../l10n/strings.dart';
 import 'onboarding.dart';
-import 'quiz_hub.dart';
+import 'game_hub.dart';
 import 'safety_center.dart';
 import 'sign_in.dart';
 
 class _GameInfo {
   const _GameInfo(this.id, this.name, this.emoji, this.color,
-      {this.playable = false, this.desc});
+      {this.playable = false,
+      this.desc,
+      this.gradient = const [],
+      this.tags = const []});
   final String id;
   final String name;
   final String emoji;
   final Color color;
   final bool playable;
   final String? desc;
+  final List<Color> gradient;
+  final List<(String, String)> tags;
 }
 
 final _games = [
   _GameInfo('quiz', S.of('game_quiz'), '🧠', Tokens.sky,
-      playable: true, desc: S.of('game_quiz_desc')),
+      playable: true,
+      desc: S.of('game_quiz_desc'),
+      gradient: const [
+        Color(0xFF3DA5FF),
+        Color(0xFF6A5CFF),
+        Color(0xFF9B4DFF)
+      ],
+      tags: [
+        ('👥', S.of('tagPlayers')),
+        ('⏱️', S.of('tagQuick')),
+        ('🏆', S.of('tagRanked')),
+      ]),
+  _GameInfo('spy', S.of('game_spy'), '🕵️', Tokens.grape,
+      playable: true,
+      desc: S.of('game_spy_desc'),
+      gradient: const [
+        Color(0xFFFF5E8A),
+        Color(0xFF9B4DFF),
+        Color(0xFF3A1F86)
+      ],
+      tags: [
+        ('👥', S.of('tagSpyPlayers')),
+        ('🤫', S.of('tagSecretRoles')),
+        ('🗳️', S.of('tagVoting')),
+      ]),
   const _GameInfo('football', 'تحديات الكورة', '⚽', Tokens.mint),
-  const _GameInfo('spy', 'الجاسوس', '🕵️', Tokens.grape),
   const _GameInfo('stop', 'أتوبيس كومبليت', '🚌', Tokens.orange),
   const _GameInfo('liar', 'مين الكداب؟', '🤥', Tokens.coral),
   const _GameInfo('who', 'مين فينا؟', '👀', Tokens.pink),
@@ -39,7 +67,7 @@ final _games = [
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  Future<void> _open(BuildContext context) async {
+  Future<void> _open(BuildContext context, String gameId) async {
     final app = AppScope.read(context);
     final nav = Navigator.of(context);
     if (!app.signedIn) {
@@ -47,7 +75,7 @@ class HomeScreen extends StatelessWidget {
     } else if (!app.canPlay) {
       await nav.push(SoftRoute(const OnboardingScreen()));
     } else {
-      await nav.push(SoftRoute(const QuizHubScreen()));
+      await nav.push(SoftRoute(GameHubScreen(gameId: gameId)));
       app.refreshWallet();
     }
   }
@@ -205,11 +233,18 @@ class HomeScreen extends StatelessWidget {
         ),
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: Tokens.s20),
-          sliver: SliverToBoxAdapter(
-              child: FadeSlideIn(
-                  delay: const Duration(milliseconds: 120),
-                  child: _FeaturedCard(
-                      game: _games.first, onPlay: () => _open(context)))),
+          sliver: SliverList.list(children: [
+            for (final (i, g) in _games.where((g) => g.playable).indexed)
+              Padding(
+                padding: EdgeInsets.only(top: i == 0 ? 0 : Tokens.s20),
+                child: FadeSlideIn(
+                    delay: Duration(milliseconds: 120 + i * 80),
+                    child: _FeaturedCard(
+                        key: Key('featured_${g.id}'),
+                        game: g,
+                        onPlay: () => _open(context, g.id))),
+              ),
+          ]),
         ),
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(
@@ -222,7 +257,9 @@ class HomeScreen extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleLarge),
               ),
               const SizedBox(width: Tokens.s8),
-              Pill(text: '${_games.length - 1}', color: Tokens.pink),
+              Pill(
+                  text: '${_games.where((g) => !g.playable).length}',
+                  color: Tokens.pink),
             ]),
           ),
         ),
@@ -235,7 +272,7 @@ class HomeScreen extends StatelessWidget {
             crossAxisSpacing: Tokens.s12,
             childAspectRatio: 0.82,
             children: [
-              for (final (i, g) in _games.skip(1).indexed)
+              for (final (i, g) in _games.where((g) => !g.playable).indexed)
                 FadeSlideIn(
                     delay: Duration(milliseconds: 200 + i * 50),
                     child: _ComingTile(game: g)),
@@ -286,7 +323,7 @@ class _SheetAction extends StatelessWidget {
 }
 
 class _FeaturedCard extends StatelessWidget {
-  const _FeaturedCard({required this.game, required this.onPlay});
+  const _FeaturedCard({super.key, required this.game, required this.onPlay});
   final _GameInfo game;
   final VoidCallback onPlay;
 
@@ -296,15 +333,15 @@ class _FeaturedCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.all(Tokens.r32),
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
             begin: Alignment.topRight,
             end: Alignment.bottomLeft,
-            colors: [Color(0xFF3DA5FF), Color(0xFF6A5CFF), Color(0xFF9B4DFF)]),
+            colors: game.gradient),
         border:
             Border.all(color: Colors.white.withValues(alpha: 0.25), width: 1.5),
         boxShadow: [
           BoxShadow(
-              color: Tokens.grape.withValues(alpha: 0.45),
+              color: game.gradient.last.withValues(alpha: 0.45),
               blurRadius: 30,
               offset: const Offset(0, 14)),
         ],
@@ -330,8 +367,11 @@ class _FeaturedCard extends StatelessWidget {
           padding: const EdgeInsets.all(Tokens.s20),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Pill(
-                text: 'جديد', emoji: '🔥', color: Colors.white, solid: true),
+            Pill(
+                text: S.of(game.id == 'spy' ? 'newTag' : 'popularTag'),
+                emoji: game.id == 'spy' ? '✨' : '🔥',
+                color: Colors.white,
+                solid: true),
             const SizedBox(height: Tokens.s12),
             Padding(
               padding: const EdgeInsetsDirectional.only(end: 110),
@@ -354,9 +394,8 @@ class _FeaturedCard extends StatelessWidget {
             ),
             const SizedBox(height: Tokens.s16),
             Wrap(spacing: Tokens.s8, runSpacing: Tokens.s8, children: [
-              _Tag(emoji: '👥', text: S.of('tagPlayers')),
-              _Tag(emoji: '⏱️', text: S.of('tagQuick')),
-              _Tag(emoji: '🏆', text: S.of('tagRanked')),
+              for (final (emoji, text) in game.tags)
+                _Tag(emoji: emoji, text: text),
             ]),
             const SizedBox(height: Tokens.s20),
             GameButton(

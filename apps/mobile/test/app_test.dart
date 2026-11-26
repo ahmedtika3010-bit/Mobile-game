@@ -32,14 +32,14 @@ void main() {
         TextDirection.rtl);
     expect(find.text('تحدي المعلومات'), findsOneWidget);
     // The other nine games are visible but clearly not playable yet.
-    expect(find.textContaining('قريباً'), findsNWidgets(9));
+    expect(find.textContaining('قريباً'), findsNWidgets(8));
   });
 
   testWidgets('playing without an account asks the guest to sign in',
       (tester) async {
     await tester.pumpWidget(SahraApp(state: _state()));
     await _settle(tester);
-    await tester.tap(find.text('العب دلوقتي'));
+    await tester.tap(find.text('العب دلوقتي').first);
     await _settle(tester);
     expect(find.byType(SignInScreen), findsOneWidget);
   });

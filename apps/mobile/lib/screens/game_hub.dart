@@ -9,26 +9,59 @@ import '../design/widgets.dart';
 import '../l10n/strings.dart';
 import 'room.dart';
 
-class QuizHubScreen extends StatefulWidget {
-  const QuizHubScreen({super.key});
-  @override
-  State<QuizHubScreen> createState() => _QuizHubScreenState();
+/// Per-game look and private-room defaults for the hub.
+class _HubInfo {
+  const _HubInfo(this.emoji, this.color, this.privateConfig,
+      {this.rules = const []});
+  final String emoji;
+  final Color color;
+  final Map<String, dynamic> privateConfig;
+  final List<(String, String)> rules;
 }
 
-class _QuizHubScreenState extends State<QuizHubScreen> {
+const _hubs = {
+  'quiz':
+      _HubInfo('🧠', Tokens.sky, {'questionCount': 10, 'answerSeconds': 15}),
+  'spy': _HubInfo('🕵️', Tokens.grape, {}, rules: [
+    ('🤫', 'spyRule1'),
+    ('❓', 'spyRule2'),
+    ('🗳️', 'spyRule3'),
+    ('🎯', 'spyRule4'),
+  ]),
+};
+
+/// Entry screen of a game: quick play, practice, ranked, private rooms.
+/// Modes the server does not offer for a game are not shown.
+class GameHubScreen extends StatefulWidget {
+  const GameHubScreen({super.key, required this.gameId});
+  final String gameId;
+  @override
+  State<GameHubScreen> createState() => _GameHubScreenState();
+}
+
+class _GameHubScreenState extends State<GameHubScreen> {
   final _code = TextEditingController();
   String? _busy;
   String? _error;
   int? _durationSec;
+  bool _ranked = false;
+  bool _practice = false;
+  int _spies = 1;
+
+  String get gameId => widget.gameId;
+  _HubInfo get info => _hubs[gameId]!;
 
   @override
   void initState() {
     super.initState();
     AppScope.read(context).api.games().then((games) {
-      final q = games.where((g) => g['id'] == 'quiz').firstOrNull;
-      if (mounted && q != null) {
-        setState(
-            () => _durationSec = (q['expectedDurationSec'] as num).toInt());
+      final g = games.where((g) => g['id'] == gameId).firstOrNull;
+      if (mounted && g != null) {
+        setState(() {
+          _durationSec = (g['expectedDurationSec'] as num).toInt();
+          _ranked = (g['capabilities'] as Map?)?['ranked'] == true;
+          _practice = g['practice'] == true;
+        });
       }
     }).catchError((_) {});
   }
@@ -60,22 +93,22 @@ class _QuizHubScreenState extends State<QuizHubScreen> {
   Widget build(BuildContext context) {
     final idle = _busy == null;
     return NightScaffold(
-      glow: Tokens.sky,
+      glow: info.color,
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
             Tokens.s20, Tokens.s8, Tokens.s20, Tokens.s32),
         children: [
           Center(
             child: Bob(
-              child: GameIcon(emoji: '🧠', color: Tokens.sky, size: 104),
+              child: GameIcon(emoji: info.emoji, color: info.color, size: 104),
             ),
           ),
           const SizedBox(height: Tokens.s16),
-          Text(S.of('game_quiz'),
+          Text(S.of('game_$gameId'),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.headlineMedium),
           const SizedBox(height: Tokens.s4),
-          Text(S.of('game_quiz_desc'),
+          Text(S.of('game_${gameId}_desc'),
               textAlign: TextAlign.center,
               style: const TextStyle(color: Tokens.textDim, fontSize: 16)),
           if (_durationSec != null) ...[
@@ -101,46 +134,49 @@ class _QuizHubScreenState extends State<QuizHubScreen> {
                   ? () => _go(
                       'quick',
                       (a) => GameSession.quickPlay(a.api, a.client,
-                          gameId: 'quiz', mode: 'casual'))
+                          gameId: gameId, mode: 'casual'))
                   : null,
             ),
           ),
-          const SizedBox(height: Tokens.s12),
-          FadeSlideIn(
-            delay: const Duration(milliseconds: 35),
-            child: _ModeCard(
-              key: const Key('practice'),
-              emoji: '🤖',
-              title: S.of('practice'),
-              subtitle: S.of('practiceDesc'),
-              color: Tokens.grape,
-              busy: _busy == 'practice',
-              onTap: idle
-                  ? () => _go(
-                      'practice',
-                      (a) => GameSession.practice(a.api, a.client,
-                          gameId: 'quiz',
-                          config: {'questionCount': 10, 'answerSeconds': 15}))
-                  : null,
+          if (_practice) ...[
+            const SizedBox(height: Tokens.s12),
+            FadeSlideIn(
+              delay: const Duration(milliseconds: 35),
+              child: _ModeCard(
+                key: const Key('practice'),
+                emoji: '🤖',
+                title: S.of('practice'),
+                subtitle: S.of('practiceDesc'),
+                color: Tokens.grape,
+                busy: _busy == 'practice',
+                onTap: idle
+                    ? () => _go(
+                        'practice',
+                        (a) => GameSession.practice(a.api, a.client,
+                            gameId: gameId, config: info.privateConfig))
+                    : null,
+              ),
             ),
-          ),
-          const SizedBox(height: Tokens.s12),
-          FadeSlideIn(
-            delay: const Duration(milliseconds: 70),
-            child: _ModeCard(
-              emoji: '🏆',
-              title: S.of('ranked'),
-              subtitle: S.of('rankedDesc'),
-              color: Tokens.coral,
-              busy: _busy == 'ranked',
-              onTap: idle
-                  ? () => _go(
-                      'ranked',
-                      (a) => GameSession.quickPlay(a.api, a.client,
-                          gameId: 'quiz', mode: 'ranked'))
-                  : null,
+          ],
+          if (_ranked) ...[
+            const SizedBox(height: Tokens.s12),
+            FadeSlideIn(
+              delay: const Duration(milliseconds: 70),
+              child: _ModeCard(
+                emoji: '🏆',
+                title: S.of('ranked'),
+                subtitle: S.of('rankedDesc'),
+                color: Tokens.coral,
+                busy: _busy == 'ranked',
+                onTap: idle
+                    ? () => _go(
+                        'ranked',
+                        (a) => GameSession.quickPlay(a.api, a.client,
+                            gameId: gameId, mode: 'ranked'))
+                    : null,
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: Tokens.s12),
           FadeSlideIn(
             delay: const Duration(milliseconds: 140),
@@ -155,11 +191,19 @@ class _QuizHubScreenState extends State<QuizHubScreen> {
                   ? () => _go(
                       'create',
                       (a) => GameSession.createPrivate(a.api, a.client,
-                          gameId: 'quiz',
-                          config: {'questionCount': 10, 'answerSeconds': 15}))
+                              gameId: gameId,
+                              config: {
+                                ...info.privateConfig,
+                                if (gameId == 'spy') 'spies': _spies,
+                              }))
                   : null,
             ),
           ),
+          if (gameId == 'spy') ...[
+            const SizedBox(height: Tokens.s8),
+            _SpyCountPicker(
+                value: _spies, onChanged: (n) => setState(() => _spies = n)),
+          ],
           const SizedBox(height: Tokens.s24),
           FadeSlideIn(
             delay: const Duration(milliseconds: 210),
@@ -214,7 +258,7 @@ class _QuizHubScreenState extends State<QuizHubScreen> {
                             ? () => _go(
                                 'join',
                                 (a) => GameSession.joinByCode(a.api, a.client,
-                                    gameId: 'quiz', code: _code.text.trim()))
+                                    gameId: gameId, code: _code.text.trim()))
                             : null,
                       ),
                     ]),
@@ -231,10 +275,78 @@ class _QuizHubScreenState extends State<QuizHubScreen> {
                       color: Tokens.coral, fontWeight: FontWeight.w700)),
             ),
           ],
+          if (info.rules.isNotEmpty) ...[
+            const SizedBox(height: Tokens.s24),
+            FadeSlideIn(
+              delay: const Duration(milliseconds: 260),
+              child: GlassCard(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text('📜 ${S.of('howToPlay')}',
+                          style: Theme.of(context).textTheme.titleMedium),
+                      for (final (emoji, key) in info.rules)
+                        Padding(
+                          padding: const EdgeInsets.only(top: Tokens.s12),
+                          child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(emoji,
+                                    style: const TextStyle(fontSize: 20)),
+                                const SizedBox(width: Tokens.s12),
+                                Expanded(
+                                  child: Text(S.of(key),
+                                      style: const TextStyle(
+                                          color: Tokens.textDim,
+                                          fontSize: 15,
+                                          height: 1.5)),
+                                ),
+                              ]),
+                        ),
+                    ]),
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
+}
+
+class _SpyCountPicker extends StatelessWidget {
+  const _SpyCountPicker({required this.value, required this.onChanged});
+  final int value;
+  final ValueChanged<int> onChanged;
+  @override
+  Widget build(BuildContext context) => Row(children: [
+        Expanded(
+          child: Text(S.of('spyCount'),
+              style: const TextStyle(
+                  color: Tokens.textDim, fontWeight: FontWeight.w700)),
+        ),
+        for (final n in const [1, 2])
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: Tokens.s8),
+            child: Pressable(
+              onTap: () => onChanged(n),
+              semanticLabel: '${S.of('spyCount')} $n',
+              child: AnimatedContainer(
+                duration: Tokens.fast,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: Tokens.s12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: value == n ? Tokens.mint : Tokens.glass,
+                  borderRadius: const BorderRadius.all(Radius.circular(99)),
+                  border: Border.all(color: Tokens.glassBorder),
+                ),
+                child: Text('🕵️ × $n',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: value == n ? Tokens.ink : Colors.white)),
+              ),
+            ),
+          ),
+      ]);
 }
 
 class _ModeCard extends StatelessWidget {

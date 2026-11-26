@@ -113,9 +113,12 @@ class RoomView {
         countdownEndsAt =
             j['countdownEndsAt'] == null ? null : _int(j['countdownEndsAt']),
         expectedDurationSec = _int(j['expectedDurationSec']),
-        quiz = j['game'] == null
+        quiz = j['game'] == null || j['gameId'] != 'quiz'
             ? null
-            : QuizView.fromJson((j['game'] as Map).cast());
+            : QuizView.fromJson((j['game'] as Map).cast()),
+        spy = j['game'] == null || j['gameId'] != 'spy'
+            ? null
+            : SpyView.fromJson((j['game'] as Map).cast());
   final String roomId;
   final String? code;
   final String gameId;
@@ -128,9 +131,112 @@ class RoomView {
   final int? countdownEndsAt;
   final int expectedDurationSec;
   final QuizView? quiz;
+  final SpyView? spy;
 
   PublicPlayer? get me => players.where((p) => p.playerId == you).firstOrNull;
   bool get isSafeMode => commMode == 'safe';
+}
+
+/// Spy (الجاسوس). See packages/shared/src/spy.ts.
+class SpyTurn {
+  SpyTurn.fromJson(Map<String, dynamic> j)
+      : index = _int(j['index']),
+        total = _int(j['total']),
+        asker = j['asker'] as String,
+        target = j['target'] as String?,
+        questionOptions = (j['questionOptions'] as List?)?.cast<String>(),
+        question = j['question'] as String?,
+        answer = j['answer'] == null ? null : _int(j['answer']);
+  final int index;
+  final int total;
+  final String asker;
+  final String? target;
+  final List<String>? questionOptions;
+  final String? question;
+  final int? answer;
+}
+
+class SpyHistoryEntry {
+  SpyHistoryEntry.fromJson(Map<String, dynamic> j)
+      : asker = j['asker'] as String,
+        target = j['target'] as String,
+        question = j['question'] as String,
+        answer = j['answer'] == null ? null : _int(j['answer']);
+  final String asker;
+  final String target;
+  final String question;
+  final int? answer;
+}
+
+class SpyFinal {
+  SpyFinal.fromJson(Map<String, dynamic> j)
+      : winner = j['winner'] as String,
+        reason = j['reason'] as String,
+        spies = (j['spies'] as List).cast<String>(),
+        word = j['word'] as String,
+        voteCounts =
+            (j['voteCounts'] as Map).map((k, v) => MapEntry('$k', _int(v))),
+        accused = j['accused'] as String?,
+        guessedWord = j['guessedWord'] as String?,
+        ranking = (j['ranking'] as List)
+            .map((e) => RankingEntry.fromJson(
+                {...(e as Map).cast<String, dynamic>(), 'correct': 0}))
+            .toList();
+  final String winner; // spies | citizens
+  final String reason;
+  final List<String> spies;
+  final String word;
+  final Map<String, int> voteCounts;
+  final String? accused;
+  final String? guessedWord;
+  final List<RankingEntry> ranking;
+}
+
+class SpyView {
+  SpyView.fromJson(Map<String, dynamic> j)
+      : stage = j['stage'] as String,
+        stageEndsAt = _int(j['stageEndsAt']),
+        category = j['category'] as String,
+        role = j['role'] as String?,
+        word = j['word'] as String?,
+        spyCount = _int(j['spyCount']),
+        turn = j['turn'] == null
+            ? null
+            : SpyTurn.fromJson((j['turn'] as Map).cast()),
+        history = (j['history'] as List)
+            .map((e) => SpyHistoryEntry.fromJson((e as Map).cast()))
+            .toList(),
+        suspicions =
+            (j['suspicions'] as Map).map((k, v) => MapEntry('$k', v as String)),
+        readyCount = _int(j['readyCount']),
+        youReady = j['youReady'] == true,
+        yourVote = j['yourVote'] as String?,
+        votedCount = _int(j['votedCount']),
+        guessOptions = (j['guessOptions'] as List?)?.cast<String>(),
+        guesser = j['guesser'] as String?,
+        final_ = j['final'] == null
+            ? null
+            : SpyFinal.fromJson((j['final'] as Map).cast());
+
+  /// roles | ask | answer | discuss | vote | guess | finished
+  final String stage;
+  final int stageEndsAt;
+  final String category;
+  final String? role; // spy | citizen
+  final String? word;
+  final int spyCount;
+  final SpyTurn? turn;
+  final List<SpyHistoryEntry> history;
+  final Map<String, String> suspicions;
+  final int readyCount;
+  final bool youReady;
+  final String? yourVote;
+  final int votedCount;
+  final List<String>? guessOptions;
+  final String? guesser;
+  final SpyFinal? final_;
+
+  bool get isSpy => role == 'spy';
 }
 
 class MatchSummary {

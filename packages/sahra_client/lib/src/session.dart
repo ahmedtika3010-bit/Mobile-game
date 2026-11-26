@@ -153,6 +153,21 @@ class GameSession {
     });
   }
 
+  /// Sends a game action as-is (games other than the quiz).
+  void action(Map<String, dynamic> action) =>
+      _room.send('action', {'action': action});
+
+  // Spy
+  void spyAsk(int turn, int question, String target) => action(
+      {'kind': 'ask', 'turn': turn, 'question': question, 'target': target});
+  void spyAnswer(int turn, int answer) =>
+      action({'kind': 'answer', 'turn': turn, 'answer': answer});
+  void spySuspect(String? target) =>
+      action({'kind': 'suspect', 'target': target});
+  void spyReadyToVote() => action({'kind': 'readyToVote'});
+  void spyVote(String target) => action({'kind': 'vote', 'target': target});
+  void spyGuess(int choice) => action({'kind': 'guess', 'choice': choice});
+
   void setReady(bool ready) => _room.send('ready', {'ready': ready});
   void start() => _room.send('start', {});
   void sendPhrase(String phraseId) =>
