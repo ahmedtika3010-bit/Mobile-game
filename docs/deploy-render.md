@@ -37,3 +37,14 @@ the store launch. This is a **closed test**, not the production setup.
    ```
    Release builds are signed with the debug key for now (fine for sideloading,
    not for Play). iPhone friends cannot install an APK.
+
+## Alternative without a card: this PC + ngrok
+
+Render asks for a card even on the free plan. Without one, run the server on
+the owner's PC and expose it through a free ngrok static domain (works only
+while the PC and the server are running):
+1. Create an ngrok account, run `ngrok config add-authtoken <token>` once, and
+   copy the free static domain from the ngrok dashboard (Domains).
+2. Start: `powershell -ExecutionPolicy Bypass -File apps\server\scripts\start-public.ps1 -Domain <domain>`
+   (asks for the invite code; turns dev sign-in off).
+3. Build the APK with `--dart-define=SERVER_URL=https://<domain>`.

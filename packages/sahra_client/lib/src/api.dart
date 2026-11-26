@@ -47,7 +47,11 @@ class SahraApi {
 
   Future<dynamic> _call(String method, String path,
       {Object? body, bool auth = true, bool retried = false}) async {
-    final headers = {'content-type': 'application/json'};
+    final headers = {
+      'content-type': 'application/json',
+      // Closed tests tunnelled through ngrok: skip its browser warning page.
+      'ngrok-skip-browser-warning': '1',
+    };
     if (auth) {
       final token = await store.read('access');
       if (token != null) headers['authorization'] = 'Bearer $token';
