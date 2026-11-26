@@ -28,4 +28,8 @@ class AppConfig {
   /// --dart-define=DEV_SIGN_IN=true. The server also refuses it unless DEV_AUTH=1.
   static bool get devSignIn =>
       kDebugMode || const bool.fromEnvironment('DEV_SIGN_IN');
+
+  /// Closed-test builds for friends: sign in with an invite code.
+  /// Build with --dart-define=TESTER_SIGN_IN=true (server needs CLOSED_TEST_CODE).
+  static const testerSignIn = bool.fromEnvironment('TESTER_SIGN_IN');
 }

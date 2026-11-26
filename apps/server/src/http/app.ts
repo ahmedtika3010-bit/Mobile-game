@@ -1,6 +1,7 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { join } from 'node:path';
 import { computeAgeBand, matchmakingAgeBucket, type MatchMode } from '@sahra/shared';
+import { createHash, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 import type { AdminRoleKind } from '@prisma/client';
 import type { Presence } from '@colyseus/core';
@@ -64,7 +65,7 @@ export function requireAdmin(...roles: AdminRoleKind[]) {
   };
 }
 
-async function signIn(identity: VerifiedIdentity | { provider: 'dev'; subject: string; email: null }) {
+async function signIn(identity: VerifiedIdentity | { provider: 'dev' | 'tester'; subject: string; email: null }) {
   const existing = await prisma.authIdentity.findUnique({
     where: { provider_subject: { provider: identity.provider, subject: identity.subject } },
     include: { user: true },
@@ -100,6 +101,8 @@ const ticketSchema = z.object({
 export function createApp(presence: Presence) {
   const app = express();
   app.disable('x-powered-by');
+  // Behind a hosting proxy (Render, Railway...), use the client's real IP.
+  if (process.env.TRUST_PROXY === '1') app.set('trust proxy', 1);
   app.use(express.json({ limit: '256kb' }));
   app.use(express.text({ type: 'text/csv', limit: '5mb' }));
 
@@ -131,6 +134,26 @@ export function createApp(presence: Presence) {
       throw new HttpError(e.message === 'apple_not_configured' ? 503 : 401, e.message === 'apple_not_configured' ? e.message : 'invalid_apple_token');
     });
     res.json(await signIn(identity));
+  }));
+
+  // Closed test: invite code + a random key generated and kept on the device.
+  const testerFailures = new Map<string, { n: number; until: number }>();
+  app.post('/auth/tester', wrap(async (req, res) => {
+    if (!config.closedTestCode) throw new HttpError(404, 'not_found');
+    const ip = req.ip ?? 'unknown';
+    const now = Date.now();
+    const f = testerFailures.get(ip);
+    if (f && f.n >= 10 && f.until > now) throw new HttpError(429, 'too_many_attempts');
+    const body = z.object({ code: z.string().max(64), deviceKey: z.string().min(32).max(128) }).parse(req.body);
+    const digest = (v: string) => createHash('sha256').update(v.trim().toUpperCase()).digest();
+    if (!timingSafeEqual(digest(body.code), digest(config.closedTestCode))) {
+      const next = f && f.until > now ? f.n + 1 : 1;
+      if (testerFailures.size > 10_000) testerFailures.clear(); // keep memory bounded
+      testerFailures.set(ip, { n: next, until: now + 10 * 60_000 });
+      throw new HttpError(403, 'wrong_invite_code');
+    }
+    const subject = createHash('sha256').update(body.deviceKey).digest('hex');
+    res.json(await signIn({ provider: 'tester', subject, email: null }));
   }));
 
   // Local development and automated tests only. Disabled in production.

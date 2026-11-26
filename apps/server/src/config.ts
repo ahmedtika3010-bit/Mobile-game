@@ -20,6 +20,12 @@ export const config = {
   googleClientIds: list(process.env.GOOGLE_CLIENT_IDS),
   appleBundleIds: list(process.env.APPLE_BUNDLE_IDS),
   devAuth: process.env.DEV_AUTH === '1' && process.env.NODE_ENV !== 'production',
+  /**
+   * Closed test: friends sign in with this invite code (no Google/Apple yet).
+   * Each device keeps its own random key, so accounts cannot be taken over by
+   * typing someone's name. Empty = disabled.
+   */
+  closedTestCode: (process.env.CLOSED_TEST_CODE ?? '').trim(),
   accessTokenTtlSec: 15 * 60,
   refreshTokenTtlDays: 30,
   reconnectSeconds: 90,
@@ -33,4 +39,5 @@ export const config = {
 
 export function assertConfig() {
   if (config.jwtSecret.length < 32) throw new Error('JWT_SECRET must be set (at least 32 characters)');
+  if (config.closedTestCode && config.closedTestCode.length < 6) throw new Error('CLOSED_TEST_CODE must be at least 6 characters');
 }

@@ -34,7 +34,8 @@ Updated: 2026-11-26. "Done" means connected end to end and covered by tests.
 ## Partial
 
 - Google and Apple sign-in: code is in place, but needs your OAuth client ids and Apple capability (see `docs/mobile.md`). Apple is iOS only.
-- Android and iOS builds: not built or run on a device yet (no Android SDK or Mac in this environment).
+- Android build: a debug APK was built on the owner's PC and tested on a phone over the local network. iOS: not built (needs a Mac).
+- Closed test online (`docs/deploy-render.md`): `render.yaml` (Render free web service + Neon free Postgres) and invite-code sign-in (`/auth/tester`, app flag `TESTER_SIGN_IN`). Tested locally in production mode; the hosted service is not created yet. Free tier sleeps when idle (first open about a minute).
 - Question bank: 273 quiz questions (20 hand-written + 253 in `apps/server/prisma/content/quiz_ar_v1.csv`, 6 categories). The 253 were drafted with AI help, so they are inserted as `ai_suggested` and `in_review`: someone must fact-check and approve them in the admin before release. `--approve-for-local-testing` approves them on a dev machine only.
 - Share card: works on Android/iOS through the system share sheet; on desktop browsers without Web Share, it shows a "could not share" message.
 - Spy content: 6 category packs (places, food, jobs, animals, household objects, sports; 18 to 20 words and 16 questions each) in `apps/server/prisma/content/spy_ar_v1.json`, AI-assisted, so seeded as `in_review` until approved. Spy has no ranked queue and no practice bots yet (ranked needs playtesting of the standardized rules first).

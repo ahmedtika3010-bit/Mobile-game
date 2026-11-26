@@ -30,6 +30,7 @@ enum AuthProvider {
   google
   apple
   dev // local development only, disabled unless DEV_AUTH=1
+  tester // closed test: invite code + a random key kept on the player's device
 }
 
 model User {

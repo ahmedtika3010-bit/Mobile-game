@@ -1,4 +1,8 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:sahra_client/sahra_client.dart';
 
 import '../app_state.dart';
 import '../auth/social_auth.dart';
@@ -17,6 +21,28 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   final _devName = TextEditingController();
+  final _inviteCode = TextEditingController();
+
+  /// A random key generated once and kept on this device. The server only
+  /// stores its hash, and it is the only way to sign back into the account.
+  static Future<String> _deviceKey() async {
+    const store = FlutterSecureStorage();
+    var key = await store.read(key: 'tester_device_key');
+    if (key == null || key.length < 32) {
+      final r = Random.secure();
+      key = List.generate(
+          32, (_) => r.nextInt(256).toRadixString(16).padLeft(2, '0')).join();
+      await store.write(key: 'tester_device_key', value: key);
+    }
+    return key;
+  }
+
+  void _testerSignIn(AppState app) {
+    final code = _inviteCode.text.trim();
+    if (code.isEmpty) return;
+    _run(() async => app.api.signInTester(code, await _deviceKey()));
+  }
+
   bool _busy = false;
   String? _error;
 
@@ -38,7 +64,16 @@ class _SignInScreenState extends State<SignInScreen> {
       }
     } on NotConfigured {
       setState(() => _error = S.of('providerNotConfigured'));
+    } on ApiException catch (e) {
+      setState(() => _error = switch (e.code) {
+            'wrong_invite_code' => S.of('testerWrongCode'),
+            'too_many_attempts' => S.of('testerTooMany'),
+            _ when e.status >= 500 => S.of('testerServerWaking'),
+            _ => S.of('error'),
+          });
     } catch (_) {
+      setState(() => _error =
+          S.of(AppConfig.testerSignIn ? 'testerServerWaking' : 'error'));
       setState(() => _error = S.of('error'));
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -86,28 +121,35 @@ class _SignInScreenState extends State<SignInScreen> {
               style: const TextStyle(
                   fontSize: 18, color: Tokens.textDim, height: 1.5)),
           const SizedBox(height: Tokens.s32),
-          FadeSlideIn(
-            child: GameButton(
-              label: S.of('signInGoogle'),
-              color: Colors.white,
-              leading: const _GoogleMark(),
-              busy: _busy,
-              onPressed: () => _run(() async =>
-                  app.api.signInWithGoogle(await SocialAuth.googleIdToken())),
+          if (AppConfig.testerSignIn) ...[
+            FadeSlideIn(child: _testerCard(app)),
+            const SizedBox(height: Tokens.s16),
+          ],
+          if (!AppConfig.testerSignIn || SocialAuth.googleAvailable) ...[
+            FadeSlideIn(
+              child: GameButton(
+                label: S.of('signInGoogle'),
+                color: Colors.white,
+                leading: const _GoogleMark(),
+                busy: _busy,
+                onPressed: () => _run(() async =>
+                    app.api.signInWithGoogle(await SocialAuth.googleIdToken())),
+              ),
             ),
-          ),
-          const SizedBox(height: Tokens.s12),
-          FadeSlideIn(
-            delay: const Duration(milliseconds: 80),
-            child: GameButton(
-              label: S.of('signInApple'),
-              color: const Color(0xFF15121F),
-              icon: Icons.apple_rounded,
-              busy: _busy,
-              onPressed: () => _run(() async =>
-                  app.api.signInWithApple(await SocialAuth.appleIdToken())),
+            const SizedBox(height: Tokens.s12),
+          ],
+          if (!AppConfig.testerSignIn || SocialAuth.appleAvailable)
+            FadeSlideIn(
+              delay: const Duration(milliseconds: 80),
+              child: GameButton(
+                label: S.of('signInApple'),
+                color: const Color(0xFF15121F),
+                icon: Icons.apple_rounded,
+                busy: _busy,
+                onPressed: () => _run(() async =>
+                    app.api.signInWithApple(await SocialAuth.appleIdToken())),
+              ),
             ),
-          ),
           if (_error != null) ...[
             const SizedBox(height: Tokens.s16),
             Shake(
@@ -164,6 +206,47 @@ class _SignInScreenState extends State<SignInScreen> {
       ),
     );
   }
+}
+
+extension on _SignInScreenState {
+  Widget _testerCard(AppState app) => GlassCard(
+        child:
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(children: [
+            const Text('🎟️', style: TextStyle(fontSize: 20)),
+            const SizedBox(width: 8),
+            Text(S.of('testerTitle'),
+                style: const TextStyle(
+                    fontFamily: Tokens.display,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800)),
+          ]),
+          const SizedBox(height: 4),
+          Text(S.of('testerHint'),
+              style: const TextStyle(color: Tokens.textDim, fontSize: 13)),
+          const SizedBox(height: Tokens.s12),
+          TextField(
+            key: const Key('inviteCode'),
+            controller: _inviteCode,
+            textCapitalization: TextCapitalization.characters,
+            textDirection: TextDirection.ltr,
+            textAlign: TextAlign.center,
+            autocorrect: false,
+            style: const TextStyle(
+                fontSize: 18, letterSpacing: 2, fontWeight: FontWeight.w700),
+            decoration: InputDecoration(labelText: S.of('testerCode')),
+            onSubmitted: (_) => _testerSignIn(app),
+          ),
+          const SizedBox(height: Tokens.s12),
+          GameButton(
+            key: const Key('testerSignIn'),
+            label: S.of('testerGo'),
+            color: Tokens.mint,
+            busy: _busy,
+            onPressed: () => _testerSignIn(app),
+          ),
+        ]),
+      );
 }
 
 /// Simple four-colour "G" mark drawn in code.

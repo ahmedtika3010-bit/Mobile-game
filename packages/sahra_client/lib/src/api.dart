@@ -95,6 +95,11 @@ class SahraApi {
   Future<UserProfile> signInWithApple(String idToken) =>
       _signIn('/auth/apple', {'idToken': idToken});
 
+  /// Closed test: an invite code shared with friends plus a random key that
+  /// stays on this device (the same device always gets the same account).
+  Future<UserProfile> signInTester(String code, String deviceKey) =>
+      _signIn('/auth/tester', {'code': code, 'deviceKey': deviceKey});
+
   /// Development builds only; the server refuses it in production.
   Future<UserProfile> signInDev(String subject) =>
       _signIn('/auth/dev', {'subject': subject});
