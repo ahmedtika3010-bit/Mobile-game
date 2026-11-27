@@ -46,9 +46,9 @@ interface Member {
 
 /** Practice bots: clearly named as bots, using the starter characters. */
 const PRACTICE_BOTS = [
-  { name: 'بوت نور', avatarId: 'chibi_rithia', skill: 0.55 },
-  { name: 'بوت كريم', avatarId: 'chibi_kairo', skill: 0.65 },
-  { name: 'بوت ورقة', avatarId: 'chibi_forest', skill: 0.75 },
+  { name: 'بوت نور', avatarId: 'chibi_p_nour', skill: 0.55 },
+  { name: 'بوت كريم', avatarId: 'chibi_p_karim', skill: 0.65 },
+  { name: 'بوت ريم', avatarId: 'chibi_p_reem', skill: 0.75 },
 ];
 
 export interface CreateOptions {

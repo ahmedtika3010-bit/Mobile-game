@@ -97,10 +97,10 @@ class _SignInScreenState extends State<SignInScreen> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 for (final (i, id) in const [
-                  'chibi_sira',
-                  'chibi_kairo',
-                  'chibi_forest',
-                  'chibi_rithia'
+                  'chibi_p_layla',
+                  'chibi_p_youssef',
+                  'chibi_p_nour',
+                  'chibi_p_karim'
                 ].indexed)
                   Flexible(
                     child: Bob(

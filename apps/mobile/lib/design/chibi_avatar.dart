@@ -4,14 +4,45 @@ import 'package:flutter/material.dart';
 
 import 'tokens.dart';
 
-/// A character from the designer's set (assets/characters).
+/// A character's art. The designer's set (assets/characters) has one
+/// picture per character; the personas (assets/personas, generated from
+/// design/personas) have one per expression, marked by `{e}` in the path.
 class ChibiArt {
   const ChibiArt(this.name, this.head, this.full, this.color);
   final String name;
   final String head;
   final String full;
   final Color color;
+
+  String headFor(ChibiExpression e) => head.replaceFirst('{e}', e.name);
+  String fullFor(ChibiExpression e) => full.replaceFirst('{e}', e.name);
 }
+
+const _personaColors = {
+  'youssef': Color(0xFF8FB4FF),
+  'nour': Color(0xFFFFB3CB),
+  'karim': Color(0xFF7BE8C8),
+  'layla': Color(0xFFFFD66B),
+  'omar': Color(0xFFFF9A8A),
+  'salma': Color(0xFFC3A6FF),
+  'saber': Color(0xFFE8C9A0),
+  'fatma': Color(0xFF7CD3E6),
+  'khaled': Color(0xFFB5E07A),
+  'reem': Color(0xFFFFB27A),
+};
+
+const _personaNames = {
+  'youssef': 'يوسف',
+  'nour': 'نور',
+  'karim': 'كريم',
+  'layla': 'ليلى',
+  'omar': 'عمر',
+  'salma': 'سلمى',
+  'saber': 'عم صابر',
+  'fatma': 'فاطمة',
+  'khaled': 'خالد',
+  'reem': 'ريم',
+};
 
 /// Player avatar: the designer's character portrait on a coloured badge.
 /// Unknown ids fall back to a simple character drawn in code, so older or
@@ -34,7 +65,13 @@ class ChibiAvatar extends StatelessWidget {
   /// Draw the round coloured background behind the character.
   final bool badge;
 
-  static const _art = {
+  static final Map<String, ChibiArt> _art = {
+    for (final id in _personaNames.keys)
+      'chibi_p_$id': ChibiArt(
+          _personaNames[id]!,
+          'assets/personas/${id}_{e}_head.png',
+          'assets/personas/${id}_{e}_full.png',
+          _personaColors[id]!),
     'chibi_kairo': ChibiArt('كايرو', 'assets/characters/kairo_head.png',
         'assets/characters/kairo_full.png', Color(0xFF6FE0E6)),
     'chibi_sira': ChibiArt('سيرا', 'assets/characters/sira_head.png',
@@ -53,7 +90,18 @@ class ChibiAvatar extends StatelessWidget {
     'chibi_base_4': 'chibi_rithia',
   };
 
+  /// Grown-up personas first, then the designer's original four.
   static const starterIds = [
+    'chibi_p_youssef',
+    'chibi_p_nour',
+    'chibi_p_karim',
+    'chibi_p_layla',
+    'chibi_p_omar',
+    'chibi_p_salma',
+    'chibi_p_saber',
+    'chibi_p_fatma',
+    'chibi_p_khaled',
+    'chibi_p_reem',
     'chibi_kairo',
     'chibi_sira',
     'chibi_forest',
@@ -78,7 +126,8 @@ class ChibiAvatar extends StatelessWidget {
             dimension: size,
             child: CustomPaint(
                 painter: _ChibiPainter(avatarId, expression, badge)))
-        : _ArtBadge(art: art, size: size, badge: badge);
+        : _ArtBadge(
+            art: art, image: art.headFor(expression), size: size, badge: badge);
     if (!dimmed) return child;
     return Opacity(
       opacity: 0.45,
@@ -97,13 +146,18 @@ class ChibiAvatar extends StatelessWidget {
 enum ChibiExpression { happy, neutral, sad, surprised }
 
 class _ArtBadge extends StatelessWidget {
-  const _ArtBadge({required this.art, required this.size, required this.badge});
+  const _ArtBadge(
+      {required this.art,
+      required this.image,
+      required this.size,
+      required this.badge});
   final ChibiArt art;
+  final String image;
   final double size;
   final bool badge;
   @override
   Widget build(BuildContext context) {
-    final img = Image.asset(art.head,
+    final img = Image.asset(image,
         width: size,
         height: size,
         fit: BoxFit.cover,
@@ -131,14 +185,22 @@ class _ArtBadge extends StatelessWidget {
 
 /// Full-body character art (for big moments: onboarding, sign-in, wins).
 class ChibiFullBody extends StatelessWidget {
-  const ChibiFullBody({super.key, required this.avatarId, this.height = 200});
+  const ChibiFullBody(
+      {super.key,
+      required this.avatarId,
+      this.height = 200,
+      this.expression = ChibiExpression.happy});
   final String avatarId;
   final double height;
+  final ChibiExpression expression;
   @override
   Widget build(BuildContext context) {
     final art = ChibiAvatar.artFor(avatarId);
-    if (art == null) return ChibiAvatar(avatarId: avatarId, size: height * 0.7);
-    return Image.asset(art.full,
+    if (art == null) {
+      return ChibiAvatar(
+          avatarId: avatarId, size: height * 0.7, expression: expression);
+    }
+    return Image.asset(art.fullFor(expression),
         height: height,
         fit: BoxFit.contain,
         cacheHeight: (height * MediaQuery.devicePixelRatioOf(context)).round(),
