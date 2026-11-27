@@ -35,7 +35,10 @@ class QuizQuestion {
         deadline = _int(j['deadline']),
         emojis = j['emojis'] as String?,
         mode = (j['mode'] as String?) ?? 'choices',
-        hint = j['hint'] as String?;
+        hint = j['hint'] as String?,
+        football = j['football'] == null
+            ? null
+            : FootballCard.fromJson((j['football'] as Map).cast());
   final int index;
   final int total;
   final String category;
@@ -50,6 +53,46 @@ class QuizQuestion {
   final String mode; // choices | typed
   final String? hint;
   bool get typed => mode == 'typed';
+
+  /// Football Challenges: the clues, career path, clubs or transfer.
+  final FootballCard? football;
+}
+
+/// One line of a football card: a clue, a club (with years), or a transfer end.
+class FootballLine {
+  FootballLine.fromJson(Map<String, dynamic> j)
+      : text = j['text'] as String,
+        sub = j['sub'] as String?;
+  final String text;
+
+  /// Career: the years at the club. Transfer: 'from' or 'to'.
+  final String? sub;
+}
+
+class FootballCard {
+  FootballCard.fromJson(Map<String, dynamic> j)
+      : mode = j['mode'] as String,
+        lines = (j['lines'] as List)
+            .map((e) => FootballLine.fromJson((e as Map).cast()))
+            .toList(),
+        totalLines = _int(j['totalLines']),
+        nextLineAt = j['nextLineAt'] == null ? null : _int(j['nextLineAt']),
+        when = j['when'] as String?,
+        detail = j['detail'] as String?,
+        asOf = j['asOf'] as String?;
+
+  /// player | career | shared | transfer | history
+  final String mode;
+
+  /// Only the lines revealed so far.
+  final List<FootballLine> lines;
+  final int totalLines;
+  final int? nextLineAt;
+  final String? when;
+  final String? detail;
+
+  /// The facts are correct as of this date (YYYY-MM-DD).
+  final String? asOf;
 }
 
 class QuizReveal {
@@ -60,8 +103,12 @@ class QuizReveal {
         points = (j['points'] as Map).map((k, v) => MapEntry('$k', _int(v))),
         picks = ((j['picks'] as Map?) ?? const {})
             .map((k, v) => MapEntry('$k', _int(v))),
-        answer = j['answer'] as String?;
+        answer = j['answer'] as String?,
+        winner = j['winner'] as String?;
   final int index;
+
+  /// Football Duel: who won this question, if anyone.
+  final String? winner;
 
   /// Guess with Emoji: the approved answer as text.
   final String? answer;
@@ -99,6 +146,10 @@ class QuizView {
             ? null
             : QuizReveal.fromJson((j['reveal'] as Map).cast()),
         scores = (j['scores'] as Map).map((k, v) => MapEntry('$k', _int(v))),
+        duelWins = j['duel'] == null
+            ? null
+            : ((j['duel'] as Map)['wins'] as Map)
+                .map((k, v) => MapEntry('$k', _int(v))),
         ranking = j['final'] == null
             ? null
             : ((j['final'] as Map)['ranking'] as List)
@@ -113,6 +164,9 @@ class QuizView {
   final List<String> yourGuesses;
   final QuizReveal? reveal;
   final Map<String, int> scores;
+
+  /// Football Duel: questions won by each of the two players.
+  final Map<String, int>? duelWins;
   final List<RankingEntry>? ranking;
 }
 
@@ -133,9 +187,9 @@ class RoomView {
             j['countdownEndsAt'] == null ? null : _int(j['countdownEndsAt']),
         expectedDurationSec = _int(j['expectedDurationSec']),
         matchId = j['matchId'] as String?,
-        // Guess with Emoji shares the quiz view shape (and screens).
+        // Guess with Emoji and Football Challenges share the quiz view shape (and screens).
         quiz = j['game'] == null ||
-                (j['gameId'] != 'quiz' && j['gameId'] != 'emoji')
+                !const ['quiz', 'emoji', 'football'].contains(j['gameId'])
             ? null
             : QuizView.fromJson((j['game'] as Map).cast()),
         spy = j['game'] == null || j['gameId'] != 'spy'

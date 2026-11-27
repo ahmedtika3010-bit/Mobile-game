@@ -15,6 +15,7 @@ import '../design/widgets.dart';
 import '../l10n/strings.dart';
 import 'liar_pane.dart';
 import 'draw_pane.dart';
+import 'football_card.dart';
 import 'memory_pane.dart';
 import 'stop_pane.dart';
 import 'spy_pane.dart';
@@ -172,6 +173,7 @@ class _RoomScreenState extends State<RoomScreen> {
     if (!mounted) return;
     final text = switch (code) {
       'not_enough_content' => S.of('notEnoughContent'),
+      'duel_needs_two' => S.of('duelNeedsTwo'),
       'not_enough_players' => S.of('needMorePlayers'),
       'drawing_limit' => S.of('drawLimit'),
       'safe_mode_unavailable' => S.of('safeModeUnavailable'),
@@ -1182,8 +1184,9 @@ class _QuestionPaneState extends State<_QuestionPane> {
           for (final e in (reveal?.picks ?? const <String, int>{}).entries)
             if (e.value == i && avatarOf[e.key] != null) avatarOf[e.key]!
         ];
-    final grid =
-        q.choices.length == 4 && q.choices.every((c) => c.length <= 16);
+    // Football cards are taller, so names up to two lines still go in the grid.
+    final grid = q.choices.length == 4 &&
+        q.choices.every((c) => c.length <= (q.football != null ? 24 : 16));
 
     Widget choice(int i) => _ChoiceTile(
           key: Key('choice$i'),
@@ -1215,8 +1218,13 @@ class _QuestionPaneState extends State<_QuestionPane> {
       child: Column(children: [
         Row(children: [
           Pill(
-              text: S.of('cat_${q.category}'),
-              emoji: _categoryEmoji[q.category] ?? '❓',
+              text: S.of(q.football != null
+                  ? 'fb_mode_${q.category}'
+                  : 'cat_${q.category}'),
+              emoji: (q.football != null
+                      ? footballModeEmoji[q.category]
+                      : _categoryEmoji[q.category]) ??
+                  '❓',
               color: Tokens.sun),
           const Spacer(),
           Text('${S.of('question')} ${q.index + 1} ${S.of('of')} ${q.total}',
@@ -1225,7 +1233,12 @@ class _QuestionPaneState extends State<_QuestionPane> {
         ]),
         const SizedBox(height: Tokens.s8),
         StepDots(index: q.index, total: q.total),
-        const SizedBox(height: Tokens.s20),
+        if (quiz.duelWins != null) ...[
+          const SizedBox(height: Tokens.s8),
+          DuelBar(
+              view: widget.view, wins: quiz.duelWins!, winner: reveal?.winner),
+        ],
+        SizedBox(height: q.football != null ? Tokens.s8 : Tokens.s20),
         // Question card with the timer (or the verdict) sitting on its edge.
         Stack(
             clipBehavior: Clip.none,
@@ -1267,15 +1280,18 @@ class _QuestionPaneState extends State<_QuestionPane> {
                           duration: Tokens.medium,
                           curve: Curves.easeOutBack,
                           scale: _visible ? 1 : 0.9,
-                          child: q.emojis != null
-                              ? _EmojiPuzzle(emojis: q.emojis!)
-                              : Text(q.prompt,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                      color: Tokens.ink,
-                                      fontSize: 24,
-                                      height: 1.4,
-                                      fontWeight: FontWeight.w800)),
+                          child: q.football != null
+                              ? FootballCardBody(
+                                  card: q.football!, prompt: q.prompt)
+                              : q.emojis != null
+                                  ? _EmojiPuzzle(emojis: q.emojis!)
+                                  : Text(q.prompt,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                          color: Tokens.ink,
+                                          fontSize: 24,
+                                          height: 1.4,
+                                          fontWeight: FontWeight.w800)),
                         ),
                       ),
               ),
@@ -1300,27 +1316,28 @@ class _QuestionPaneState extends State<_QuestionPane> {
                     enabled: _visible,
                     onGuess: (text) => widget.session.guess(q.index, text))
                 : grid
-                ? Column(children: [
-                    for (final row in [
-                      [0, 1],
-                      [2, 3]
-                    ]) ...[
-                      Expanded(
-                        child: Row(children: [
-                          Expanded(child: choice(row[0])),
-                          const SizedBox(width: Tokens.s12),
-                          Expanded(child: choice(row[1])),
-                        ]),
+                    ? Column(children: [
+                        for (final row in [
+                          [0, 1],
+                          [2, 3]
+                        ]) ...[
+                          Expanded(
+                            child: Row(children: [
+                              Expanded(child: choice(row[0])),
+                              const SizedBox(width: Tokens.s12),
+                              Expanded(child: choice(row[1])),
+                            ]),
+                          ),
+                          if (row.first == 0)
+                            const SizedBox(height: Tokens.s12),
+                        ]
+                      ])
+                    : ListView.separated(
+                        itemCount: q.choices.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: Tokens.s12),
+                        itemBuilder: (_, i) => choice(i),
                       ),
-                      if (row.first == 0) const SizedBox(height: Tokens.s12),
-                    ]
-                  ])
-                : ListView.separated(
-                    itemCount: q.choices.length,
-                    separatorBuilder: (_, __) =>
-                        const SizedBox(height: Tokens.s12),
-                    itemBuilder: (_, i) => choice(i),
-                  ),
           ),
         ),
         const SizedBox(height: Tokens.s12),
@@ -1352,7 +1369,8 @@ class _EmojiPuzzle extends StatelessWidget {
           child: Text(emojis,
               textDirection: TextDirection.ltr,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 64, height: 1.15, letterSpacing: 6)),
+              style: const TextStyle(
+                  fontSize: 64, height: 1.15, letterSpacing: 6)),
         ),
       );
 }
@@ -1464,8 +1482,8 @@ class _TypedAnswerState extends State<_TypedAnswer> {
                 maxLength: 60,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => _send(),
-                style: const TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.w800),
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
                 decoration: InputDecoration(
                     hintText: S.of('emojiTypeHere'), counterText: ''),
               ),
@@ -1914,6 +1932,12 @@ class _ResultsState extends State<_Results> {
                   style: const TextStyle(color: Tokens.textDim, fontSize: 16)),
             ]),
           ),
+          if (view.quiz!.duelWins != null) ...[
+            const SizedBox(height: Tokens.s12),
+            FadeSlideIn(
+                delay: const Duration(milliseconds: 150),
+                child: DuelBar(view: view, wins: view.quiz!.duelWins!)),
+          ],
           const SizedBox(height: Tokens.s16),
           _Podium(
               entries: top, player: player, you: view.you, onPlayer: onPlayer),

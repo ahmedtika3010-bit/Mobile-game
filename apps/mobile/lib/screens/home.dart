@@ -132,7 +132,19 @@ final _games = [
         ('🔁', S.of('tagDrawTurns')),
         ('🤝', S.of('tagDrawTeams')),
       ]),
-  const _GameInfo('football', 'تحديات الكورة', '⚽', Tokens.mint),
+  _GameInfo('football', S.of('game_football'), '⚽', Tokens.mint,
+      playable: true,
+      desc: S.of('game_football_desc'),
+      gradient: const [
+        Color(0xFF2BD67B),
+        Color(0xFF0FA37F),
+        Color(0xFF1F6FD1)
+      ],
+      tags: [
+        ('👥', S.of('tagPlayers')),
+        ('⚽', S.of('tagFbModes')),
+        ('⚔️', S.of('tagFbDuel')),
+      ]),
   const _GameInfo('acting', 'مثّل وخمّن', '🎭', Tokens.grape),
 ];
 

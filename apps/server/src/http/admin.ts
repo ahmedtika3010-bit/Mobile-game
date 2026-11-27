@@ -5,9 +5,10 @@
 import { Router } from 'express';
 import { parse } from 'csv-parse/sync';
 import { z } from 'zod';
-import { DRAW_CATEGORIES, EMOJI_CATEGORIES, STOP_CATEGORIES, LIAR_CATEGORIES, QUIZ_CATEGORIES, SPY_CATEGORIES, WHO_CATEGORIES } from '@sahra/shared';
+import { DRAW_CATEGORIES, EMOJI_CATEGORIES, FOOTBALL_MODES, STOP_CATEGORIES, LIAR_CATEGORIES, QUIZ_CATEGORIES, SPY_CATEGORIES, WHO_CATEGORIES } from '@sahra/shared';
 import { emojiPayloadSchema } from '../games/emoji';
 import { drawPayloadSchema } from '../games/draw';
+import { footballPayloadSchema } from '../games/football';
 import { stopPayloadSchema } from '../games/stop';
 import { prisma } from '../db';
 import { audit } from '../safety/audit';
@@ -102,6 +103,19 @@ const drawItemSchema = z.object({
   source: z.enum(['human', 'ai_suggested']).default('human'),
 });
 
+/** Football: one dated item; the category is its mode and must match the payload. */
+const footballItemSchema = z
+  .object({
+    gameId: z.literal('football'),
+    category: z.enum(FOOTBALL_MODES as [string, ...string[]]),
+    difficulty: z.enum(['easy', 'medium', 'hard']),
+    language: z.string().default('ar'),
+    locale: z.string().optional(),
+    payload: footballPayloadSchema,
+    expiresAt: z.string().date().optional(),
+    source: z.enum(['human', 'ai_suggested']).default('human'),
+  });
+
 const quizItemSchema = z.object({
   gameId: z.literal('quiz'),
   category: z.enum(QUIZ_CATEGORIES as [string, ...string[]]),
@@ -114,7 +128,7 @@ const quizItemSchema = z.object({
   source: z.enum(['human', 'ai_suggested']).default('human'),
 });
 
-const itemSchema = z.discriminatedUnion('gameId', [quizItemSchema, spyItemSchema, liarItemSchema, whoItemSchema, emojiItemSchema, stopItemSchema, drawItemSchema]);
+const itemSchema = z.discriminatedUnion('gameId', [quizItemSchema, spyItemSchema, liarItemSchema, whoItemSchema, emojiItemSchema, stopItemSchema, drawItemSchema, footballItemSchema]);
 
 /** CSV columns for quiz imports (UTF-8, header row required). */
 export const QUIZ_CSV_COLUMNS = [
@@ -127,7 +141,7 @@ export function adminRouter() {
   /* ---------------- content ---------------- */
   r.get('/content', requireAdmin('content_editor'), wrap(async (req, res) => {
     const status = z.enum(['draft', 'in_review', 'approved', 'rejected', 'retired']).optional().parse(req.query.status);
-    const gameId = z.enum(['quiz', 'spy', 'liar', 'who', 'emoji', 'stop']).default('quiz').parse(req.query.gameId);
+    const gameId = z.enum(['quiz', 'spy', 'liar', 'who', 'emoji', 'stop', 'memory', 'draw', 'football']).default('quiz').parse(req.query.gameId);
     const items = await prisma.contentItem.findMany({
       where: { gameId, ...(status ? { status } : {}) },
       orderBy: { createdAt: 'desc' },
@@ -138,6 +152,9 @@ export function adminRouter() {
 
   r.post('/content', requireAdmin('content_editor'), wrap(async (req, res) => {
     const body = itemSchema.parse(req.body);
+    if (body.gameId === 'football' && body.payload.mode !== body.category) throw new HttpError(400, 'category_must_match_mode');
+    const factAsOf = body.gameId === 'quiz' ? body.factAsOf : body.gameId === 'football' ? body.payload.asOf : undefined;
+    const expiresAt = body.gameId === 'quiz' || body.gameId === 'football' ? body.expiresAt : undefined;
     const item = await prisma.$transaction(async (tx) => {
       const created = await tx.contentItem.create({
         data: {
@@ -149,8 +166,8 @@ export function adminRouter() {
           payload: body.payload,
           source: body.source,
           status: 'in_review',
-          factAsOf: body.gameId === 'quiz' && body.factAsOf ? new Date(body.factAsOf) : null,
-          expiresAt: body.gameId === 'quiz' && body.expiresAt ? new Date(body.expiresAt) : null,
+          factAsOf: factAsOf ? new Date(factAsOf) : null,
+          expiresAt: expiresAt ? new Date(expiresAt) : null,
         },
       });
       await audit(tx, req.userId!, 'content_create', 'content', created.id);

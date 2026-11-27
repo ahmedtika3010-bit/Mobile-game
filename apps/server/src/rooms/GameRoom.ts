@@ -432,7 +432,8 @@ export class GameRoom extends Room {
       this.gameState = null;
       this.phase = 'lobby';
       if (this.mode !== 'private' && persisted) await this.unlock();
-      const code = e instanceof Error && e.message === 'not_enough_content' ? 'not_enough_content' : 'start_failed';
+      const known = ['not_enough_content', 'duel_needs_two'];
+      const code = e instanceof Error && known.includes(e.message) ? e.message : 'start_failed';
       this.broadcast('error', { code, message: 'Could not start the match' });
       this.broadcastViews();
     }

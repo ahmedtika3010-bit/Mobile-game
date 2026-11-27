@@ -49,6 +49,15 @@ const _hubs = {
     ('🙈', 'drawRule4'),
     ('🤖', 'drawRule5'),
   ]),
+  'football': _HubInfo('⚽', Tokens.mint, {
+    'questionCount': 10
+  }, rules: [
+    ('🕵️', 'fbRule1'),
+    ('🧭', 'fbRule2'),
+    ('📅', 'fbRule3'),
+    ('🎲', 'fbRule4'),
+    ('⚔️', 'fbRule5'),
+  ]),
   'memory': _HubInfo('🧩', Tokens.mint, {
     'rounds': 6
   }, rules: [
@@ -98,6 +107,9 @@ class _GameHubScreenState extends State<GameHubScreen> {
   String _drawDiff = 'mixed';
   String _drawPlay = 'solo';
   String _drawSecs = '80';
+  String _fbMode = 'mixed';
+  String _fbDiff = 'mixed';
+  String _fbFormat = 'group';
 
   String get gameId => widget.gameId;
   _HubInfo get info => _hubs[gameId]!;
@@ -261,6 +273,11 @@ class _GameHubScreenState extends State<GameHubScreen> {
                                 },
                                 if (gameId == 'emoji')
                                   'answerMode': _answerMode,
+                                if (gameId == 'football') ...{
+                                  'modes': _fbMode,
+                                  'difficulty': _fbDiff,
+                                  'duel': _fbFormat == 'duel',
+                                },
                               }))
                   : null,
             ),
@@ -318,6 +335,41 @@ class _GameHubScreenState extends State<GameHubScreen> {
                 textOf: (n) => '$n ${S.of('drawSecs')}',
                 value: _drawSecs,
                 onChanged: (n) => setState(() => _drawSecs = n)),
+          ],
+          if (gameId == 'football') ...[
+            const SizedBox(height: Tokens.s8),
+            _ChipPicker(
+                label: S.of('fbModeLabel'),
+                options: const {
+                  'mixed': '🎲',
+                  'player': '🕵️',
+                  'career': '🧭',
+                  'shared': '🤝',
+                  'transfer': '🔁',
+                  'history': '📜'
+                },
+                textOf: (m) => S.of('fb_mode_$m'),
+                value: _fbMode,
+                onChanged: (m) => setState(() => _fbMode = m)),
+            const SizedBox(height: Tokens.s8),
+            _ChipPicker(
+                label: S.of('fbDiffLabel'),
+                options: const {
+                  'mixed': '🎲',
+                  'easy': '🙂',
+                  'medium': '😎',
+                  'hard': '🔥'
+                },
+                textOf: (d) => S.of('drawDiff_$d'),
+                value: _fbDiff,
+                onChanged: (d) => setState(() => _fbDiff = d)),
+            const SizedBox(height: Tokens.s8),
+            _ChipPicker(
+                label: S.of('fbFormatLabel'),
+                options: const {'group': '👥', 'duel': '⚔️'},
+                textOf: (m) => S.of(m == 'duel' ? 'fbDuel' : 'fbGroup'),
+                value: _fbFormat,
+                onChanged: (m) => setState(() => _fbFormat = m)),
           ],
           if (gameId == 'emoji') ...[
             const SizedBox(height: Tokens.s8),

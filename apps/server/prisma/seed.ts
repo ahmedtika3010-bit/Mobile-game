@@ -10,7 +10,8 @@
  * questions (prisma/content/who_ar_v1.json) and emoji puzzles
  * (prisma/content/emoji_ar_v1.json) and the Stop dictionary
  * (prisma/content/stop_ar_v1.json) and Draw and Guess words
- * (prisma/content/draw_ar_v1.json) follow
+ * (prisma/content/draw_ar_v1.json) and Football Challenges items
+ * (prisma/content/football_ar_v1.json, each with the date its facts hold) follow
  * the same rule: AI-assisted, `in_review` until approved.
  * For local testing only, `npm run db:seed -- --approve-for-local-testing`
  * approves everything directly. Re-running only adds questions whose prompt
@@ -194,6 +195,34 @@ async function seedDraw(approve: boolean) {
   console.log(`inserted ${fresh.length} draw words as ${approve ? 'approved (local testing)' : 'in_review'}`);
 }
 
+type FootballFile = { category: string; difficulty: string; payload: { mode: string; answer: string; asOf: string } & Record<string, unknown> }[];
+
+/** Identity of a football item, so re-seeding never duplicates one. */
+function footballKey(p: Record<string, unknown>) {
+  return JSON.stringify([p.mode, p.prompt ?? p.answer, p.from ?? null, p.when ?? null, p.clubs ?? null]);
+}
+
+async function seedFootball(approve: boolean) {
+  const items: FootballFile = JSON.parse(readFileSync(join(__dirname, 'content', 'football_ar_v1.json'), 'utf8'));
+  const existing = await prisma.contentItem.findMany({ where: { gameId: 'football' }, select: { payload: true } });
+  const have = new Set(existing.map((e) => footballKey(e.payload as Record<string, unknown>)));
+  const fresh = items.filter((i) => !have.has(footballKey(i.payload)));
+  if (fresh.length === 0) return console.log(`football content up to date (${existing.length} items)`);
+  await prisma.contentItem.createMany({
+    data: fresh.map((i) => ({
+      gameId: 'football',
+      category: i.category,
+      difficulty: i.difficulty,
+      payload: i.payload as object,
+      factAsOf: new Date(i.payload.asOf),
+      source: 'ai_suggested' as const,
+      status: approve ? ('approved' as const) : ('in_review' as const),
+      publishedAt: approve ? new Date() : null,
+    })),
+  });
+  console.log(`inserted ${fresh.length} football items as ${approve ? 'approved (local testing)' : 'in_review'}`);
+}
+
 async function main() {
   const approve = process.argv.includes('--approve-for-local-testing');
   await seedSpy(approve);
@@ -202,6 +231,7 @@ async function main() {
   await seedEmoji(approve);
   await seedStop(approve);
   await seedDraw(approve);
+  await seedFootball(approve);
   const all: Row[] = [
     ...QUESTIONS.map(([category, difficulty, prompt, choices, explanation]) => ({
       category, difficulty, prompt, choices, correct: 0, explanation: explanation ?? null, source: 'human' as const,

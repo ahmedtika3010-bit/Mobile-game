@@ -7,10 +7,11 @@ import { emojiModule } from './emoji';
 import { stopModule } from './stop';
 import { memoryModule } from './memory';
 import { drawModule } from './draw';
+import { footballModule } from './football';
 
 /**
- * Games playable in this build. The other two launch games are not
- * implemented yet and are deliberately absent, so nothing can start them.
+ * Games playable in this build. Acting and Guessing is not implemented yet
+ * and is deliberately absent, so nothing can start it.
  */
 const GAMES: Record<string, GameModule<any, any, any>> = {
   quiz: quizModule,
@@ -21,6 +22,7 @@ const GAMES: Record<string, GameModule<any, any, any>> = {
   stop: stopModule,
   memory: memoryModule,
   draw: drawModule,
+  football: footballModule,
 };
 
 export function getGame(id: string): GameModule<any, any, any> | undefined {
