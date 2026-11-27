@@ -145,7 +145,10 @@ class RoomView {
             : LiarView.fromJson((j['game'] as Map).cast()),
         who = j['game'] == null || j['gameId'] != 'who'
             ? null
-            : WhoView.fromJson((j['game'] as Map).cast());
+            : WhoView.fromJson((j['game'] as Map).cast()),
+        stop = j['game'] == null || j['gameId'] != 'stop'
+            ? null
+            : StopView.fromJson((j['game'] as Map).cast());
   final String roomId;
   final String? code;
   final String gameId;
@@ -161,6 +164,7 @@ class RoomView {
   final SpyView? spy;
   final LiarView? liar;
   final WhoView? who;
+  final StopView? stop;
 
   PublicPlayer? get me => players.where((p) => p.playerId == you).firstOrNull;
   bool get isSafeMode => commMode == 'safe';
@@ -353,6 +357,92 @@ class LiarView {
   final Map<String, int> scores;
   final LiarRoundResult? lastRound;
   final LiarFinal? final_;
+}
+
+/// Stop / Atobees Complete (أتوبيس كومبليت). See packages/shared/src/stop.ts.
+class StopCell {
+  StopCell.fromJson(Map<String, dynamic> j)
+      : verdict = j['verdict'] as String,
+        text = j['text'] as String?,
+        points = _int(j['points']),
+        appealed = j['appealed'] == true;
+
+  /// unique | shared | wrong_letter | unknown | empty
+  final String verdict;
+
+  /// Null when hidden from you (someone else's word the dictionary did not know).
+  final String? text;
+  final int points;
+  final bool appealed;
+}
+
+class StopRoundResult {
+  StopRoundResult.fromJson(Map<String, dynamic> j)
+      : round = _int(j['round']),
+        letter = j['letter'] as String,
+        cells = (j['cells'] as Map).map((c, row) => MapEntry(
+            '$c',
+            (row as Map).map((p, cell) => MapEntry(
+                '$p', StopCell.fromJson((cell as Map).cast()))))),
+        points = (j['points'] as Map).map((k, v) => MapEntry('$k', _int(v)));
+  final int round;
+  final String letter;
+
+  /// category -> playerId -> cell
+  final Map<String, Map<String, StopCell>> cells;
+  final Map<String, int> points;
+}
+
+class StopFinal {
+  StopFinal.fromJson(Map<String, dynamic> j)
+      : rounds = (j['rounds'] as List)
+            .map((e) => (
+                  round: _int((e as Map)['round']),
+                  letter: e['letter'] as String,
+                  points: (e['points'] as Map)
+                      .map((k, v) => MapEntry('$k', _int(v)))
+                ))
+            .toList(),
+        ranking = (j['ranking'] as List)
+            .map((e) => RankingEntry.fromJson((e as Map).cast()))
+            .toList();
+  final List<({int round, String letter, Map<String, int> points})> rounds;
+  final List<RankingEntry> ranking;
+}
+
+class StopView {
+  StopView.fromJson(Map<String, dynamic> j)
+      : stage = j['stage'] as String,
+        stageEndsAt = _int(j['stageEndsAt']),
+        round = _int(j['round']),
+        totalRounds = _int(j['totalRounds']),
+        letter = j['letter'] as String?,
+        categories = (j['categories'] as List).cast<String>(),
+        yourAnswers = ((j['yourAnswers'] as Map?) ?? const {})
+            .map((k, v) => MapEntry('$k', v as String)),
+        youDone = j['youDone'] == true,
+        doneCount = _int(j['doneCount']),
+        result = j['result'] == null
+            ? null
+            : StopRoundResult.fromJson((j['result'] as Map).cast()),
+        scores = (j['scores'] as Map).map((k, v) => MapEntry('$k', _int(v))),
+        final_ = j['final'] == null
+            ? null
+            : StopFinal.fromJson((j['final'] as Map).cast());
+
+  /// answer | review | finished
+  final String stage;
+  final int stageEndsAt;
+  final int round;
+  final int totalRounds;
+  final String? letter;
+  final List<String> categories;
+  final Map<String, String> yourAnswers;
+  final bool youDone;
+  final int doneCount;
+  final StopRoundResult? result;
+  final Map<String, int> scores;
+  final StopFinal? final_;
 }
 
 /// Who Among Us? (مين فينا؟). See packages/shared/src/who.ts.

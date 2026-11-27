@@ -192,6 +192,18 @@ class GameSession {
       action({'kind': 'vote', 'question': question, 'target': target});
   void whoSkip(int question) => action({'kind': 'skip', 'question': question});
 
+  /// Stop: saves your whole sheet (send again after each edit).
+  void stopAnswers(int round, Map<String, String> answers,
+          {bool done = false}) =>
+      action({
+        'kind': 'answers',
+        'round': round,
+        'answers': answers,
+        if (done) 'done': true
+      });
+  void stopAppeal(int round, String category) =>
+      action({'kind': 'appeal', 'round': round, 'category': category});
+
   void setReady(bool ready) => _room.send('ready', {'ready': ready});
   void start() => _room.send('start', {});
   void sendPhrase(String phraseId) =>

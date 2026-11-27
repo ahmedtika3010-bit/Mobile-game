@@ -54,6 +54,23 @@ export async function finalizeMatch(input: FinalizeInput): Promise<Map<string, M
         data: { score: r.score, place: r.place, performance: results.performance[r.playerId] ?? 0, leftEarly: left.has(r.playerId) },
       });
     }
+    // Appealed words go to human review; they never change this match's scores.
+    const seen = new Set<string>();
+    for (const sug of results.suggestions ?? []) {
+      const key = `${sug.category}:${sug.word}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      await tx.contentItem.create({
+        data: {
+          gameId: sug.gameId,
+          category: sug.category,
+          difficulty: 'medium',
+          payload: { words: [sug.word], appeal: { matchId, userId: sug.userId } },
+          source: 'human',
+          status: 'in_review',
+        },
+      });
+    }
     if (input.log.length) {
       await tx.matchEvent.createMany({
         data: input.log.map((e) => ({ matchId, userId: e.userId, kind: e.kind, data: e.data as object, at: e.at })),

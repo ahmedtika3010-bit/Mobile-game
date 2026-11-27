@@ -42,6 +42,14 @@ const _hubs = {
     ('⌨️', 'emojiRule3'),
     ('🔤', 'emojiRule4'),
   ]),
+  'stop': _HubInfo('🚌', Tokens.orange, {
+    'rounds': 3
+  }, rules: [
+    ('🔤', 'stopRule1'),
+    ('✍️', 'stopRule2'),
+    ('⭐', 'stopRule3'),
+    ('✋', 'stopRule4'),
+  ]),
   'who': _HubInfo('👀', Tokens.pink, {
     'questionCount': 8
   }, rules: [

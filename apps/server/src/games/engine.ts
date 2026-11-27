@@ -26,6 +26,8 @@ export interface GameResults {
   ranking: { playerId: string; score: number; place: number; correct?: number }[];
   /** 0..1 normalized performance per player, for cross-game summaries. */
   performance: Record<string, number>;
+  /** Words players asked to add to the content (appeals); saved for human review. */
+  suggestions?: { gameId: string; category: string; word: string; userId: string }[];
 }
 
 export interface GameCapabilities {

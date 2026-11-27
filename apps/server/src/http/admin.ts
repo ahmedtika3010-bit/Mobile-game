@@ -5,8 +5,9 @@
 import { Router } from 'express';
 import { parse } from 'csv-parse/sync';
 import { z } from 'zod';
-import { EMOJI_CATEGORIES, LIAR_CATEGORIES, QUIZ_CATEGORIES, SPY_CATEGORIES, WHO_CATEGORIES } from '@sahra/shared';
+import { EMOJI_CATEGORIES, STOP_CATEGORIES, LIAR_CATEGORIES, QUIZ_CATEGORIES, SPY_CATEGORIES, WHO_CATEGORIES } from '@sahra/shared';
 import { emojiPayloadSchema } from '../games/emoji';
+import { stopPayloadSchema } from '../games/stop';
 import { prisma } from '../db';
 import { audit } from '../safety/audit';
 import { HttpError, requireAdmin, wrap } from './app';
@@ -78,6 +79,17 @@ const emojiItemSchema = z.object({
   source: z.enum(['human', 'ai_suggested']).default('human'),
 });
 
+/** Stop: dictionary words for one category (a full list, or one appealed word). */
+const stopItemSchema = z.object({
+  gameId: z.literal('stop'),
+  category: z.enum(STOP_CATEGORIES as [string, ...string[]]),
+  difficulty: z.literal('medium').default('medium'),
+  language: z.string().default('ar'),
+  locale: z.string().optional(),
+  payload: stopPayloadSchema,
+  source: z.enum(['human', 'ai_suggested']).default('human'),
+});
+
 const quizItemSchema = z.object({
   gameId: z.literal('quiz'),
   category: z.enum(QUIZ_CATEGORIES as [string, ...string[]]),
@@ -90,7 +102,7 @@ const quizItemSchema = z.object({
   source: z.enum(['human', 'ai_suggested']).default('human'),
 });
 
-const itemSchema = z.discriminatedUnion('gameId', [quizItemSchema, spyItemSchema, liarItemSchema, whoItemSchema, emojiItemSchema]);
+const itemSchema = z.discriminatedUnion('gameId', [quizItemSchema, spyItemSchema, liarItemSchema, whoItemSchema, emojiItemSchema, stopItemSchema]);
 
 /** CSV columns for quiz imports (UTF-8, header row required). */
 export const QUIZ_CSV_COLUMNS = [
@@ -103,7 +115,7 @@ export function adminRouter() {
   /* ---------------- content ---------------- */
   r.get('/content', requireAdmin('content_editor'), wrap(async (req, res) => {
     const status = z.enum(['draft', 'in_review', 'approved', 'rejected', 'retired']).optional().parse(req.query.status);
-    const gameId = z.enum(['quiz', 'spy', 'liar', 'who', 'emoji']).default('quiz').parse(req.query.gameId);
+    const gameId = z.enum(['quiz', 'spy', 'liar', 'who', 'emoji', 'stop']).default('quiz').parse(req.query.gameId);
     const items = await prisma.contentItem.findMany({
       where: { gameId, ...(status ? { status } : {}) },
       orderBy: { createdAt: 'desc' },

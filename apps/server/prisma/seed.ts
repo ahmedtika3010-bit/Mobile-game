@@ -8,7 +8,8 @@
  * Spy packs (prisma/content/spy_ar_v1.json: words + approved questions per
  * category), Liar question pairs (prisma/content/liar_ar_v1.json) and Who Among Us
  * questions (prisma/content/who_ar_v1.json) and emoji puzzles
- * (prisma/content/emoji_ar_v1.json) follow
+ * (prisma/content/emoji_ar_v1.json) and the Stop dictionary
+ * (prisma/content/stop_ar_v1.json) follow
  * the same rule: AI-assisted, `in_review` until approved.
  * For local testing only, `npm run db:seed -- --approve-for-local-testing`
  * approves everything directly. Re-running only adds questions whose prompt
@@ -149,12 +150,34 @@ async function seedEmoji(approve: boolean) {
   console.log(`inserted ${fresh.length} emoji puzzles as ${approve ? 'approved (local testing)' : 'in_review'}`);
 }
 
+async function seedStop(approve: boolean) {
+  const lists: { category: string; words: string[] }[] = JSON.parse(readFileSync(join(__dirname, 'content', 'stop_ar_v1.json'), 'utf8'));
+  // One dictionary item per category; re-running adds only categories that are missing.
+  const existing = await prisma.contentItem.findMany({ where: { gameId: 'stop', source: 'ai_suggested' }, select: { category: true } });
+  const have = new Set(existing.map((e) => e.category));
+  const fresh = lists.filter((l) => !have.has(l.category));
+  if (fresh.length === 0) return console.log(`stop dictionary up to date (${existing.length} categories)`);
+  await prisma.contentItem.createMany({
+    data: fresh.map((l) => ({
+      gameId: 'stop',
+      category: l.category,
+      difficulty: 'medium',
+      payload: { words: l.words },
+      source: 'ai_suggested' as const,
+      status: approve ? ('approved' as const) : ('in_review' as const),
+      publishedAt: approve ? new Date() : null,
+    })),
+  });
+  console.log(`inserted ${fresh.length} stop dictionary lists as ${approve ? 'approved (local testing)' : 'in_review'}`);
+}
+
 async function main() {
   const approve = process.argv.includes('--approve-for-local-testing');
   await seedSpy(approve);
   await seedLiar(approve);
   await seedWho(approve);
   await seedEmoji(approve);
+  await seedStop(approve);
   const all: Row[] = [
     ...QUESTIONS.map(([category, difficulty, prompt, choices, explanation]) => ({
       category, difficulty, prompt, choices, correct: 0, explanation: explanation ?? null, source: 'human' as const,

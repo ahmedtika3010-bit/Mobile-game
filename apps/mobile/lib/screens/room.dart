@@ -14,6 +14,7 @@ import '../design/tokens.dart';
 import '../design/widgets.dart';
 import '../l10n/strings.dart';
 import 'liar_pane.dart';
+import 'stop_pane.dart';
 import 'spy_pane.dart';
 import 'who_pane.dart';
 
@@ -85,7 +86,8 @@ class _RoomScreenState extends State<RoomScreen> {
                 q?.ranking != null) ||
             v.spy?.final_ != null ||
             v.liar?.final_ != null ||
-            v.who?.final_ != null) {
+            v.who?.final_ != null ||
+            v.stop?.final_ != null) {
           _results = v;
         } else if (v.phase == 'countdown' || v.phase == 'playing') {
           if (_results != null) _summary = null;
@@ -128,7 +130,9 @@ class _RoomScreenState extends State<RoomScreen> {
     final spyDone = v.spy?.final_ != null && old.spy?.final_ == null;
     final liarDone = v.liar?.final_ != null && old.liar?.final_ == null;
     final whoDone = v.who?.final_ != null && old.who?.final_ == null;
+    final stopDone = v.stop?.final_ != null && old.stop?.final_ == null;
     final finishedNow = spyDone ||
+        stopDone ||
         liarDone ||
         whoDone ||
         (v.quiz?.ranking != null &&
@@ -136,7 +140,10 @@ class _RoomScreenState extends State<RoomScreen> {
             old.quiz?.ranking == null);
     if (finishedNow) {
       final f = v.spy?.final_;
-      final ranking = v.liar?.final_?.ranking ?? v.quiz?.ranking ?? const [];
+      final ranking = v.liar?.final_?.ranking ??
+          v.stop?.final_?.ranking ??
+          v.quiz?.ranking ??
+          const [];
       final won = whoDone ||
           (f != null
               ? (f.winner == 'spies') == f.spies.contains(v.you)
@@ -272,7 +279,8 @@ class _RoomScreenState extends State<RoomScreen> {
     if (_results != null &&
         (_results!.spy != null ||
             _results!.liar != null ||
-            _results!.who != null)) {
+            _results!.who != null ||
+            _results!.stop != null)) {
       final rewards = _summary == null
           ? const SizedBox.shrink()
           : _SummaryCard(summary: _summary!);
@@ -294,6 +302,13 @@ class _RoomScreenState extends State<RoomScreen> {
             color: Tokens.grape,
             onPressed: () => Navigator.of(context).pop()),
       ];
+      if (_results!.stop != null) {
+        return StopResults(
+            key: const ValueKey('results'),
+            view: _results!,
+            rewards: rewards,
+            actions: actions);
+      }
       if (_results!.who != null) {
         return WhoResults(
             key: const ValueKey('results'),
@@ -334,6 +349,10 @@ class _RoomScreenState extends State<RoomScreen> {
           view: v,
           bubbles: _bubbles,
           onPlayer: _playerSheet);
+    }
+    if (v.phase == 'playing' && v.stop != null) {
+      return StopPane(
+          key: const ValueKey('stop'), view: v, session: s, bubbles: _bubbles);
     }
     if (v.phase == 'playing' && v.who != null) {
       return WhoPane(
