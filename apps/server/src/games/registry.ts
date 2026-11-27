@@ -3,9 +3,10 @@ import { quizModule } from './quiz';
 import { liarModule } from './liar';
 import { spyModule } from './spy';
 import { whoModule } from './who';
+import { emojiModule } from './emoji';
 
 /**
- * Games playable in this build. The other six launch games are not
+ * Games playable in this build. The other five launch games are not
  * implemented yet and are deliberately absent, so nothing can start them.
  */
 const GAMES: Record<string, GameModule<any, any, any>> = {
@@ -13,6 +14,7 @@ const GAMES: Record<string, GameModule<any, any, any>> = {
   spy: spyModule,
   liar: liarModule,
   who: whoModule,
+  emoji: emojiModule,
 };
 
 export function getGame(id: string): GameModule<any, any, any> | undefined {

@@ -43,6 +43,12 @@ const _categoryEmoji = {
   'sports': '⚽',
   'general': '💡',
   'entertainment': '🎬',
+  'movies': '🎬',
+  'football': '⚽',
+  'food': '🍽️',
+  'places': '🗺️',
+  'sayings': '💬',
+  'games': '🎮',
 };
 const _maxSeats = 8;
 
@@ -1077,6 +1083,20 @@ class _QuestionPaneState extends State<_QuestionPane> {
   }
 
   @override
+  void didUpdateWidget(covariant _QuestionPane old) {
+    super.didUpdateWidget(old);
+    final now = widget.view.quiz!, before = old.view.quiz!;
+    if (now.question?.typed != true || now.reveal != null) return;
+    if (now.yourChoice != null && before.yourChoice == null) {
+      Sfx.correct();
+      HapticFeedback.mediumImpact();
+    } else if (now.yourGuesses.length > before.yourGuesses.length) {
+      Sfx.wrong();
+      HapticFeedback.heavyImpact();
+    }
+  }
+
+  @override
   void dispose() {
     _revealTimer?.cancel();
     super.dispose();
@@ -1168,7 +1188,8 @@ class _QuestionPaneState extends State<_QuestionPane> {
                 ),
                 child: !_visible
                     ? Bob(
-                        child: Text('👀 ${S.of('questionComing')}',
+                        child: Text(
+                            '👀 ${S.of(q.emojis != null ? 'puzzleComing' : 'questionComing')}',
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                                 color: Tokens.inkSoft,
@@ -1181,13 +1202,15 @@ class _QuestionPaneState extends State<_QuestionPane> {
                           duration: Tokens.medium,
                           curve: Curves.easeOutBack,
                           scale: _visible ? 1 : 0.9,
-                          child: Text(q.prompt,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  color: Tokens.ink,
-                                  fontSize: 24,
-                                  height: 1.4,
-                                  fontWeight: FontWeight.w800)),
+                          child: q.emojis != null
+                              ? _EmojiPuzzle(emojis: q.emojis!)
+                              : Text(q.prompt,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      color: Tokens.ink,
+                                      fontSize: 24,
+                                      height: 1.4,
+                                      fontWeight: FontWeight.w800)),
                         ),
                       ),
               ),
@@ -1205,7 +1228,13 @@ class _QuestionPaneState extends State<_QuestionPane> {
           child: AnimatedOpacity(
             duration: Tokens.medium,
             opacity: _visible ? 1 : 0,
-            child: grid
+            child: q.typed
+                ? _TypedAnswer(
+                    question: q,
+                    quiz: quiz,
+                    enabled: _visible,
+                    onGuess: (text) => widget.session.guess(q.index, text))
+                : grid
                 ? Column(children: [
                     for (final row in [
                       [0, 1],
@@ -1234,9 +1263,198 @@ class _QuestionPaneState extends State<_QuestionPane> {
             view: widget.view,
             onPlayer: widget.onPlayer,
             points: reveal?.points,
-            footer: reveal == null && chosen != null
-                ? '${S.of('yourAnswerSaved')} · ${quiz.answeredCount}/${widget.view.players.length} ${S.of('answered')}'
-                : null),
+            footer: reveal != null
+                ? null
+                : q.typed
+                    ? '${quiz.answeredCount}/${widget.view.players.length} ${S.of('solvedWord')}'
+                    : chosen != null
+                        ? '${S.of('yourAnswerSaved')} · ${quiz.answeredCount}/${widget.view.players.length} ${S.of('answered')}'
+                        : null),
+      ]),
+    );
+  }
+}
+
+/// The emoji puzzle, drawn big. Emoji keep their own left-to-right order.
+class _EmojiPuzzle extends StatelessWidget {
+  const _EmojiPuzzle({required this.emojis});
+  final String emojis;
+  @override
+  Widget build(BuildContext context) => Semantics(
+        label: emojis,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(emojis,
+              textDirection: TextDirection.ltr,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 64, height: 1.15, letterSpacing: 6)),
+        ),
+      );
+}
+
+/// Guess with Emoji, typed mode: the answer box, your wrong guesses (only
+/// you see them), the answer's shape after half time, and the answer at the end.
+class _TypedAnswer extends StatefulWidget {
+  const _TypedAnswer(
+      {required this.question,
+      required this.quiz,
+      required this.enabled,
+      required this.onGuess});
+  final QuizQuestion question;
+  final QuizView quiz;
+  final bool enabled;
+  final ValueChanged<String> onGuess;
+  static const maxGuesses = 3;
+  @override
+  State<_TypedAnswer> createState() => _TypedAnswerState();
+}
+
+class _TypedAnswerState extends State<_TypedAnswer> {
+  final _text = TextEditingController();
+  String? _pending;
+
+  @override
+  void didUpdateWidget(covariant _TypedAnswer old) {
+    super.didUpdateWidget(old);
+    // The server answered our last guess: clear the box for the next try.
+    if (widget.quiz.yourGuesses.length != old.quiz.yourGuesses.length ||
+        widget.quiz.yourChoice != null) {
+      _pending = null;
+      _text.clear();
+    }
+  }
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  void _send() {
+    final t = _text.text.trim();
+    if (t.isEmpty || _pending != null) return;
+    setState(() => _pending = t);
+    Sfx.play('pop', volume: 0.6);
+    widget.onGuess(t);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final quiz = widget.quiz;
+    final reveal = quiz.reveal;
+    final guesses = quiz.yourGuesses;
+    final left = _TypedAnswer.maxGuesses - guesses.length;
+    final solved = quiz.yourChoice != null;
+
+    Widget banner(String text, Color color) => PopIn(
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(Tokens.s16),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.18),
+              borderRadius: const BorderRadius.all(Tokens.r20),
+              border: Border.all(color: color, width: 2),
+            ),
+            child: Text(text,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 20, fontWeight: FontWeight.w800, height: 1.4)),
+          ),
+        );
+
+    return SingleChildScrollView(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        if (widget.question.hint != null && reveal == null) ...[
+          Text('${S.of('emojiHint')} 💡',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  color: Tokens.textDim, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 4),
+          PopIn(
+            child: Text(widget.question.hint!,
+                key: const Key('emojiHint'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    color: Tokens.sun,
+                    fontSize: 26,
+                    letterSpacing: 3,
+                    fontWeight: FontWeight.w900)),
+          ),
+          const SizedBox(height: Tokens.s12),
+        ],
+        if (reveal != null)
+          banner('${S.of('emojiAnswerWas')}: ${reveal.answer ?? ''}',
+              Tokens.success)
+        else if (solved)
+          banner(S.of('emojiSolved'), Tokens.success)
+        else if (left <= 0)
+          banner(S.of('emojiOutOfTries'), Tokens.orange)
+        else ...[
+          Row(children: [
+            Expanded(
+              child: TextField(
+                key: const Key('emojiGuess'),
+                controller: _text,
+                enabled: widget.enabled && _pending == null,
+                maxLength: 60,
+                textInputAction: TextInputAction.send,
+                onSubmitted: (_) => _send(),
+                style: const TextStyle(
+                    fontSize: 20, fontWeight: FontWeight.w800),
+                decoration: InputDecoration(
+                    hintText: S.of('emojiTypeHere'), counterText: ''),
+              ),
+            ),
+            const SizedBox(width: Tokens.s8),
+            GameButton(
+              label: S.of('emojiSend'),
+              expand: false,
+              color: Tokens.sun,
+              busy: _pending != null,
+              onPressed: widget.enabled ? _send : null,
+            ),
+          ]),
+          const SizedBox(height: Tokens.s8),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            for (var i = 0; i < _TypedAnswer.maxGuesses; i++)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 3),
+                child: Text(i < left ? '❤️' : '🤍',
+                    style: const TextStyle(fontSize: 18)),
+              ),
+            const SizedBox(width: Tokens.s8),
+            Text('$left ${S.of('emojiTriesLeft')}',
+                style: const TextStyle(
+                    color: Tokens.textDim, fontWeight: FontWeight.w700)),
+          ]),
+        ],
+        if (guesses.isNotEmpty && reveal == null && !solved) ...[
+          const SizedBox(height: Tokens.s12),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: Tokens.s8,
+            runSpacing: Tokens.s8,
+            children: [
+              for (final g in guesses)
+                Shake(
+                  key: ValueKey(g),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: Tokens.s12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Tokens.danger.withValues(alpha: 0.2),
+                      borderRadius: const BorderRadius.all(Radius.circular(99)),
+                      border: Border.all(color: Tokens.danger),
+                    ),
+                    child: Text('❌ $g',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            decoration: TextDecoration.lineThrough)),
+                  ),
+                ),
+            ],
+          ),
+        ],
       ]),
     );
   }

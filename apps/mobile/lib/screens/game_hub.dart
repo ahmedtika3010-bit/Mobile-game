@@ -34,6 +34,14 @@ const _hubs = {
     ('👀', 'liarRule3'),
     ('🗳️', 'liarRule4'),
   ]),
+  'emoji': _HubInfo('😎', Tokens.sun, {
+    'questionCount': 10
+  }, rules: [
+    ('🧩', 'emojiRule1'),
+    ('⚡', 'emojiRule2'),
+    ('⌨️', 'emojiRule3'),
+    ('🔤', 'emojiRule4'),
+  ]),
   'who': _HubInfo('👀', Tokens.pink, {
     'questionCount': 8
   }, rules: [
@@ -62,6 +70,7 @@ class _GameHubScreenState extends State<GameHubScreen> {
   bool _practice = false;
   int _spies = 1;
   String _difficulty = 'medium';
+  String _answerMode = 'choices';
 
   String get gameId => widget.gameId;
   _HubInfo get info => _hubs[gameId]!;
@@ -210,7 +219,9 @@ class _GameHubScreenState extends State<GameHubScreen> {
                               config: {
                                 ...info.privateConfig,
                                 if (gameId == 'spy') 'spies': _spies,
-                                if (gameId == 'liar') 'difficulty': _difficulty,
+                                if (gameId == 'liar' || gameId == 'emoji')
+                                  'difficulty': _difficulty,
+                                if (gameId == 'emoji') 'answerMode': _answerMode,
                               }))
                   : null,
             ),
@@ -220,11 +231,18 @@ class _GameHubScreenState extends State<GameHubScreen> {
             _SpyCountPicker(
                 value: _spies, onChanged: (n) => setState(() => _spies = n)),
           ],
-          if (gameId == 'liar') ...[
+          if (gameId == 'liar' || gameId == 'emoji') ...[
             const SizedBox(height: Tokens.s8),
             _DifficultyPicker(
                 value: _difficulty,
+                hint: gameId == 'liar' ? 'liarDifficultyHint' : null,
                 onChanged: (d) => setState(() => _difficulty = d)),
+          ],
+          if (gameId == 'emoji') ...[
+            const SizedBox(height: Tokens.s8),
+            _AnswerModePicker(
+                value: _answerMode,
+                onChanged: (m) => setState(() => _answerMode = m)),
           ],
           const SizedBox(height: Tokens.s24),
           FadeSlideIn(
@@ -371,10 +389,57 @@ class _SpyCountPicker extends StatelessWidget {
       ]);
 }
 
-class _DifficultyPicker extends StatelessWidget {
-  const _DifficultyPicker({required this.value, required this.onChanged});
+/// Private Guess with Emoji rooms: pick from choices, or type the answer.
+class _AnswerModePicker extends StatelessWidget {
+  const _AnswerModePicker({required this.value, required this.onChanged});
   final String value;
   final ValueChanged<String> onChanged;
+  static const _emoji = {'choices': '🔘', 'typed': '⌨️'};
+  @override
+  Widget build(BuildContext context) =>
+      Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          Expanded(
+            child: Text(S.of('answerMode'),
+                style: const TextStyle(
+                    color: Tokens.textDim, fontWeight: FontWeight.w700)),
+          ),
+          for (final m in const ['choices', 'typed'])
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: Tokens.s8),
+              child: Pressable(
+                key: Key('answerMode_$m'),
+                onTap: () => onChanged(m),
+                semanticLabel: '${S.of('answerMode')} ${S.of('answerMode_$m')}',
+                child: AnimatedContainer(
+                  duration: Tokens.fast,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: Tokens.s12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: value == m ? Tokens.mint : Tokens.glass,
+                    borderRadius: const BorderRadius.all(Radius.circular(99)),
+                    border: Border.all(color: Tokens.glassBorder),
+                  ),
+                  child: Text('${_emoji[m]} ${S.of('answerMode_$m')}',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: value == m ? Tokens.ink : Colors.white)),
+                ),
+              ),
+            ),
+        ]),
+        const SizedBox(height: 4),
+        Text(S.of('answerModeHint'),
+            style: const TextStyle(color: Tokens.textFaint, fontSize: 12.5)),
+      ]);
+}
+
+class _DifficultyPicker extends StatelessWidget {
+  const _DifficultyPicker(
+      {required this.value, required this.onChanged, this.hint});
+  final String value;
+  final ValueChanged<String> onChanged;
+  final String? hint;
   static const _emoji = {'easy': '🌱', 'medium': '🔥', 'hard': '🌶️'};
   @override
   Widget build(BuildContext context) =>
@@ -408,9 +473,11 @@ class _DifficultyPicker extends StatelessWidget {
               ),
             ),
         ]),
-        const SizedBox(height: 4),
-        Text(S.of('liarDifficultyHint'),
-            style: const TextStyle(color: Tokens.textFaint, fontSize: 12.5)),
+        if (hint != null) ...[
+          const SizedBox(height: 4),
+          Text(S.of(hint!),
+              style: const TextStyle(color: Tokens.textFaint, fontSize: 12.5)),
+        ],
       ]);
 }
 

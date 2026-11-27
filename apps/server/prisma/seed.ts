@@ -7,7 +7,8 @@
  *    source `ai_suggested` and must be fact-checked before release.
  * Spy packs (prisma/content/spy_ar_v1.json: words + approved questions per
  * category), Liar question pairs (prisma/content/liar_ar_v1.json) and Who Among Us
- * questions (prisma/content/who_ar_v1.json) follow
+ * questions (prisma/content/who_ar_v1.json) and emoji puzzles
+ * (prisma/content/emoji_ar_v1.json) follow
  * the same rule: AI-assisted, `in_review` until approved.
  * For local testing only, `npm run db:seed -- --approve-for-local-testing`
  * approves everything directly. Re-running only adds questions whose prompt
@@ -126,11 +127,34 @@ async function seedWho(approve: boolean) {
   console.log(`inserted ${fresh.length} who questions as ${approve ? 'approved (local testing)' : 'in_review'}`);
 }
 
+type EmojiFile = { category: string; difficulty: string; emojis: string; answer: string; wrong: string[]; accepted: string[] }[];
+
+async function seedEmoji(approve: boolean) {
+  const items: EmojiFile = JSON.parse(readFileSync(join(__dirname, 'content', 'emoji_ar_v1.json'), 'utf8'));
+  const existing = await prisma.contentItem.findMany({ where: { gameId: 'emoji' }, select: { payload: true } });
+  const have = new Set(existing.map((e) => (e.payload as { emojis?: string }).emojis));
+  const fresh = items.filter((q) => !have.has(q.emojis));
+  if (fresh.length === 0) return console.log(`emoji content up to date (${existing.length} puzzles)`);
+  await prisma.contentItem.createMany({
+    data: fresh.map((q) => ({
+      gameId: 'emoji',
+      category: q.category,
+      difficulty: q.difficulty,
+      payload: { emojis: q.emojis, answer: q.answer, wrong: q.wrong, accepted: q.accepted },
+      source: 'ai_suggested' as const,
+      status: approve ? ('approved' as const) : ('in_review' as const),
+      publishedAt: approve ? new Date() : null,
+    })),
+  });
+  console.log(`inserted ${fresh.length} emoji puzzles as ${approve ? 'approved (local testing)' : 'in_review'}`);
+}
+
 async function main() {
   const approve = process.argv.includes('--approve-for-local-testing');
   await seedSpy(approve);
   await seedLiar(approve);
   await seedWho(approve);
+  await seedEmoji(approve);
   const all: Row[] = [
     ...QUESTIONS.map(([category, difficulty, prompt, choices, explanation]) => ({
       category, difficulty, prompt, choices, correct: 0, explanation: explanation ?? null, source: 'human' as const,

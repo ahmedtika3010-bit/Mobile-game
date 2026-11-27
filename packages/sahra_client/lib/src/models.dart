@@ -32,7 +32,10 @@ class QuizQuestion {
         prompt = j['prompt'] as String,
         choices = (j['choices'] as List).cast<String>(),
         revealAt = _int(j['revealAt']),
-        deadline = _int(j['deadline']);
+        deadline = _int(j['deadline']),
+        emojis = j['emojis'] as String?,
+        mode = (j['mode'] as String?) ?? 'choices',
+        hint = j['hint'] as String?;
   final int index;
   final int total;
   final String category;
@@ -40,6 +43,13 @@ class QuizQuestion {
   final List<String> choices;
   final int revealAt;
   final int deadline;
+
+  /// Guess with Emoji: the puzzle, the answer mode and (typed mode, after
+  /// half time) the answer's shape.
+  final String? emojis;
+  final String mode; // choices | typed
+  final String? hint;
+  bool get typed => mode == 'typed';
 }
 
 class QuizReveal {
@@ -49,8 +59,12 @@ class QuizReveal {
         explanation = j['explanation'] as String?,
         points = (j['points'] as Map).map((k, v) => MapEntry('$k', _int(v))),
         picks = ((j['picks'] as Map?) ?? const {})
-            .map((k, v) => MapEntry('$k', _int(v)));
+            .map((k, v) => MapEntry('$k', _int(v))),
+        answer = j['answer'] as String?;
   final int index;
+
+  /// Guess with Emoji: the approved answer as text.
+  final String? answer;
   final int correctChoice;
   final String? explanation;
   final Map<String, int> points;
@@ -79,6 +93,8 @@ class QuizView {
             : QuizQuestion.fromJson((j['question'] as Map).cast()),
         yourChoice = j['yourChoice'] == null ? null : _int(j['yourChoice']),
         answeredCount = _int(j['answeredCount']),
+        yourGuesses =
+            ((j['yourGuesses'] as List?) ?? const []).cast<String>(),
         reveal = j['reveal'] == null
             ? null
             : QuizReveal.fromJson((j['reveal'] as Map).cast()),
@@ -92,6 +108,9 @@ class QuizView {
   final QuizQuestion? question;
   final int? yourChoice;
   final int answeredCount;
+
+  /// Guess with Emoji, typed mode: your own wrong guesses on this puzzle.
+  final List<String> yourGuesses;
   final QuizReveal? reveal;
   final Map<String, int> scores;
   final List<RankingEntry>? ranking;
@@ -113,7 +132,9 @@ class RoomView {
         countdownEndsAt =
             j['countdownEndsAt'] == null ? null : _int(j['countdownEndsAt']),
         expectedDurationSec = _int(j['expectedDurationSec']),
-        quiz = j['game'] == null || j['gameId'] != 'quiz'
+        // Guess with Emoji shares the quiz view shape (and screens).
+        quiz = j['game'] == null ||
+                (j['gameId'] != 'quiz' && j['gameId'] != 'emoji')
             ? null
             : QuizView.fromJson((j['game'] as Map).cast()),
         spy = j['game'] == null || j['gameId'] != 'spy'

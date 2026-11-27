@@ -139,6 +139,21 @@ class GameSession {
     }
   }
 
+  /// Guess with Emoji, typed mode: sends a typed guess for the puzzle.
+  void guess(int questionIndex, String text) {
+    final shown = _shownAtLocal;
+    final elapsed =
+        shown == null ? null : DateTime.now().millisecondsSinceEpoch - shown;
+    _room.send('action', {
+      'action': {
+        'kind': 'guess',
+        'questionIndex': questionIndex,
+        'text': text,
+        if (elapsed != null) 'clientElapsedMs': elapsed
+      },
+    });
+  }
+
   void answer(int questionIndex, int choice) {
     final shown = _shownAtLocal;
     final elapsed =

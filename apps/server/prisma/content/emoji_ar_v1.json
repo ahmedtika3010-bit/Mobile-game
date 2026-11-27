@@ -1,0 +1,1379 @@
+[
+ {
+  "category": "movies",
+  "difficulty": "easy",
+  "emojis": "🦁👑",
+  "answer": "الأسد الملك",
+  "wrong": [
+   "ملك الغابة",
+   "الفهد الأسود",
+   "كتاب الأدغال"
+  ],
+  "accepted": [
+   "ذا ليون كينج",
+   "الاسد الملك",
+   "lion king"
+  ]
+ },
+ {
+  "category": "movies",
+  "difficulty": "easy",
+  "emojis": "❄️👸⛄",
+  "answer": "فروزن",
+  "wrong": [
+   "سندريلا",
+   "الجميلة النائمة",
+   "موانا"
+  ],
+  "accepted": [
+   "ملكة الثلج",
+   "frozen"
+  ]
+ },
+ {
+  "category": "movies",
+  "difficulty": "easy",
+  "emojis": "🕷️🧑🏙️",
+  "answer": "سبايدر مان",
+  "wrong": [
+   "باتمان",
+   "سوبر مان",
+   "آيرون مان"
+  ],
+  "accepted": [
+   "الرجل العنكبوت",
+   "سبايدرمان",
+   "spiderman",
+   "spider man"
+  ]
+ },
+ {
+  "category": "movies",
+  "difficulty": "easy",
+  "emojis": "🚢🏔️💔",
+  "answer": "تايتانيك",
+  "wrong": [
+   "القراصنة",
+   "جزيرة الكنز",
+   "المحيط"
+  ],
+  "accepted": [
+   "تيتانيك",
+   "titanic"
+  ]
+ },
+ {
+  "category": "movies",
+  "difficulty": "easy",
+  "emojis": "🐠🔍🌊",
+  "answer": "البحث عن نيمو",
+  "wrong": [
+   "حورية البحر",
+   "موانا",
+   "القرش الطيب"
+  ],
+  "accepted": [
+   "نيمو",
+   "فايندنج نيمو",
+   "finding nemo"
+  ]
+ },
+ {
+  "category": "movies",
+  "difficulty": "medium",
+  "emojis": "🧞🕌🐒",
+  "answer": "علاء الدين",
+  "wrong": [
+   "السندباد",
+   "علي بابا",
+   "الأمير الصغير"
+  ],
+  "accepted": [
+   "علاء الدين والمصباح السحري",
+   "aladdin"
+  ]
+ },
+ {
+  "category": "movies",
+  "difficulty": "medium",
+  "emojis": "🐀👨‍🍳🇫🇷",
+  "answer": "راتاتوي",
+  "wrong": [
+   "ستيوارت ليتل",
+   "توم وجيري",
+   "الفأر الطباخ"
+  ],
+  "accepted": [
+   "راتاتوى",
+   "ratatouille"
+  ]
+ },
+ {
+  "category": "movies",
+  "difficulty": "medium",
+  "emojis": "🦖🏞️🚙",
+  "answer": "جوراسيك بارك",
+  "wrong": [
+   "كينج كونج",
+   "الحديقة السرية",
+   "جودزيلا"
+  ],
+  "accepted": [
+   "جوراسك بارك",
+   "jurassic park"
+  ]
+ },
+ {
+  "category": "movies",
+  "difficulty": "medium",
+  "emojis": "🐘🔵",
+  "answer": "الفيل الأزرق",
+  "wrong": [
+   "الحوت الأزرق",
+   "الفيل الأبيض",
+   "البحر الأزرق"
+  ],
+  "accepted": [
+   "الفيل الازرق"
+  ]
+ },
+ {
+  "category": "movies",
+  "difficulty": "medium",
+  "emojis": "⚡👓🧙‍♂️",
+  "answer": "هاري بوتر",
+  "wrong": [
+   "سيد الخواتم",
+   "الساحر أوز",
+   "نارنيا"
+  ],
+  "accepted": [
+   "هارى بوتر",
+   "harry potter"
+  ]
+ },
+ {
+  "category": "movies",
+  "difficulty": "hard",
+  "emojis": "🧙‍♂️💍🌋",
+  "answer": "سيد الخواتم",
+  "wrong": [
+   "هاري بوتر",
+   "الهوبيت",
+   "صراع العروش"
+  ],
+  "accepted": [
+   "ملك الخواتم",
+   "lord of the rings"
+  ]
+ },
+ {
+  "category": "movies",
+  "difficulty": "hard",
+  "emojis": "🍯⚫",
+  "answer": "عسل إسود",
+  "wrong": [
+   "عسل أبيض",
+   "السكرية",
+   "الليلة الكبيرة"
+  ],
+  "accepted": [
+   "عسل اسود",
+   "عسل أسود"
+  ]
+ },
+ {
+  "category": "movies",
+  "difficulty": "hard",
+  "emojis": "🌾🎓🇺🇸",
+  "answer": "صعيدي في الجامعة الأمريكية",
+  "wrong": [
+   "الناظر",
+   "همام في أمستردام",
+   "عبود على الحدود"
+  ],
+  "accepted": [
+   "صعيدي في الجامعه الامريكيه",
+   "صعيدى فى الجامعة الامريكية"
+  ]
+ },
+ {
+  "category": "movies",
+  "difficulty": "hard",
+  "emojis": "💣🍢",
+  "answer": "الإرهاب والكباب",
+  "wrong": [
+   "الكيف",
+   "اللعب مع الكبار",
+   "المنسي"
+  ],
+  "accepted": [
+   "الارهاب والكباب"
+  ]
+ },
+ {
+  "category": "movies",
+  "difficulty": "hard",
+  "emojis": "👦👦👦👦💰",
+  "answer": "ولاد رزق",
+  "wrong": [
+   "الجزيرة",
+   "الفيل الأزرق",
+   "كيرة والجن"
+  ],
+  "accepted": [
+   "اولاد رزق",
+   "ولاد رزق 1"
+  ]
+ },
+ {
+  "category": "football",
+  "difficulty": "easy",
+  "emojis": "🌍🏆⚽",
+  "answer": "كأس العالم",
+  "wrong": [
+   "دوري الأبطال",
+   "كأس الأمم الأفريقية",
+   "الدوري المصري"
+  ],
+  "accepted": [
+   "كاس العالم",
+   "المونديال"
+  ]
+ },
+ {
+  "category": "football",
+  "difficulty": "easy",
+  "emojis": "🧤🥅",
+  "answer": "حارس المرمى",
+  "wrong": [
+   "المدافع",
+   "الحكم",
+   "المهاجم"
+  ],
+  "accepted": [
+   "حارس مرمى",
+   "الجون",
+   "الحارس"
+  ]
+ },
+ {
+  "category": "football",
+  "difficulty": "easy",
+  "emojis": "🇪🇬👑⚽",
+  "answer": "محمد صلاح",
+  "wrong": [
+   "محمد أبو تريكة",
+   "عمر مرموش",
+   "أحمد حسن"
+  ],
+  "accepted": [
+   "صلاح",
+   "مو صلاح",
+   "الملك المصري"
+  ]
+ },
+ {
+  "category": "football",
+  "difficulty": "easy",
+  "emojis": "🥇⚽✨",
+  "answer": "الكرة الذهبية",
+  "wrong": [
+   "الحذاء الذهبي",
+   "كأس العالم",
+   "أفضل حارس"
+  ],
+  "accepted": [
+   "البالون دور",
+   "بالون دور"
+  ]
+ },
+ {
+  "category": "football",
+  "difficulty": "easy",
+  "emojis": "⚽🎯🧤",
+  "answer": "ضربة جزاء",
+  "wrong": [
+   "ضربة ركنية",
+   "رمية تماس",
+   "تسلل"
+  ],
+  "accepted": [
+   "ركلة جزاء",
+   "بلنتي",
+   "ضربة الجزاء",
+   "بنالتي"
+  ]
+ },
+ {
+  "category": "football",
+  "difficulty": "easy",
+  "emojis": "🐐🇦🇷",
+  "answer": "ميسي",
+  "wrong": [
+   "مارادونا",
+   "رونالدو",
+   "نيمار"
+  ],
+  "accepted": [
+   "ليونيل ميسي",
+   "ليو ميسي"
+  ]
+ },
+ {
+  "category": "football",
+  "difficulty": "medium",
+  "emojis": "🏃‍♂️🚩❌",
+  "answer": "تسلل",
+  "wrong": [
+   "ضربة حرة",
+   "خطأ",
+   "بطاقة صفراء"
+  ],
+  "accepted": [
+   "التسلل",
+   "أوفسايد",
+   "اوفسايد"
+  ]
+ },
+ {
+  "category": "football",
+  "difficulty": "medium",
+  "emojis": "📐⚽🚩",
+  "answer": "ضربة ركنية",
+  "wrong": [
+   "ضربة جزاء",
+   "ضربة مرمى",
+   "رمية تماس"
+  ],
+  "accepted": [
+   "ركنية",
+   "كورنر",
+   "ركلة ركنية"
+  ]
+ },
+ {
+  "category": "football",
+  "difficulty": "medium",
+  "emojis": "🦅🔴🇪🇬",
+  "answer": "الأهلي",
+  "wrong": [
+   "الزمالك",
+   "الإسماعيلي",
+   "الاتحاد السكندري"
+  ],
+  "accepted": [
+   "النادي الأهلي",
+   "الاهلي"
+  ]
+ },
+ {
+  "category": "football",
+  "difficulty": "medium",
+  "emojis": "👑⚪🇪🇸",
+  "answer": "ريال مدريد",
+  "wrong": [
+   "برشلونة",
+   "أتلتيكو مدريد",
+   "إشبيلية"
+  ],
+  "accepted": [
+   "الريال",
+   "ريال"
+  ]
+ },
+ {
+  "category": "football",
+  "difficulty": "medium",
+  "emojis": "🇵🇹7️⃣",
+  "answer": "كريستيانو رونالدو",
+  "wrong": [
+   "لويس فيجو",
+   "بيبي",
+   "برونو فرنانديز"
+  ],
+  "accepted": [
+   "رونالدو",
+   "كريستيانو",
+   "cr7"
+  ]
+ },
+ {
+  "category": "football",
+  "difficulty": "hard",
+  "emojis": "3️⃣⚽🎩",
+  "answer": "هاتريك",
+  "wrong": [
+   "دبل",
+   "ضربة حرة",
+   "ركلة مقصية"
+  ],
+  "accepted": [
+   "هاترك",
+   "ثلاثية"
+  ]
+ },
+ {
+  "category": "football",
+  "difficulty": "hard",
+  "emojis": "⭐🏆🇪🇺",
+  "answer": "دوري أبطال أوروبا",
+  "wrong": [
+   "الدوري الأوروبي",
+   "كأس العالم للأندية",
+   "يورو"
+  ],
+  "accepted": [
+   "دوري الابطال",
+   "التشامبيونز ليج",
+   "الشامبيونزليج",
+   "دوري ابطال اوروبا"
+  ]
+ },
+ {
+  "category": "football",
+  "difficulty": "hard",
+  "emojis": "📺👀⚽",
+  "answer": "الفار",
+  "wrong": [
+   "الإعادة",
+   "التحليل الفني",
+   "الحكم الرابع"
+  ],
+  "accepted": [
+   "تقنية الفار",
+   "فار",
+   "var"
+  ]
+ },
+ {
+  "category": "football",
+  "difficulty": "hard",
+  "emojis": "😈🔴🏴",
+  "answer": "مانشستر يونايتد",
+  "wrong": [
+   "ليفربول",
+   "أرسنال",
+   "تشيلسي"
+  ],
+  "accepted": [
+   "مان يونايتد",
+   "اليونايتد",
+   "مانشستر يونيتد"
+  ]
+ },
+ {
+  "category": "football",
+  "difficulty": "hard",
+  "emojis": "🔵🔴🇪🇸",
+  "answer": "برشلونة",
+  "wrong": [
+   "ريال مدريد",
+   "فالنسيا",
+   "أتلتيكو مدريد"
+  ],
+  "accepted": [
+   "البارسا",
+   "برشلونه",
+   "بارسا"
+  ]
+ },
+ {
+  "category": "food",
+  "difficulty": "easy",
+  "emojis": "🍝🍚🍅",
+  "answer": "كشري",
+  "wrong": [
+   "محشي",
+   "مكرونة بشاميل",
+   "أرز بالخلطة"
+  ],
+  "accepted": [
+   "كشرى",
+   "الكشري"
+  ]
+ },
+ {
+  "category": "food",
+  "difficulty": "easy",
+  "emojis": "☕🥛",
+  "answer": "شاي بلبن",
+  "wrong": [
+   "قهوة",
+   "نسكافيه",
+   "كابتشينو"
+  ],
+  "accepted": [
+   "شاي باللبن",
+   "شاي بالحليب",
+   "شاي بحليب"
+  ]
+ },
+ {
+  "category": "food",
+  "difficulty": "easy",
+  "emojis": "🌽💥",
+  "answer": "فشار",
+  "wrong": [
+   "ذرة مشوية",
+   "شيبسي",
+   "ترمس"
+  ],
+  "accepted": [
+   "فيشار",
+   "بوب كورن",
+   "بوشار"
+  ]
+ },
+ {
+  "category": "food",
+  "difficulty": "easy",
+  "emojis": "🍎🍌🍇🥗",
+  "answer": "سلطة فواكه",
+  "wrong": [
+   "كوكتيل",
+   "سلطة خضرا",
+   "عصير"
+  ],
+  "accepted": [
+   "سلطه فواكه",
+   "سلطة فاكهة"
+  ]
+ },
+ {
+  "category": "food",
+  "difficulty": "easy",
+  "emojis": "🌯🐔🔥",
+  "answer": "شاورما فراخ",
+  "wrong": [
+   "كفتة",
+   "برجر",
+   "كباب"
+  ],
+  "accepted": [
+   "شاورما",
+   "شاورمة فراخ",
+   "شاورما دجاج",
+   "شاورمة"
+  ]
+ },
+ {
+  "category": "food",
+  "difficulty": "medium",
+  "emojis": "🍇🍃📜",
+  "answer": "ورق عنب",
+  "wrong": [
+   "محشي كرنب",
+   "سلطة",
+   "تبولة"
+  ],
+  "accepted": [
+   "محشي ورق عنب",
+   "ورق العنب"
+  ]
+ },
+ {
+  "category": "food",
+  "difficulty": "medium",
+  "emojis": "🌿🍲🐇",
+  "answer": "ملوخية بالأرانب",
+  "wrong": [
+   "بامية",
+   "فتة",
+   "سبانخ"
+  ],
+  "accepted": [
+   "ملوخية",
+   "ملوخيه بالارانب",
+   "ملوخية بالارانب"
+  ]
+ },
+ {
+  "category": "food",
+  "difficulty": "medium",
+  "emojis": "🍯🧀🌙",
+  "answer": "كنافة",
+  "wrong": [
+   "بسبوسة",
+   "قطايف",
+   "بقلاوة"
+  ],
+  "accepted": [
+   "كنافه",
+   "الكنافة"
+  ]
+ },
+ {
+  "category": "food",
+  "difficulty": "medium",
+  "emojis": "🌙🥞🥜",
+  "answer": "قطايف",
+  "wrong": [
+   "كنافة",
+   "بان كيك",
+   "زلابية"
+  ],
+  "accepted": [
+   "القطايف"
+  ]
+ },
+ {
+  "category": "food",
+  "difficulty": "medium",
+  "emojis": "🕊️🍚",
+  "answer": "حمام محشي",
+  "wrong": [
+   "فراخ محمرة",
+   "بط",
+   "أرز معمر"
+  ],
+  "accepted": [
+   "حمام محشى"
+  ]
+ },
+ {
+  "category": "food",
+  "difficulty": "hard",
+  "emojis": "🥞🍯🧀",
+  "answer": "فطير مشلتت",
+  "wrong": [
+   "فطير حلو",
+   "كرواسون",
+   "بيتزا"
+  ],
+  "accepted": [
+   "فطير",
+   "مشلتت",
+   "فطير مشلتت بالعسل"
+  ]
+ },
+ {
+  "category": "food",
+  "difficulty": "hard",
+  "emojis": "🎣🐟🍚",
+  "answer": "صيادية",
+  "wrong": [
+   "سمك مشوي",
+   "جمبري",
+   "فسيخ"
+  ],
+  "accepted": [
+   "الصيادية",
+   "أرز صيادية",
+   "رز صيادية"
+  ]
+ },
+ {
+  "category": "food",
+  "difficulty": "hard",
+  "emojis": "🍆🍅🔥",
+  "answer": "مسقعة",
+  "wrong": [
+   "بابا غنوج",
+   "محشي",
+   "ملوخية"
+  ],
+  "accepted": [
+   "المسقعة",
+   "مسقعه"
+  ]
+ },
+ {
+  "category": "food",
+  "difficulty": "hard",
+  "emojis": "👩👦🍮",
+  "answer": "أم علي",
+  "wrong": [
+   "مهلبية",
+   "رز بلبن",
+   "بسبوسة"
+  ],
+  "accepted": [
+   "ام علي",
+   "أم على"
+  ]
+ },
+ {
+  "category": "food",
+  "difficulty": "hard",
+  "emojis": "🥚🥩🍳",
+  "answer": "بيض بالبسطرمة",
+  "wrong": [
+   "عجة",
+   "شكشوكة",
+   "بيض مسلوق"
+  ],
+  "accepted": [
+   "بيض بسطرمة",
+   "بسطرمة ببيض",
+   "بيض بالبسطرمه"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "easy",
+  "emojis": "🔺🔺🔺🐫",
+  "answer": "الأهرامات",
+  "wrong": [
+   "أبو الهول",
+   "الأقصر",
+   "سيوة"
+  ],
+  "accepted": [
+   "الاهرامات",
+   "الاهرام",
+   "اهرامات الجيزة",
+   "الهرم"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "easy",
+  "emojis": "🗼🥖",
+  "answer": "باريس",
+  "wrong": [
+   "روما",
+   "لندن",
+   "مدريد"
+  ],
+  "accepted": [
+   "فرنسا"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "easy",
+  "emojis": "🗽🍎",
+  "answer": "نيويورك",
+  "wrong": [
+   "لوس أنجلوس",
+   "لندن",
+   "شيكاغو"
+  ],
+  "accepted": [
+   "نيو يورك",
+   "new york"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "easy",
+  "emojis": "🍕🍝🛵",
+  "answer": "إيطاليا",
+  "wrong": [
+   "إسبانيا",
+   "فرنسا",
+   "اليونان"
+  ],
+  "accepted": [
+   "ايطاليا",
+   "إيطالية"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "easy",
+  "emojis": "🍣🗻🌸",
+  "answer": "اليابان",
+  "wrong": [
+   "الصين",
+   "كوريا",
+   "تايلاند"
+  ],
+  "accepted": [
+   "يابان"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "easy",
+  "emojis": "🦘🐨",
+  "answer": "أستراليا",
+  "wrong": [
+   "نيوزيلندا",
+   "جنوب أفريقيا",
+   "البرازيل"
+  ],
+  "accepted": [
+   "استراليا"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "medium",
+  "emojis": "💂☕🕰️",
+  "answer": "لندن",
+  "wrong": [
+   "باريس",
+   "دبلن",
+   "برلين"
+  ],
+  "accepted": [
+   "انجلترا",
+   "إنجلترا",
+   "بريطانيا"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "medium",
+  "emojis": "🏙️🏜️💰",
+  "answer": "دبي",
+  "wrong": [
+   "الرياض",
+   "الدوحة",
+   "القاهرة"
+  ],
+  "accepted": [
+   "دبى"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "medium",
+  "emojis": "⚽🦜🎉",
+  "answer": "البرازيل",
+  "wrong": [
+   "الأرجنتين",
+   "المكسيك",
+   "كولومبيا"
+  ],
+  "accepted": [
+   "برازيل"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "medium",
+  "emojis": "🌊🏰📚",
+  "answer": "الإسكندرية",
+  "wrong": [
+   "بورسعيد",
+   "مرسى مطروح",
+   "دمياط"
+  ],
+  "accepted": [
+   "الاسكندرية",
+   "اسكندرية",
+   "إسكندرية"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "medium",
+  "emojis": "🐠🏖️☀️",
+  "answer": "شرم الشيخ",
+  "wrong": [
+   "الغردقة",
+   "دهب",
+   "العين السخنة"
+  ],
+  "accepted": [
+   "شرم"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "medium",
+  "emojis": "🐼🧱🏮",
+  "answer": "الصين",
+  "wrong": [
+   "اليابان",
+   "كوريا",
+   "الهند"
+  ],
+  "accepted": [
+   "صين"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "hard",
+  "emojis": "🏛️🐏🎈",
+  "answer": "الأقصر",
+  "wrong": [
+   "أسوان",
+   "الجيزة",
+   "الفيوم"
+  ],
+  "accepted": [
+   "الاقصر",
+   "اقصر"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "hard",
+  "emojis": "🏟️🍝⛲",
+  "answer": "روما",
+  "wrong": [
+   "أثينا",
+   "ميلانو",
+   "برشلونة"
+  ],
+  "accepted": [
+   "روما إيطاليا"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "hard",
+  "emojis": "🌷🚲🧀",
+  "answer": "هولندا",
+  "wrong": [
+   "الدنمارك",
+   "بلجيكا",
+   "سويسرا"
+  ],
+  "accepted": [
+   "أمستردام",
+   "امستردام"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "hard",
+  "emojis": "🧀🍫⌚🏔️",
+  "answer": "سويسرا",
+  "wrong": [
+   "النمسا",
+   "بلجيكا",
+   "ألمانيا"
+  ],
+  "accepted": [
+   "سويسره"
+  ]
+ },
+ {
+  "category": "sayings",
+  "difficulty": "easy",
+  "emojis": "⏰💰🥇",
+  "answer": "الوقت من ذهب",
+  "wrong": [
+   "الوقت كالسيف",
+   "الصبر مفتاح الفرج",
+   "الصحة تاج"
+  ],
+  "accepted": [
+   "الوقت من دهب",
+   "الوقت دهب"
+  ]
+ },
+ {
+  "category": "sayings",
+  "difficulty": "easy",
+  "emojis": "🍞🧂🤝",
+  "answer": "عيش وملح",
+  "wrong": [
+   "اللي فات مات",
+   "الجار قبل الدار",
+   "إيد لوحدها ما تسقفش"
+  ],
+  "accepted": [
+   "العيش والملح",
+   "عيش و ملح"
+  ]
+ },
+ {
+  "category": "sayings",
+  "difficulty": "easy",
+  "emojis": "⏪💀",
+  "answer": "اللي فات مات",
+  "wrong": [
+   "اللي اختشوا ماتوا",
+   "الوقت من ذهب",
+   "رجع بخفي حنين"
+  ],
+  "accepted": [
+   "اللي فات مات خلاص",
+   "الماضي مات"
+  ]
+ },
+ {
+  "category": "sayings",
+  "difficulty": "easy",
+  "emojis": "✋❌👏",
+  "answer": "إيد لوحدها ما تسقفش",
+  "wrong": [
+   "اضرب الحديد وهو سخن",
+   "عيش وملح",
+   "الكلام من فضة"
+  ],
+  "accepted": [
+   "ايد لوحدها ما تسقفش",
+   "يد واحدة لا تصفق",
+   "ايد واحدة ما تسقفش",
+   "إيد لوحدها متسقفش"
+  ]
+ },
+ {
+  "category": "sayings",
+  "difficulty": "medium",
+  "emojis": "🐦✋🔟🌳",
+  "answer": "عصفور في الإيد ولا عشرة على الشجرة",
+  "wrong": [
+   "الطيور على أشكالها تقع",
+   "اللي فات مات",
+   "الصبر مفتاح الفرج"
+  ],
+  "accepted": [
+   "عصفور في اليد ولا عشرة على الشجرة",
+   "عصفور في اليد خير من عشرة على الشجرة"
+  ]
+ },
+ {
+  "category": "sayings",
+  "difficulty": "medium",
+  "emojis": "⏳🔑🚪",
+  "answer": "الصبر مفتاح الفرج",
+  "wrong": [
+   "الوقت من ذهب",
+   "كل تأخيرة فيها خيرة",
+   "الباب اللي يجيلك منه الريح"
+  ],
+  "accepted": []
+ },
+ {
+  "category": "sayings",
+  "difficulty": "medium",
+  "emojis": "🔨🔥⛓️",
+  "answer": "اضرب الحديد وهو سخن",
+  "wrong": [
+   "إيد لوحدها ما تسقفش",
+   "على قد لحافك مد رجليك",
+   "الصبر مفتاح الفرج"
+  ],
+  "accepted": [
+   "اضرب الحديد وهو ساخن",
+   "إضرب الحديد وهو سخن"
+  ]
+ },
+ {
+  "category": "sayings",
+  "difficulty": "medium",
+  "emojis": "🏡👋🏡",
+  "answer": "الجار قبل الدار",
+  "wrong": [
+   "عيش وملح",
+   "البيت بيت أبونا",
+   "الدار أمان"
+  ],
+  "accepted": []
+ },
+ {
+  "category": "sayings",
+  "difficulty": "medium",
+  "emojis": "⏳🙂👍",
+  "answer": "كل تأخيرة فيها خيرة",
+  "wrong": [
+   "الصبر مفتاح الفرج",
+   "الوقت من ذهب",
+   "اللي فات مات"
+  ],
+  "accepted": [
+   "كل تاخيرة فيها خيرة",
+   "كل تأخيره فيها خيره"
+  ]
+ },
+ {
+  "category": "sayings",
+  "difficulty": "medium",
+  "emojis": "🗣️🥈🤐🥇",
+  "answer": "الكلام من فضة والسكوت من ذهب",
+  "wrong": [
+   "الوقت من ذهب",
+   "اللي فات مات",
+   "عيش وملح"
+  ],
+  "accepted": [
+   "الكلام من فضه والسكوت من ذهب",
+   "إذا كان الكلام من فضة فالسكوت من ذهب"
+  ]
+ },
+ {
+  "category": "sayings",
+  "difficulty": "hard",
+  "emojis": "🐒👁️👩🦌",
+  "answer": "القرد في عين أمه غزال",
+  "wrong": [
+   "الطيور على أشكالها تقع",
+   "ابن الوز عوام",
+   "اللي خلف ما ماتش"
+  ],
+  "accepted": [
+   "القرد في عين امه غزال"
+  ]
+ },
+ {
+  "category": "sayings",
+  "difficulty": "hard",
+  "emojis": "🛏️📏🦵",
+  "answer": "على قد لحافك مد رجليك",
+  "wrong": [
+   "نام بدري تصحى بدري",
+   "اضرب الحديد وهو سخن",
+   "الجار قبل الدار"
+  ],
+  "accepted": [
+   "على قد لحافك مد رجلك",
+   "على قدر لحافك مد رجليك"
+  ]
+ },
+ {
+  "category": "sayings",
+  "difficulty": "hard",
+  "emojis": "🚪💨🔒😌",
+  "answer": "الباب اللي يجيلك منه الريح سده واستريح",
+  "wrong": [
+   "اضرب الحديد وهو سخن",
+   "الصبر مفتاح الفرج",
+   "الوقت من ذهب"
+  ],
+  "accepted": [
+   "الباب اللي يجيلك منه الريح سده و استريح",
+   "الباب اللي يجيلك منه الريح"
+  ]
+ },
+ {
+  "category": "sayings",
+  "difficulty": "hard",
+  "emojis": "🏃👟👟😞",
+  "answer": "رجع بخفي حنين",
+  "wrong": [
+   "اللي فات مات",
+   "الطيور على أشكالها تقع",
+   "ابن الوز عوام"
+  ],
+  "accepted": [
+   "عاد بخفي حنين",
+   "رجع بخفى حنين"
+  ]
+ },
+ {
+  "category": "games",
+  "difficulty": "easy",
+  "emojis": "🍄🧔🔴",
+  "answer": "سوبر ماريو",
+  "wrong": [
+   "سونيك",
+   "باك مان",
+   "زيلدا"
+  ],
+  "accepted": [
+   "ماريو",
+   "super mario"
+  ]
+ },
+ {
+  "category": "games",
+  "difficulty": "easy",
+  "emojis": "🧽🍍🌊",
+  "answer": "سبونج بوب",
+  "wrong": [
+   "بسيط",
+   "شمشون",
+   "سنفور"
+  ],
+  "accepted": [
+   "سبونج بوب سكوير بانتس",
+   "spongebob",
+   "سبونجبوب"
+  ]
+ },
+ {
+  "category": "games",
+  "difficulty": "easy",
+  "emojis": "🐱🐭💥",
+  "answer": "توم وجيري",
+  "wrong": [
+   "ميكي ماوس",
+   "سنوبي",
+   "باغز باني"
+  ],
+  "accepted": [
+   "توم و جيري",
+   "توم اند جيري"
+  ]
+ },
+ {
+  "category": "games",
+  "difficulty": "easy",
+  "emojis": "⚡🐭🔴⚪",
+  "answer": "بوكيمون",
+  "wrong": [
+   "ديجيمون",
+   "يوغي يو",
+   "كابتن ماجد"
+  ],
+  "accepted": [
+   "بيكاتشو",
+   "pokemon"
+  ]
+ },
+ {
+  "category": "games",
+  "difficulty": "easy",
+  "emojis": "⚽🎮🏆",
+  "answer": "فيفا",
+  "wrong": [
+   "بيس",
+   "روكيت ليج",
+   "فورتنايت"
+  ],
+  "accepted": [
+   "fifa",
+   "فيفا 24",
+   "إي إيه سبورتس إف سي"
+  ]
+ },
+ {
+  "category": "games",
+  "difficulty": "medium",
+  "emojis": "👻🍒😮",
+  "answer": "باك مان",
+  "wrong": [
+   "سوبر ماريو",
+   "تيترس",
+   "سونيك"
+  ],
+  "accepted": [
+   "باكمان",
+   "pac man"
+  ]
+ },
+ {
+  "category": "games",
+  "difficulty": "medium",
+  "emojis": "🔍🎩🇬🇧",
+  "answer": "شيرلوك هولمز",
+  "wrong": [
+   "جيمس بوند",
+   "المفتش كرومبو",
+   "هيركيول بوارو"
+  ],
+  "accepted": [
+   "شارلوك هولمز",
+   "شرلوك هولمز"
+  ]
+ },
+ {
+  "category": "games",
+  "difficulty": "medium",
+  "emojis": "⛏️🧱🌳",
+  "answer": "ماين كرافت",
+  "wrong": [
+   "روبلوكس",
+   "فورتنايت",
+   "تيترس"
+  ],
+  "accepted": [
+   "ماينكرافت",
+   "minecraft"
+  ]
+ },
+ {
+  "category": "games",
+  "difficulty": "medium",
+  "emojis": "♟️👑🐴",
+  "answer": "الشطرنج",
+  "wrong": [
+   "الطاولة",
+   "الدومينو",
+   "الكوتشينة"
+  ],
+  "accepted": [
+   "شطرنج"
+  ]
+ },
+ {
+  "category": "games",
+  "difficulty": "medium",
+  "emojis": "🍎👸7️⃣",
+  "answer": "سنو وايت",
+  "wrong": [
+   "سندريلا",
+   "الجميلة النائمة",
+   "رابونزل"
+  ],
+  "accepted": [
+   "بياض الثلج",
+   "سنو وايت والأقزام السبعة",
+   "سنووايت"
+  ]
+ },
+ {
+  "category": "games",
+  "difficulty": "medium",
+  "emojis": "🤥👃🧒",
+  "answer": "بينوكيو",
+  "wrong": [
+   "بيتر بان",
+   "أليس",
+   "الشاطر حسن"
+  ],
+  "accepted": [
+   "بنوكيو"
+  ]
+ },
+ {
+  "category": "games",
+  "difficulty": "hard",
+  "emojis": "👦🏾🐐🌴",
+  "answer": "بكار",
+  "wrong": [
+   "بوجي وطمطم",
+   "عم شكشك",
+   "سوبر هنيدي"
+  ],
+  "accepted": [
+   "بكار ورشيدة"
+  ]
+ },
+ {
+  "category": "games",
+  "difficulty": "hard",
+  "emojis": "🧔4️⃣0️⃣🦹",
+  "answer": "علي بابا",
+  "wrong": [
+   "سندباد",
+   "علاء الدين",
+   "شهرزاد"
+  ],
+  "accepted": [
+   "علي بابا والاربعين حرامي",
+   "علي بابا والأربعين حرامي",
+   "علي بابا والاربعين لص"
+  ]
+ },
+ {
+  "category": "games",
+  "difficulty": "hard",
+  "emojis": "⛵🧔🌊🐦",
+  "answer": "السندباد",
+  "wrong": [
+   "علي بابا",
+   "جحا",
+   "علاء الدين"
+  ],
+  "accepted": [
+   "سندباد",
+   "سندباد البحري",
+   "السندباد البحري"
+  ]
+ },
+ {
+  "category": "games",
+  "difficulty": "hard",
+  "emojis": "🧱⬇️🎮",
+  "answer": "تيترس",
+  "wrong": [
+   "ماين كرافت",
+   "كاندي كراش",
+   "باك مان"
+  ],
+  "accepted": [
+   "تتريس",
+   "tetris"
+  ]
+ }
+]

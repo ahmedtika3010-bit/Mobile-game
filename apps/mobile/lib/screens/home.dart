@@ -80,10 +80,22 @@ final _games = [
         ('🤫', S.of('tagAnonymous')),
         ('😄', S.of('tagNoLosers')),
       ]),
+  _GameInfo('emoji', S.of('game_emoji'), '😎', Tokens.sun,
+      playable: true,
+      desc: S.of('game_emoji_desc'),
+      gradient: const [
+        Color(0xFFFFC93D),
+        Color(0xFFFF8A3D),
+        Color(0xFFFF4F7B)
+      ],
+      tags: [
+        ('👥', S.of('tagPlayers')),
+        ('😎', S.of('tagEmojiCats')),
+        ('🏆', S.of('tagRanked')),
+      ]),
   const _GameInfo('football', 'تحديات الكورة', '⚽', Tokens.mint),
   const _GameInfo('stop', 'أتوبيس كومبليت', '🚌', Tokens.orange),
   const _GameInfo('draw', 'ارسم وخمّن', '🎨', Tokens.sky),
-  const _GameInfo('emoji', 'خمّن بالإيموجي', '😎', Tokens.sun),
   const _GameInfo('memory', 'تحديات الذاكرة', '🧩', Tokens.mint),
   const _GameInfo('acting', 'مثّل وخمّن', '🎭', Tokens.grape),
 ];

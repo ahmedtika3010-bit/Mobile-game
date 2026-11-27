@@ -5,3 +5,4 @@ export * from './quiz';
 export * from './spy';
 export * from './liar';
 export * from './who';
+export * from './emoji';
