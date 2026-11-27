@@ -42,6 +42,13 @@ const _hubs = {
     ('⌨️', 'emojiRule3'),
     ('🔤', 'emojiRule4'),
   ]),
+  'draw': _HubInfo('🎨', Tokens.sky, {}, rules: [
+    ('✏️', 'drawRule1'),
+    ('⚡', 'drawRule2'),
+    ('✋', 'drawRule3'),
+    ('🙈', 'drawRule4'),
+    ('🤖', 'drawRule5'),
+  ]),
   'memory': _HubInfo('🧩', Tokens.mint, {
     'rounds': 6
   }, rules: [
@@ -88,6 +95,9 @@ class _GameHubScreenState extends State<GameHubScreen> {
   String _difficulty = 'medium';
   String _answerMode = 'choices';
   String _memMode = 'mixed';
+  String _drawDiff = 'mixed';
+  String _drawPlay = 'solo';
+  String _drawSecs = '80';
 
   String get gameId => widget.gameId;
   _HubInfo get info => _hubs[gameId]!;
@@ -119,8 +129,11 @@ class _GameHubScreenState extends State<GameHubScreen> {
       if (!mounted) return;
       await Navigator.of(context).push(SoftRoute(RoomScreen(session: session)));
     } on ApiException catch (e) {
-      setState(() => _error =
-          e.code == 'room_not_found' ? S.of('roomNotFound') : S.of('error'));
+      setState(() => _error = switch (e.code) {
+            'room_not_found' => S.of('roomNotFound'),
+            'safe_mode_unavailable' => S.of('safeModeUnavailable'),
+            _ => S.of('error'),
+          });
     } catch (e) {
       // Test builds show the technical reason to help testers report issues.
       setState(() => _error =
@@ -241,6 +254,11 @@ class _GameHubScreenState extends State<GameHubScreen> {
                                     gameId == 'memory')
                                   'difficulty': _difficulty,
                                 if (gameId == 'memory') 'mode': _memMode,
+                                if (gameId == 'draw') ...{
+                                  'difficulty': _drawDiff,
+                                  'teams': _drawPlay == 'teams',
+                                  'drawSeconds': int.parse(_drawSecs),
+                                },
                                 if (gameId == 'emoji')
                                   'answerMode': _answerMode,
                               }))
@@ -272,6 +290,34 @@ class _GameHubScreenState extends State<GameHubScreen> {
                 textOf: (m) => S.of('mem_$m'),
                 value: _memMode,
                 onChanged: (m) => setState(() => _memMode = m)),
+          ],
+          if (gameId == 'draw') ...[
+            const SizedBox(height: Tokens.s8),
+            _ChipPicker(
+                label: S.of('drawDiffLabel'),
+                options: const {
+                  'mixed': '🎲',
+                  'easy': '🙂',
+                  'medium': '😎',
+                  'hard': '🔥'
+                },
+                textOf: (d) => S.of('drawDiff_$d'),
+                value: _drawDiff,
+                onChanged: (d) => setState(() => _drawDiff = d)),
+            const SizedBox(height: Tokens.s8),
+            _ChipPicker(
+                label: S.of('drawTeamsLabel'),
+                options: const {'solo': '🙋', 'teams': '🤝'},
+                textOf: (m) => S.of(m == 'teams' ? 'drawTeams' : 'drawSolo'),
+                value: _drawPlay,
+                onChanged: (m) => setState(() => _drawPlay = m)),
+            const SizedBox(height: Tokens.s8),
+            _ChipPicker(
+                label: S.of('drawTimeLabel'),
+                options: const {'60': '⏱️', '80': '⏱️', '100': '⏱️'},
+                textOf: (n) => '$n ${S.of('drawSecs')}',
+                value: _drawSecs,
+                onChanged: (n) => setState(() => _drawSecs = n)),
           ],
           if (gameId == 'emoji') ...[
             const SizedBox(height: Tokens.s8),

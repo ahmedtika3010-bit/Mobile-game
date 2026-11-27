@@ -5,7 +5,7 @@
  */
 import type { CommMode } from './age';
 
-export type GameId = 'quiz' | 'spy' | 'liar' | 'who';
+export type GameId = 'quiz' | 'spy' | 'liar' | 'who' | 'emoji' | 'stop' | 'memory' | 'draw';
 /** practice = one player against labelled bots; no rewards, nothing saved. */
 export type MatchMode = 'casual' | 'ranked' | 'private' | 'practice';
 export type Difficulty = 'easy' | 'medium' | 'hard';
@@ -40,6 +40,8 @@ export interface RoomView<GameView = unknown> {
   countdownEndsAt: number | null;
   /** Estimated match duration in seconds, shown before entry. */
   expectedDurationSec: number;
+  /** The saved match being played (null in practice); lets reports point at it. */
+  matchId: string | null;
   game: GameView | null;
 }
 
@@ -49,7 +51,9 @@ export type ClientMessage =
   | { type: 'start' }
   | { type: 'action'; action: unknown }
   | { type: 'quickChat'; phraseId: string }
-  | { type: 'ping'; clientTime: number };
+  | { type: 'ping'; clientTime: number }
+  /** Ask the room to resend the current stream from the start (after a gap). */
+  | { type: 'resync' };
 
 /* ---------- Server -> client messages ---------- */
 export type ServerMessage =
@@ -57,7 +61,9 @@ export type ServerMessage =
   | { type: 'pong'; clientTime: number; serverTime: number }
   | { type: 'quickChat'; from: string; phraseId: string }
   | { type: 'error'; code: string; message: string }
-  | { type: 'matchSummary'; summary: MatchSummary };
+  | { type: 'matchSummary'; summary: MatchSummary }
+  /** Append-only game data sent outside the view (Draw and Guess strokes). */
+  | { type: 'stream'; key: string; from: number; items: unknown[] };
 
 export interface MatchSummary {
   matchId: string;

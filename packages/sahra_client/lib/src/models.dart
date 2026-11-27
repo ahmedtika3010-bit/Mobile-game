@@ -132,6 +132,7 @@ class RoomView {
         countdownEndsAt =
             j['countdownEndsAt'] == null ? null : _int(j['countdownEndsAt']),
         expectedDurationSec = _int(j['expectedDurationSec']),
+        matchId = j['matchId'] as String?,
         // Guess with Emoji shares the quiz view shape (and screens).
         quiz = j['game'] == null ||
                 (j['gameId'] != 'quiz' && j['gameId'] != 'emoji')
@@ -151,7 +152,10 @@ class RoomView {
             : StopView.fromJson((j['game'] as Map).cast()),
         memory = j['game'] == null || j['gameId'] != 'memory'
             ? null
-            : MemoryView.fromJson((j['game'] as Map).cast());
+            : MemoryView.fromJson((j['game'] as Map).cast()),
+        draw = j['game'] == null || j['gameId'] != 'draw'
+            ? null
+            : DrawView.fromJson((j['game'] as Map).cast());
   final String roomId;
   final String? code;
   final String gameId;
@@ -163,12 +167,16 @@ class RoomView {
   final int serverNow;
   final int? countdownEndsAt;
   final int expectedDurationSec;
+
+  /// The saved match being played (null in practice), for reports.
+  final String? matchId;
   final QuizView? quiz;
   final SpyView? spy;
   final LiarView? liar;
   final WhoView? who;
   final StopView? stop;
   final MemoryView? memory;
+  final DrawView? draw;
 
   PublicPlayer? get me => players.where((p) => p.playerId == you).firstOrNull;
   bool get isSafeMode => commMode == 'safe';
@@ -443,6 +451,120 @@ class MemoryView {
   final MemoryReveal? reveal;
   final Map<String, int> scores;
   final List<RankingEntry>? ranking;
+}
+
+/// Draw and Guess (ارسم وخمّن). See packages/shared/src/draw.ts.
+class DrawChoice {
+  DrawChoice.fromJson(Map<String, dynamic> j)
+      : word = j['word'] as String,
+        difficulty = j['difficulty'] as String,
+        points = _int(j['points']);
+  final String word;
+  final String difficulty;
+  final int points;
+}
+
+class DrawTurn {
+  DrawTurn.fromJson(Map<String, dynamic> j)
+      : turn = _int(j['turn']),
+        total = _int(j['total']),
+        drawer = j['drawer'] as String,
+        drawerTeam = j['drawerTeam'] == null ? null : _int(j['drawerTeam']),
+        chooseEndsAt = _int(j['chooseEndsAt']),
+        startedAt = _int(j['startedAt']),
+        deadline = _int(j['deadline']),
+        choices = (j['choices'] as List?)
+            ?.map((e) => DrawChoice.fromJson((e as Map).cast()))
+            .toList(),
+        word = j['word'] as String?,
+        category = j['category'] as String?,
+        difficulty = j['difficulty'] as String?,
+        shape = (j['shape'] as List?)?.cast<String>(),
+        guessed = (j['guessed'] as List).cast<String>(),
+        youGuessed = j['youGuessed'] == true,
+        yourGuesses = ((j['yourGuesses'] as List?) ?? const []).cast<String>(),
+        close = j['close'] == true,
+        youHid = j['youHid'] == true;
+  final int turn;
+  final int total;
+  final String drawer;
+  final int? drawerTeam;
+  final int chooseEndsAt;
+  final int startedAt;
+  final int deadline;
+
+  /// Drawer only, while choosing.
+  final List<DrawChoice>? choices;
+
+  /// Drawer while drawing, guessers who got it, everyone at the reveal.
+  final String? word;
+  final String? category;
+  final String? difficulty;
+
+  /// Guessers: one entry per character ('' hidden, ' ' space, or a hint letter).
+  final List<String>? shape;
+  final List<String> guessed;
+  final bool youGuessed;
+  final List<String> yourGuesses;
+  final bool close;
+  final bool youHid;
+}
+
+class DrawReveal {
+  DrawReveal.fromJson(Map<String, dynamic> j)
+      : word = j['word'] as String,
+        points = (j['points'] as Map).map((k, v) => MapEntry('$k', _int(v))),
+        guessed = (j['guessed'] as List).cast<String>(),
+        ended = j['ended'] as String;
+  final String word;
+  final Map<String, int> points;
+  final List<String> guessed;
+
+  /// all_guessed | time | stopped | drawer_left | skipped
+  final String ended;
+}
+
+class DrawView {
+  DrawView.fromJson(Map<String, dynamic> j)
+      : stage = j['stage'] as String,
+        turn = j['turn'] == null
+            ? null
+            : DrawTurn.fromJson((j['turn'] as Map).cast()),
+        canvasKey = (j['canvas'] as Map?)?['key'] as String?,
+        canvasOps = j['canvas'] == null ? 0 : _int((j['canvas'] as Map)['ops']),
+        reveal = j['reveal'] == null
+            ? null
+            : DrawReveal.fromJson((j['reveal'] as Map).cast()),
+        scores = (j['scores'] as Map).map((k, v) => MapEntry('$k', _int(v))),
+        teamOf = j['teams'] == null
+            ? null
+            : ((j['teams'] as Map)['of'] as Map)
+                .map((k, v) => MapEntry('$k', _int(v))),
+        teamScores = j['teams'] == null
+            ? null
+            : ((j['teams'] as Map)['scores'] as List).map(_int).toList(),
+        ranking = j['final'] == null
+            ? null
+            : ((j['final'] as Map)['ranking'] as List)
+                .map((e) => RankingEntry.fromJson((e as Map).cast()))
+                .toList(),
+        finalTeamScores = (j['final'] as Map?)?['teamScores'] == null
+            ? null
+            : (((j['final'] as Map)['teamScores']) as List)
+                .map(_int)
+                .toList();
+
+  /// choose | draw | reveal | finished
+  final String stage;
+  final DrawTurn? turn;
+  final String? canvasKey;
+  final int canvasOps;
+  final DrawReveal? reveal;
+  final Map<String, int> scores;
+  final Map<String, int>? teamOf;
+  final List<int>? teamScores;
+  final List<RankingEntry>? ranking;
+  final List<int>? finalTeamScores;
 }
 
 /// Stop / Atobees Complete (أتوبيس كومبليت). See packages/shared/src/stop.ts.

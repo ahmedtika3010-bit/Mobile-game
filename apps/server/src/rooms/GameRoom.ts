@@ -22,9 +22,9 @@ import { config } from '../config';
 import { prisma } from '../db';
 import { verifySeatTicket } from '../auth/tokens';
 import { selectContent } from '../content/select';
-import { type GameModule, Rng } from '../games/engine';
+import { type GameModule, PRACTICE_BOT_PREFIX, Rng } from '../games/engine';
 import { getGame } from '../games/registry';
-import { finalizeMatch, type ActionLogEntry } from './finalize';
+import { finalizeMatch, saveMatchLog, type ActionLogEntry } from './finalize';
 
 export const ROOM_NAME = 'game';
 const CODE_KEY = 'room_codes';
@@ -42,6 +42,8 @@ interface Member {
   /** Practice-mode computer player: no connection, no account, never host. */
   isBot?: boolean;
   botSkill?: number;
+  /** What this connection already received of the game's stream (see GameModule.streamFor). */
+  stream?: { key: string; sent: number };
 }
 
 /** Practice bots: clearly named as bots, using the starter characters. */
@@ -128,6 +130,12 @@ export class GameRoom extends Room {
     this.onMessage('ready', (client, msg: { ready?: boolean }) => this.handleReady(client, !!msg?.ready));
     this.onMessage('start', (client) => this.handleStart(client));
     this.onMessage('action', (client, msg: { action?: unknown }) => this.handleAction(client, msg?.action));
+    this.onMessage('resync', (client) => {
+      const m = this.memberBySession(client.sessionId);
+      if (!m) return;
+      m.stream = undefined;
+      this.sendStream(m);
+    });
     this.onMessage('quickChat', (client, msg: { phraseId?: string }) => this.handleQuickChat(client, msg?.phraseId));
     this.onMessage('ping', (client, msg: { clientTime?: number }) =>
       client.send('pong', { clientTime: Number(msg?.clientTime) || 0, serverTime: Date.now() }),
@@ -158,6 +166,10 @@ export class GameRoom extends Room {
     const user = await prisma.user.findUnique({ where: { id: t.userId } });
     if (!user || user.status !== 'active' || !user.onboarded || !user.displayName) throw new Error('account_not_eligible');
     if (user.ageBand === 'under_13') throw new Error('account_not_eligible');
+    // A game whose Safe Mode is not tested yet is offered to adults only (practice against bots excepted).
+    if (!this.game.capabilities.safeModeReady && this.mode !== 'practice' && user.ageBand !== 'adult') {
+      throw new Error('safe_mode_unavailable');
+    }
     // Recompute from the account, never trust the ticket alone for age.
     if (this.ageBucket !== 'any' && matchmakingAgeBucket(user.ageBand) !== this.ageBucket) throw new Error('age_bucket_mismatch');
 
@@ -224,6 +236,7 @@ export class GameRoom extends Room {
         member.client = newClient;
         member.sessionId = newClient.sessionId;
         member.connected = true;
+        member.stream = undefined;
         this.logEvent(member.userId, 'reconnected', {});
         this.afterStateChange();
         return;
@@ -246,7 +259,7 @@ export class GameRoom extends Room {
 
   private addPracticeBots() {
     PRACTICE_BOTS.forEach((b, i) => {
-      const userId = `bot_${i + 1}`;
+      const userId = `${PRACTICE_BOT_PREFIX}${i + 1}`;
       this.members.set(userId, {
         userId,
         sessionId: userId,
@@ -289,7 +302,10 @@ export class GameRoom extends Room {
     this.clearBotTimers();
     if (this.code) await this.presence.hdel(CODE_KEY, this.code);
     if (this.phase === 'playing' && this.matchId) {
-      await prisma.match.update({ where: { id: this.matchId }, data: { state: 'aborted', endedAt: new Date() } }).catch(() => {});
+      const matchId = this.matchId;
+      await prisma.match.update({ where: { id: matchId }, data: { state: 'aborted', endedAt: new Date() } }).catch(() => {});
+      // Keep the record of an abandoned match too, so reports made during it have evidence.
+      await prisma.$transaction((tx) => saveMatchLog(tx, matchId, this.actionLog)).catch(() => {});
     }
   }
 
@@ -567,10 +583,24 @@ export class GameRoom extends Room {
         serverNow: now,
         countdownEndsAt: this.countdownEndsAt,
         expectedDurationSec: this.game.expectedDurationSec(this.gameConfig),
+        matchId: this.matchId,
         // Waiting players and non-participants get no game view.
         game: this.gameState && this.matchPlayers.includes(m.userId) ? this.game.viewFor(this.gameState, m.userId, now) : null,
       };
       m.client.send('view', view);
+      this.sendStream(m);
     }
+  }
+
+  /** Sends a player the stream items they have not received yet (a new key starts over). */
+  private sendStream(m: Member) {
+    if (!m.client || !this.game.streamFor || !this.gameState || !this.matchPlayers.includes(m.userId)) return;
+    const s = this.game.streamFor(this.gameState, m.userId);
+    if (!s) return;
+    const fresh = m.stream?.key !== s.key;
+    const from = fresh ? 0 : m.stream!.sent;
+    if (!fresh && s.items.length <= from) return;
+    m.client.send('stream', { key: s.key, from, items: s.items.slice(from) });
+    m.stream = { key: s.key, sent: s.items.length };
   }
 }

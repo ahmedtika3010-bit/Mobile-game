@@ -5,8 +5,9 @@
 import { Router } from 'express';
 import { parse } from 'csv-parse/sync';
 import { z } from 'zod';
-import { EMOJI_CATEGORIES, STOP_CATEGORIES, LIAR_CATEGORIES, QUIZ_CATEGORIES, SPY_CATEGORIES, WHO_CATEGORIES } from '@sahra/shared';
+import { DRAW_CATEGORIES, EMOJI_CATEGORIES, STOP_CATEGORIES, LIAR_CATEGORIES, QUIZ_CATEGORIES, SPY_CATEGORIES, WHO_CATEGORIES } from '@sahra/shared';
 import { emojiPayloadSchema } from '../games/emoji';
+import { drawPayloadSchema } from '../games/draw';
 import { stopPayloadSchema } from '../games/stop';
 import { prisma } from '../db';
 import { audit } from '../safety/audit';
@@ -90,6 +91,17 @@ const stopItemSchema = z.object({
   source: z.enum(['human', 'ai_suggested']).default('human'),
 });
 
+/** Draw and Guess: one word with its approved variants (and an optional bot sketch). */
+const drawItemSchema = z.object({
+  gameId: z.literal('draw'),
+  category: z.enum(DRAW_CATEGORIES as [string, ...string[]]),
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+  language: z.string().default('ar'),
+  locale: z.string().optional(),
+  payload: drawPayloadSchema,
+  source: z.enum(['human', 'ai_suggested']).default('human'),
+});
+
 const quizItemSchema = z.object({
   gameId: z.literal('quiz'),
   category: z.enum(QUIZ_CATEGORIES as [string, ...string[]]),
@@ -102,7 +114,7 @@ const quizItemSchema = z.object({
   source: z.enum(['human', 'ai_suggested']).default('human'),
 });
 
-const itemSchema = z.discriminatedUnion('gameId', [quizItemSchema, spyItemSchema, liarItemSchema, whoItemSchema, emojiItemSchema, stopItemSchema]);
+const itemSchema = z.discriminatedUnion('gameId', [quizItemSchema, spyItemSchema, liarItemSchema, whoItemSchema, emojiItemSchema, stopItemSchema, drawItemSchema]);
 
 /** CSV columns for quiz imports (UTF-8, header row required). */
 export const QUIZ_CSV_COLUMNS = [

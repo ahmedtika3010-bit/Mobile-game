@@ -9,7 +9,8 @@
  * category), Liar question pairs (prisma/content/liar_ar_v1.json) and Who Among Us
  * questions (prisma/content/who_ar_v1.json) and emoji puzzles
  * (prisma/content/emoji_ar_v1.json) and the Stop dictionary
- * (prisma/content/stop_ar_v1.json) follow
+ * (prisma/content/stop_ar_v1.json) and Draw and Guess words
+ * (prisma/content/draw_ar_v1.json) follow
  * the same rule: AI-assisted, `in_review` until approved.
  * For local testing only, `npm run db:seed -- --approve-for-local-testing`
  * approves everything directly. Re-running only adds questions whose prompt
@@ -171,6 +172,28 @@ async function seedStop(approve: boolean) {
   console.log(`inserted ${fresh.length} stop dictionary lists as ${approve ? 'approved (local testing)' : 'in_review'}`);
 }
 
+type DrawFile = { category: string; difficulty: string; word: string; accepted: string[]; sketch?: unknown }[];
+
+async function seedDraw(approve: boolean) {
+  const items: DrawFile = JSON.parse(readFileSync(join(__dirname, 'content', 'draw_ar_v1.json'), 'utf8'));
+  const existing = await prisma.contentItem.findMany({ where: { gameId: 'draw' }, select: { payload: true } });
+  const have = new Set(existing.map((e) => (e.payload as { word?: string }).word));
+  const fresh = items.filter((w) => !have.has(w.word));
+  if (fresh.length === 0) return console.log(`draw content up to date (${existing.length} words)`);
+  await prisma.contentItem.createMany({
+    data: fresh.map((w) => ({
+      gameId: 'draw',
+      category: w.category,
+      difficulty: w.difficulty,
+      payload: { word: w.word, accepted: w.accepted, ...(w.sketch ? { sketch: w.sketch } : {}) } as object,
+      source: 'ai_suggested' as const,
+      status: approve ? ('approved' as const) : ('in_review' as const),
+      publishedAt: approve ? new Date() : null,
+    })),
+  });
+  console.log(`inserted ${fresh.length} draw words as ${approve ? 'approved (local testing)' : 'in_review'}`);
+}
+
 async function main() {
   const approve = process.argv.includes('--approve-for-local-testing');
   await seedSpy(approve);
@@ -178,6 +201,7 @@ async function main() {
   await seedWho(approve);
   await seedEmoji(approve);
   await seedStop(approve);
+  await seedDraw(approve);
   const all: Row[] = [
     ...QUESTIONS.map(([category, difficulty, prompt, choices, explanation]) => ({
       category, difficulty, prompt, choices, correct: 0, explanation: explanation ?? null, source: 'human' as const,

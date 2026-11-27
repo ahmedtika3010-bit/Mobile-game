@@ -226,6 +226,10 @@ export function createApp(presence: Presence) {
       throw new HttpError(403, 'account_not_eligible');
     }
     const ageBucket = matchmakingAgeBucket(u.ageBand);
+    // Games without a tested Safe Mode are for adults only (practice against bots excepted).
+    if (!game.capabilities.safeModeReady && mode !== 'practice' && u.ageBand !== 'adult') {
+      throw new HttpError(403, 'safe_mode_unavailable');
+    }
     const ticket = await signSeatTicket({ userId: u.id, gameId, mode, ageBucket });
     res.json({
       ticket,

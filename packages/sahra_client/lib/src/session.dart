@@ -22,6 +22,10 @@ class GameSession {
   final _status = StreamController<ConnectionStatus>.broadcast();
   final _chat = StreamController<({String from, String phraseId})>.broadcast();
 
+  /// Draw and Guess: the current drawing's operations, kept in sync from the
+  /// room's stream (only new operations arrive; a new key starts over).
+  final canvas = DrawCanvas();
+
   RoomView? view;
   MatchSummary? lastSummary;
   ConnectionStatus status = ConnectionStatus.connected;
@@ -119,6 +123,11 @@ class GameSession {
         final sent = (p['clientTime'] as num).toInt();
         final server = (p['serverTime'] as num).toInt();
         clockOffsetMs = server - (sent + (now - sent) ~/ 2);
+      case 'stream':
+        final p = (m.payload as Map).cast<String, dynamic>();
+        final ok = canvas.apply(p['key'] as String, (p['from'] as num).toInt(),
+            (p['items'] as List).cast<Object?>());
+        if (!ok) _room.send('resync', {});
       case 'quickChat':
         final p = (m.payload as Map).cast<String, dynamic>();
         _chat.add(
@@ -230,6 +239,21 @@ class GameSession {
   void markAnswerOpened() =>
       _answerOpenedLocal = DateTime.now().millisecondsSinceEpoch;
 
+  // Draw and Guess
+  void drawChoose(int turn, int choice) =>
+      action({'kind': 'choose', 'turn': turn, 'choice': choice});
+
+  /// Sends drawing operations (see DrawCanvas for their shape).
+  void drawOps(int turn, List<Map<String, Object>> ops) =>
+      action({'kind': 'draw', 'turn': turn, 'ops': ops});
+  void drawGuess(int turn, String text, {int? elapsedMs}) => action({
+        'kind': 'guess',
+        'turn': turn,
+        'text': text,
+        if (elapsedMs != null) 'clientElapsedMs': elapsedMs
+      });
+  void drawHide(int turn) => action({'kind': 'hide', 'turn': turn});
+
   void setReady(bool ready) => _room.send('ready', {'ready': ready});
   void start() => _room.send('start', {});
   void sendPhrase(String phraseId) =>
@@ -244,6 +268,8 @@ class GameSession {
     while (!_leaving && DateTime.now().isBefore(deadline)) {
       try {
         _room = await _client.reconnect(token);
+        // The room resends the whole drawing after a reconnection.
+        canvas.reset();
         _attach();
         syncClock();
         _setStatus(ConnectionStatus.connected);
@@ -270,4 +296,70 @@ class GameSession {
     await _room.leave();
     await _sub?.cancel();
   }
+}
+
+/// The shared drawing as an append-only list of operations:
+/// {t:'b', c, w, p} begins a stroke, {t:'p', p} adds points to it,
+/// {t:'u'} undoes the last stroke, {t:'x'} clears. Points are flat
+/// [x0, y0, x1, y1, ...] in 0..1000.
+class DrawCanvas {
+  String key = '';
+  final List<Map<String, dynamic>> ops = [];
+  final _changes = StreamController<void>.broadcast();
+  Stream<void> get changes => _changes.stream;
+
+  /// Applies a stream chunk; false when a chunk was missed (ask to resync).
+  bool apply(String k, int from, List<Object?> items) {
+    if (k != key || from == 0) {
+      // A new drawing, or the whole current one sent again.
+      key = k;
+      ops.clear();
+    }
+    if (from != ops.length) {
+      _changes.add(null);
+      return false;
+    }
+    for (final i in items) {
+      ops.add((i as Map).cast<String, dynamic>());
+    }
+    _changes.add(null);
+    return true;
+  }
+
+  void reset() {
+    key = '';
+    ops.clear();
+    _changes.add(null);
+  }
+
+  /// The strokes to paint after applying undo and clear.
+  static List<DrawStroke> strokesOf(Iterable<Map<String, dynamic>> ops) {
+    final out = <DrawStroke>[];
+    for (final op in ops) {
+      switch (op['t']) {
+        case 'b':
+          out.add(DrawStroke((op['c'] as num).toInt(), (op['w'] as num).toInt(),
+              [for (final n in op['p'] as List) (n as num).toDouble()]));
+        case 'p':
+          if (out.isNotEmpty) {
+            out.last.points.addAll(
+                [for (final n in op['p'] as List) (n as num).toDouble()]);
+          }
+        case 'u':
+          if (out.isNotEmpty) out.removeLast();
+        case 'x':
+          out.clear();
+      }
+    }
+    return out;
+  }
+}
+
+class DrawStroke {
+  DrawStroke(this.color, this.width, this.points);
+  final int color;
+  final int width;
+
+  /// Flat x, y pairs in 0..1000.
+  final List<double> points;
 }

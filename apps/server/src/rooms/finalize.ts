@@ -28,6 +28,29 @@ export interface FinalizeInput {
   log: ActionLogEntry[];
 }
 
+type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+
+/**
+ * Saves a match's recorded events, then attaches them as evidence to reports
+ * filed during the match (those were filed before the events were saved).
+ */
+export async function saveMatchLog(tx: Tx, matchId: string, log: ActionLogEntry[]) {
+  if (log.length === 0) return;
+  await tx.matchEvent.createMany({
+    data: log.map((e) => ({ matchId, userId: e.userId, kind: e.kind, data: e.data as object, at: e.at })),
+  });
+  const reports = await tx.report.findMany({ where: { matchId }, select: { id: true, reportedId: true, evidence: true } });
+  for (const r of reports) {
+    if (r.evidence !== null) continue;
+    const events = log.filter((e) => e.userId === r.reportedId).slice(-200);
+    if (events.length === 0) continue;
+    await tx.report.update({
+      where: { id: r.id },
+      data: { evidence: events.map((e) => ({ kind: e.kind, data: e.data, at: e.at.toISOString() })) as object[] },
+    });
+  }
+}
+
 export async function finalizeMatch(input: FinalizeInput): Promise<Map<string, MatchSummary>> {
   const { matchId, gameId, mode, results, players } = input;
   const participationOnly = getGame(gameId)?.capabilities.rewards === 'participation';
@@ -71,11 +94,7 @@ export async function finalizeMatch(input: FinalizeInput): Promise<Map<string, M
         },
       });
     }
-    if (input.log.length) {
-      await tx.matchEvent.createMany({
-        data: input.log.map((e) => ({ matchId, userId: e.userId, kind: e.kind, data: e.data as object, at: e.at })),
-      });
-    }
+    await saveMatchLog(tx, matchId, input.log);
 
     for (const r of ranking) {
       const notes: string[] = [];

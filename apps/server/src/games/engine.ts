@@ -63,6 +63,18 @@ export interface GameModule<State, Config, View> {
    * (e.g. the question index) so the room schedules each one only once.
    */
   botPlan?(state: State, botId: string, rng: Rng, skill: number): { key: string; at: number; action: unknown } | null;
+  /**
+   * Optional: append-only data sent outside the view (Draw and Guess strokes).
+   * The room sends each player only the items they have not received for the
+   * current key; a new key starts over.
+   */
+  streamFor?(state: State, viewer: string): { key: string; items: readonly unknown[] } | null;
+}
+
+/** Practice bots' player ids (accounts are UUIDs, so these never collide). */
+export const PRACTICE_BOT_PREFIX = 'bot_';
+export function isPracticeBot(playerId: string) {
+  return playerId.startsWith(PRACTICE_BOT_PREFIX);
 }
 
 /** Small deterministic PRNG (mulberry32) seeded from a string; seeds are stored per match. */

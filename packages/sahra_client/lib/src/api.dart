@@ -152,11 +152,13 @@ class SahraApi {
           {required String userId,
           required String reason,
           String? roomId,
+          String? matchId,
           String? note}) =>
       _call('POST', '/safety/reports', body: {
         'reportedUserId': userId,
         'reason': reason,
         if (roomId != null) 'roomId': roomId,
+        if (matchId != null) 'matchId': matchId,
         if (note != null) 'note': note,
       });
 
