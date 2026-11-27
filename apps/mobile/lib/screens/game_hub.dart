@@ -42,6 +42,14 @@ const _hubs = {
     ('⌨️', 'emojiRule3'),
     ('🔤', 'emojiRule4'),
   ]),
+  'memory': _HubInfo('🧩', Tokens.mint, {
+    'rounds': 6
+  }, rules: [
+    ('🃏', 'memRule1'),
+    ('🎨', 'memRule2'),
+    ('🔍', 'memRule3'),
+    ('⏱️', 'memRule4'),
+  ]),
   'stop': _HubInfo('🚌', Tokens.orange, {
     'rounds': 3
   }, rules: [
@@ -79,6 +87,7 @@ class _GameHubScreenState extends State<GameHubScreen> {
   int _spies = 1;
   String _difficulty = 'medium';
   String _answerMode = 'choices';
+  String _memMode = 'mixed';
 
   String get gameId => widget.gameId;
   _HubInfo get info => _hubs[gameId]!;
@@ -227,9 +236,13 @@ class _GameHubScreenState extends State<GameHubScreen> {
                               config: {
                                 ...info.privateConfig,
                                 if (gameId == 'spy') 'spies': _spies,
-                                if (gameId == 'liar' || gameId == 'emoji')
+                                if (gameId == 'liar' ||
+                                    gameId == 'emoji' ||
+                                    gameId == 'memory')
                                   'difficulty': _difficulty,
-                                if (gameId == 'emoji') 'answerMode': _answerMode,
+                                if (gameId == 'memory') 'mode': _memMode,
+                                if (gameId == 'emoji')
+                                  'answerMode': _answerMode,
                               }))
                   : null,
             ),
@@ -239,12 +252,26 @@ class _GameHubScreenState extends State<GameHubScreen> {
             _SpyCountPicker(
                 value: _spies, onChanged: (n) => setState(() => _spies = n)),
           ],
-          if (gameId == 'liar' || gameId == 'emoji') ...[
+          if (gameId == 'liar' || gameId == 'emoji' || gameId == 'memory') ...[
             const SizedBox(height: Tokens.s8),
             _DifficultyPicker(
                 value: _difficulty,
                 hint: gameId == 'liar' ? 'liarDifficultyHint' : null,
                 onChanged: (d) => setState(() => _difficulty = d)),
+          ],
+          if (gameId == 'memory') ...[
+            const SizedBox(height: Tokens.s8),
+            _ChipPicker(
+                label: S.of('memModeLabel'),
+                options: const {
+                  'mixed': '🎲',
+                  'cards': '🃏',
+                  'sequence': '🎨',
+                  'spot': '🔍'
+                },
+                textOf: (m) => S.of('mem_$m'),
+                value: _memMode,
+                onChanged: (m) => setState(() => _memMode = m)),
           ],
           if (gameId == 'emoji') ...[
             const SizedBox(height: Tokens.s8),
@@ -394,6 +421,51 @@ class _SpyCountPicker extends StatelessWidget {
               ),
             ),
           ),
+      ]);
+}
+
+/// A labelled row of choice chips (wraps on small screens).
+class _ChipPicker extends StatelessWidget {
+  const _ChipPicker(
+      {required this.label,
+      required this.options,
+      required this.textOf,
+      required this.value,
+      required this.onChanged});
+  final String label;
+  final Map<String, String> options; // value -> emoji
+  final String Function(String) textOf;
+  final String value;
+  final ValueChanged<String> onChanged;
+  @override
+  Widget build(BuildContext context) =>
+      Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text(label,
+            style: const TextStyle(
+                color: Tokens.textDim, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 6),
+        Wrap(spacing: Tokens.s8, runSpacing: Tokens.s8, children: [
+          for (final e in options.entries)
+            Pressable(
+              key: Key('chip_${e.key}'),
+              onTap: () => onChanged(e.key),
+              semanticLabel: '$label ${textOf(e.key)}',
+              child: AnimatedContainer(
+                duration: Tokens.fast,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: Tokens.s12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: value == e.key ? Tokens.mint : Tokens.glass,
+                  borderRadius: const BorderRadius.all(Radius.circular(99)),
+                  border: Border.all(color: Tokens.glassBorder),
+                ),
+                child: Text('${e.value} ${textOf(e.key)}',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: value == e.key ? Tokens.ink : Colors.white)),
+              ),
+            ),
+        ]),
       ]);
 }
 

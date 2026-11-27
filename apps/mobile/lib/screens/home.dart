@@ -106,9 +106,21 @@ final _games = [
         ('🔤', S.of('tagStopLetters')),
         ('✋', S.of('tagStopAppeal')),
       ]),
+  _GameInfo('memory', S.of('game_memory'), '🧩', Tokens.mint,
+      playable: true,
+      desc: S.of('game_memory_desc'),
+      gradient: const [
+        Color(0xFF7BE8C8),
+        Color(0xFF3DA5FF),
+        Color(0xFF7A4DFF)
+      ],
+      tags: [
+        ('👥', S.of('tagPlayers')),
+        ('🧠', S.of('tagMemModes')),
+        ('⏱️', S.of('tagFairTime')),
+      ]),
   const _GameInfo('football', 'تحديات الكورة', '⚽', Tokens.mint),
   const _GameInfo('draw', 'ارسم وخمّن', '🎨', Tokens.sky),
-  const _GameInfo('memory', 'تحديات الذاكرة', '🧩', Tokens.mint),
   const _GameInfo('acting', 'مثّل وخمّن', '🎭', Tokens.grape),
 ];
 

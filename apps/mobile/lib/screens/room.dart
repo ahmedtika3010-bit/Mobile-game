@@ -14,6 +14,7 @@ import '../design/tokens.dart';
 import '../design/widgets.dart';
 import '../l10n/strings.dart';
 import 'liar_pane.dart';
+import 'memory_pane.dart';
 import 'stop_pane.dart';
 import 'spy_pane.dart';
 import 'who_pane.dart';
@@ -87,7 +88,8 @@ class _RoomScreenState extends State<RoomScreen> {
             v.spy?.final_ != null ||
             v.liar?.final_ != null ||
             v.who?.final_ != null ||
-            v.stop?.final_ != null) {
+            v.stop?.final_ != null ||
+            v.memory?.ranking != null) {
           _results = v;
         } else if (v.phase == 'countdown' || v.phase == 'playing') {
           if (_results != null) _summary = null;
@@ -131,8 +133,10 @@ class _RoomScreenState extends State<RoomScreen> {
     final liarDone = v.liar?.final_ != null && old.liar?.final_ == null;
     final whoDone = v.who?.final_ != null && old.who?.final_ == null;
     final stopDone = v.stop?.final_ != null && old.stop?.final_ == null;
+    final memDone = v.memory?.ranking != null && old.memory?.ranking == null;
     final finishedNow = spyDone ||
         stopDone ||
+        memDone ||
         liarDone ||
         whoDone ||
         (v.quiz?.ranking != null &&
@@ -142,6 +146,7 @@ class _RoomScreenState extends State<RoomScreen> {
       final f = v.spy?.final_;
       final ranking = v.liar?.final_?.ranking ??
           v.stop?.final_?.ranking ??
+          v.memory?.ranking ??
           v.quiz?.ranking ??
           const [];
       final won = whoDone ||
@@ -280,7 +285,8 @@ class _RoomScreenState extends State<RoomScreen> {
         (_results!.spy != null ||
             _results!.liar != null ||
             _results!.who != null ||
-            _results!.stop != null)) {
+            _results!.stop != null ||
+            _results!.memory != null)) {
       final rewards = _summary == null
           ? const SizedBox.shrink()
           : _SummaryCard(summary: _summary!);
@@ -302,6 +308,13 @@ class _RoomScreenState extends State<RoomScreen> {
             color: Tokens.grape,
             onPressed: () => Navigator.of(context).pop()),
       ];
+      if (_results!.memory != null) {
+        return MemoryResults(
+            key: const ValueKey('results'),
+            view: _results!,
+            rewards: rewards,
+            actions: actions);
+      }
       if (_results!.stop != null) {
         return StopResults(
             key: const ValueKey('results'),
@@ -349,6 +362,13 @@ class _RoomScreenState extends State<RoomScreen> {
           view: v,
           bubbles: _bubbles,
           onPlayer: _playerSheet);
+    }
+    if (v.phase == 'playing' && v.memory != null) {
+      return MemoryPane(
+          key: const ValueKey('memory'),
+          view: v,
+          session: s,
+          bubbles: _bubbles);
     }
     if (v.phase == 'playing' && v.stop != null) {
       return StopPane(

@@ -204,6 +204,32 @@ class GameSession {
   void stopAppeal(int round, String category) =>
       action({'kind': 'appeal', 'round': round, 'category': category});
 
+  /// Memory: one pick (cards: next target's cell; spot: the changed cell).
+  void memoryPick(int round, int cell) => action({
+        'kind': 'pick',
+        'round': round,
+        'cell': cell,
+        if (_answerOpenedLocal != null)
+          'clientElapsedMs':
+              DateTime.now().millisecondsSinceEpoch - _answerOpenedLocal!
+      });
+
+  /// Memory, sequence mode: the whole order.
+  void memorySequence(int round, List<int> items) => action({
+        'kind': 'sequence',
+        'round': round,
+        'items': items,
+        if (_answerOpenedLocal != null)
+          'clientElapsedMs':
+              DateTime.now().millisecondsSinceEpoch - _answerOpenedLocal!
+      });
+
+  int? _answerOpenedLocal;
+
+  /// Memory: call when the answer board appears on screen (for latency compensation).
+  void markAnswerOpened() =>
+      _answerOpenedLocal = DateTime.now().millisecondsSinceEpoch;
+
   void setReady(bool ready) => _room.send('ready', {'ready': ready});
   void start() => _room.send('start', {});
   void sendPhrase(String phraseId) =>

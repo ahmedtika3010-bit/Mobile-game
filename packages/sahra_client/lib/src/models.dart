@@ -148,7 +148,10 @@ class RoomView {
             : WhoView.fromJson((j['game'] as Map).cast()),
         stop = j['game'] == null || j['gameId'] != 'stop'
             ? null
-            : StopView.fromJson((j['game'] as Map).cast());
+            : StopView.fromJson((j['game'] as Map).cast()),
+        memory = j['game'] == null || j['gameId'] != 'memory'
+            ? null
+            : MemoryView.fromJson((j['game'] as Map).cast());
   final String roomId;
   final String? code;
   final String gameId;
@@ -165,6 +168,7 @@ class RoomView {
   final LiarView? liar;
   final WhoView? who;
   final StopView? stop;
+  final MemoryView? memory;
 
   PublicPlayer? get me => players.where((p) => p.playerId == you).firstOrNull;
   bool get isSafeMode => commMode == 'safe';
@@ -357,6 +361,88 @@ class LiarView {
   final Map<String, int> scores;
   final LiarRoundResult? lastRound;
   final LiarFinal? final_;
+}
+
+/// Memory Challenges (تحديات الذاكرة). See packages/shared/src/memory.ts.
+class MemoryRound {
+  MemoryRound.fromJson(Map<String, dynamic> j)
+      : round = _int(j['round']),
+        total = _int(j['total']),
+        mode = j['mode'] as String,
+        showAt = _int(j['showAt']),
+        hideAt = _int(j['hideAt']),
+        answerAt = _int(j['answerAt']),
+        deadline = _int(j['deadline']),
+        columns = _int(j['columns']),
+        cells = _int(j['cells']),
+        grid = (j['grid'] as List?)?.cast<String>(),
+        sequence = (j['sequence'] as List?)?.map(_int).toList(),
+        stepMs = _int(j['stepMs']),
+        length = _int(j['length']),
+        targets = (j['targets'] as List?)?.cast<String>(),
+        changedGrid = (j['changedGrid'] as List?)?.cast<String>();
+  final int round;
+  final int total;
+
+  /// cards | sequence | spot
+  final String mode;
+  final int showAt;
+  final int hideAt;
+  final int answerAt;
+  final int deadline;
+  final int columns;
+  final int cells;
+  final List<String>? grid;
+  final List<int>? sequence;
+  final int stepMs;
+  final int length;
+  final List<String>? targets;
+  final List<String>? changedGrid;
+}
+
+class MemoryReveal {
+  MemoryReveal.fromJson(Map<String, dynamic> j)
+      : answer = (j['answer'] as List).map(_int).toList(),
+        correct = (j['correct'] as Map).map((k, v) => MapEntry('$k', _int(v))),
+        parts = _int(j['parts']),
+        points = (j['points'] as Map).map((k, v) => MapEntry('$k', _int(v))),
+        answers = (j['answers'] as Map).map(
+            (k, v) => MapEntry('$k', (v as List).map(_int).toList()));
+  final List<int> answer;
+  final Map<String, int> correct;
+  final int parts;
+  final Map<String, int> points;
+  final Map<String, List<int>> answers;
+}
+
+class MemoryView {
+  MemoryView.fromJson(Map<String, dynamic> j)
+      : stage = j['stage'] as String,
+        round = j['round'] == null
+            ? null
+            : MemoryRound.fromJson((j['round'] as Map).cast()),
+        yourAnswer = (j['yourAnswer'] as List).map(_int).toList(),
+        youDone = j['youDone'] == true,
+        doneCount = _int(j['doneCount']),
+        reveal = j['reveal'] == null
+            ? null
+            : MemoryReveal.fromJson((j['reveal'] as Map).cast()),
+        scores = (j['scores'] as Map).map((k, v) => MapEntry('$k', _int(v))),
+        ranking = j['final'] == null
+            ? null
+            : ((j['final'] as Map)['ranking'] as List)
+                .map((e) => RankingEntry.fromJson((e as Map).cast()))
+                .toList();
+
+  /// show | answer | reveal | finished
+  final String stage;
+  final MemoryRound? round;
+  final List<int> yourAnswer;
+  final bool youDone;
+  final int doneCount;
+  final MemoryReveal? reveal;
+  final Map<String, int> scores;
+  final List<RankingEntry>? ranking;
 }
 
 /// Stop / Atobees Complete (أتوبيس كومبليت). See packages/shared/src/stop.ts.

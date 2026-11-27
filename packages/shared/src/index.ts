@@ -7,3 +7,4 @@ export * from './liar';
 export * from './who';
 export * from './emoji';
 export * from './stop';
+export * from './memory';
