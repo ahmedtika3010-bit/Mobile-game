@@ -8,4 +8,5 @@ export 'src/colyseus.dart';
 export 'src/friends.dart';
 export 'src/models.dart';
 export 'src/msgpack.dart';
+export 'src/night.dart';
 export 'src/session.dart';

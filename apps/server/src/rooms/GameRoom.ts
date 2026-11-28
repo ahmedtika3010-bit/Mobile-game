@@ -235,7 +235,7 @@ export class GameRoom extends Room {
     };
     this.members.set(auth.userId, member);
     // Friends see "in a game" (with which game) while you are in a room.
-    void this.presence.hset(IN_GAME_KEY, auth.userId, JSON.stringify({ gameId: this.gameId, mode: this.mode, roomId: this.roomId }));
+    void this.presence.hset(IN_GAME_KEY, auth.userId, JSON.stringify({ gameId: this.night ? NIGHT_ID : this.gameId, mode: this.mode, roomId: this.roomId }));
     if (!this.hostId || !this.members.get(this.hostId)?.connected) this.hostId = auth.userId;
     if (this.mode === 'practice' && ![...this.members.values()].some((m) => m.isBot)) {
       this.addPracticeBots();

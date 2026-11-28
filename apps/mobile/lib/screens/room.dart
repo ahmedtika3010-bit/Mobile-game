@@ -19,6 +19,7 @@ import 'draw_pane.dart';
 import 'friends.dart';
 import 'football_card.dart';
 import 'memory_pane.dart';
+import 'night_pane.dart';
 import 'stop_pane.dart';
 import 'spy_pane.dart';
 import 'who_pane.dart';
@@ -97,7 +98,10 @@ class _RoomScreenState extends State<RoomScreen> {
             v.draw?.ranking != null ||
             v.acting?.ranking != null) {
           _results = v;
-        } else if (v.phase == 'countdown' || v.phase == 'playing') {
+        } else if (v.phase == 'countdown' ||
+            v.phase == 'playing' ||
+            v.phase == 'vote' ||
+            v.phase == 'summary') {
           if (_results != null) _summary = null;
           _results = null;
         }
@@ -314,7 +318,7 @@ class _RoomScreenState extends State<RoomScreen> {
       final actions = [
         if (v.mode == 'private' || v.phase == 'lobby') ...[
           GameButton(
-              label: S.of('playAgain'),
+              label: S.of(v.night != null ? 'nightBackToNight' : 'playAgain'),
               icon: Icons.replay_rounded,
               color: Tokens.sun,
               onPressed: () => setState(() {
@@ -381,6 +385,7 @@ class _RoomScreenState extends State<RoomScreen> {
           key: const ValueKey('results'),
           view: _results!,
           summary: _summary,
+          rematchLabel: v.night != null ? 'nightBackToNight' : 'playAgain',
           canRematch:
               v.mode == 'private' || v.mode == 'practice' || v.phase == 'lobby',
           onRematch: () => setState(() {
@@ -389,6 +394,28 @@ class _RoomScreenState extends State<RoomScreen> {
                 // Practice restarts straight away (the server skips the wait).
                 if (v.mode == 'practice') s.start();
               }),
+          onPlayer: _playerSheet);
+    }
+    final night = v.night;
+    if (night != null && v.phase == 'summary' && night.summary != null) {
+      return NightSummaryPane(
+          key: const ValueKey('nightSummary'), view: v, session: s);
+    }
+    if (night != null && v.phase == 'vote' && night.vote != null) {
+      return NightVotePane(
+          key: const ValueKey('nightVote'), view: v, session: s);
+    }
+    if (night != null && v.phase == 'countdown' && v.countdownEndsAt != null) {
+      return NightNextPane(
+          key: const ValueKey('nightNext'), view: v, session: s);
+    }
+    if (night != null && (v.phase == 'lobby' || v.phase == 'results')) {
+      return NightLobby(
+          key: const ValueKey('nightLobby'),
+          view: v,
+          session: s,
+          onCopy: _copyCode,
+          onInvite: () => showInviteFriendsSheet(context, v.code!, nightId),
           onPlayer: _playerSheet);
     }
     if (me?.waiting == true) {
@@ -1921,12 +1948,14 @@ class _Results extends StatefulWidget {
       required this.summary,
       required this.onPlayer,
       required this.onRematch,
-      required this.canRematch});
+      required this.canRematch,
+      this.rematchLabel = 'playAgain'});
   final RoomView view;
   final MatchSummary? summary;
   final void Function(PublicPlayer) onPlayer;
   final VoidCallback onRematch;
   final bool canRematch;
+  final String rematchLabel;
 
   @override
   State<_Results> createState() => _ResultsState();
@@ -2129,7 +2158,7 @@ class _ResultsState extends State<_Results> {
           const SizedBox(height: Tokens.s24),
           if (widget.canRematch) ...[
             GameButton(
-                label: S.of('playAgain'),
+                label: S.of(widget.rematchLabel),
                 icon: Icons.replay_rounded,
                 color: Tokens.sun,
                 onPressed: widget.onRematch),

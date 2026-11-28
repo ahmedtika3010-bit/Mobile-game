@@ -145,9 +145,17 @@ class SahraApi {
     return TicketResponse(j['ticket'] as String, (j['options'] as Map).cast());
   }
 
-  Future<String> roomIdForCode(String code) async => ((await _call(
-          'GET', '/rooms/by-code/${Uri.encodeComponent(code.toUpperCase())}'))
-      as Map)['roomId'] as String;
+  Future<String> roomIdForCode(String code) async =>
+      (await roomForCode(code)).roomId;
+
+  /// The room behind a code and which game its tickets name ('night' for
+  /// Game Night), so a code joins from any screen.
+  Future<({String roomId, String? gameId})> roomForCode(String code) async {
+    final j = (await _call(
+            'GET', '/rooms/by-code/${Uri.encodeComponent(code.toUpperCase())}'))
+        as Map;
+    return (roomId: j['roomId'] as String, gameId: j['gameId'] as String?);
+  }
 
   Future<void> report(
           {required String userId,

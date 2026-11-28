@@ -22,6 +22,7 @@ const gameEmoji = {
   'draw': '🎨',
   'football': '⚽',
   'acting': '🎭',
+  'night': '🌙',
 };
 
 String friendErrorText(String code) => switch (code) {

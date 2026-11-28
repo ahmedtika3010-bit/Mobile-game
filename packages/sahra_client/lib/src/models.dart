@@ -2,6 +2,8 @@
 /// packages/shared/src/protocol.ts and quiz.ts.
 library;
 
+import 'night.dart';
+
 class PublicPlayer {
   PublicPlayer.fromJson(Map<String, dynamic> j)
       : playerId = j['playerId'] as String,
@@ -211,12 +213,17 @@ class RoomView {
             : DrawView.fromJson((j['game'] as Map).cast()),
         acting = j['game'] == null || j['gameId'] != 'acting'
             ? null
-            : ActView.fromJson((j['game'] as Map).cast());
+            : ActView.fromJson((j['game'] as Map).cast()),
+        night = j['night'] == null
+            ? null
+            : NightView.fromJson((j['night'] as Map).cast());
   final String roomId;
   final String? code;
   final String gameId;
   final String mode;
-  final String phase; // lobby | countdown | playing | results | closed
+
+  /// lobby | countdown | playing | results | closed | vote | summary
+  final String phase;
   final String commMode; // normal | safe
   final List<PublicPlayer> players;
   final String you;
@@ -234,6 +241,9 @@ class RoomView {
   final MemoryView? memory;
   final DrawView? draw;
   final ActView? acting;
+
+  /// Game Night rooms only; gameId is then the current (or next) game.
+  final NightView? night;
 
   PublicPlayer? get me => players.where((p) => p.playerId == you).firstOrNull;
   bool get isSafeMode => commMode == 'safe';

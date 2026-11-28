@@ -79,9 +79,10 @@ class GameSession {
 
   static Future<GameSession> joinByCode(SahraApi api, ColyseusClient client,
       {required String gameId, required String code}) async {
-    final roomId = await api.roomIdForCode(code);
-    final t = await api.ticket(gameId, 'private');
-    return _start(client, await client.joinById(roomId, {'ticket': t.ticket}));
+    final room = await api.roomForCode(code);
+    final t = await api.ticket(room.gameId ?? gameId, 'private');
+    return _start(
+        client, await client.joinById(room.roomId, {'ticket': t.ticket}));
   }
 
   static GameSession _start(ColyseusClient client, ColyseusRoom room) {
@@ -270,6 +271,14 @@ class GameSession {
 
   void setReady(bool ready) => _room.send('ready', {'ready': ready});
   void start() => _room.send('start', {});
+
+  // Game Night
+  void nightVote(String gameId) => _room.send('nightVote', {'gameId': gameId});
+  void nightPick(String gameId) => _room.send('nightPick', {'gameId': gameId});
+  void nightPlaylist(List<String> games) =>
+      _room.send('nightPlaylist', {'games': games});
+  void nightEnd() => _room.send('nightEnd', {});
+  void nightNew() => _room.send('nightNew', {});
   void sendPhrase(String phraseId) =>
       _room.send('quickChat', {'phraseId': phraseId});
 

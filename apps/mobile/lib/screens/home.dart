@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:sahra_client/sahra_client.dart';
 
 import '../app_state.dart';
 import '../design/chibi_avatar.dart';
@@ -7,6 +9,7 @@ import '../design/tokens.dart';
 import '../design/widgets.dart';
 import '../l10n/strings.dart';
 import 'onboarding.dart';
+import 'room.dart';
 import 'friends.dart';
 import 'game_hub.dart';
 import 'safety_center.dart';
@@ -342,6 +345,21 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
         SliverPadding(
+          padding:
+              const EdgeInsets.fromLTRB(Tokens.s20, 0, Tokens.s20, Tokens.s20),
+          sliver: SliverToBoxAdapter(
+            child: FadeSlideIn(
+                delay: const Duration(milliseconds: 80),
+                child: _NightCard(
+                    key: const Key('nightCard'),
+                    ready: () async {
+                      if (app.canPlay) return true;
+                      await _open(context, 'quiz');
+                      return false;
+                    })),
+          ),
+        ),
+        SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: Tokens.s20),
           sliver: SliverList.list(children: [
             for (final (i, g) in _games.where((g) => g.playable).indexed)
@@ -650,4 +668,196 @@ class _FriendsButton extends StatelessWidget {
             ),
         ]),
       );
+}
+
+/// Game Night: one room for the whole evening, started or joined from home.
+class _NightCard extends StatefulWidget {
+  const _NightCard({super.key, required this.ready});
+
+  /// Sends the player to sign in or onboarding first; true when they can play.
+  final Future<bool> Function() ready;
+
+  @override
+  State<_NightCard> createState() => _NightCardState();
+}
+
+class _NightCardState extends State<_NightCard> {
+  String? _busy;
+  String? _error;
+
+  Future<void> _go(
+      String what, Future<GameSession> Function(AppState) f) async {
+    if (!await widget.ready() || !mounted) return;
+    setState(() {
+      _busy = what;
+      _error = null;
+    });
+    final app = AppScope.read(context);
+    try {
+      final session = await f(app);
+      if (!mounted) return;
+      await Navigator.of(context).push(SoftRoute(RoomScreen(session: session)));
+      app.refreshWallet();
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() => _error =
+            e.code == 'room_not_found' ? S.of('roomNotFound') : S.of('error'));
+      }
+    } catch (_) {
+      if (mounted) setState(() => _error = S.of('error'));
+    } finally {
+      if (mounted) setState(() => _busy = null);
+    }
+  }
+
+  Future<void> _joinDialog() async {
+    if (!await widget.ready() || !mounted) return;
+    final c = TextEditingController();
+    final code = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(S.of('haveCode')),
+        content: TextField(
+          controller: c,
+          autofocus: true,
+          textCapitalization: TextCapitalization.characters,
+          textDirection: TextDirection.ltr,
+          textAlign: TextAlign.center,
+          maxLength: 6,
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp('[A-Za-z0-9]')),
+            TextInputFormatter.withFunction(
+                (o, n) => n.copyWith(text: n.text.toUpperCase())),
+          ],
+          style: const TextStyle(
+              fontFamily: Tokens.body,
+              fontSize: 22,
+              letterSpacing: 6,
+              fontWeight: FontWeight.w900),
+          decoration: InputDecoration(
+              hintText: 'ABC123', labelText: S.of('roomCode'), counterText: ''),
+          onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(S.of('friendsCancel'))),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, c.text.trim()),
+              child: Text(S.of('join'))),
+        ],
+      ),
+    );
+    if (code == null || code.isEmpty) return;
+    await _go(
+        'join',
+        (a) => GameSession.joinByCode(a.api, a.client,
+            gameId: nightId, code: code));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final idle = _busy == null;
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Tokens.r32),
+        gradient: const LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [Color(0xFF2B1B5E), Color(0xFF6C3FD1), Color(0xFFE0569B)]),
+        border:
+            Border.all(color: Colors.white.withValues(alpha: 0.25), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+              color: const Color(0xFF6C3FD1).withValues(alpha: 0.45),
+              blurRadius: 30,
+              offset: const Offset(0, 14)),
+        ],
+      ),
+      child: Stack(children: [
+        PositionedDirectional(
+            top: -40, start: -30, child: _Circle(size: 150, alpha: 0.10)),
+        const PositionedDirectional(
+          top: 14,
+          end: 14,
+          child: Bob(
+            amplitude: 6,
+            child: Text('🌙', style: TextStyle(fontSize: 76)),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(Tokens.s20),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Pill(
+                text: S.of('newTag'),
+                emoji: '✨',
+                color: Colors.white,
+                solid: true),
+            const SizedBox(height: Tokens.s12),
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: 96),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(S.of('night'),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 30,
+                            height: 1.15,
+                            fontWeight: FontWeight.w800)),
+                    const SizedBox(height: Tokens.s4),
+                    Text(S.of('nightDesc'),
+                        style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.88),
+                            fontSize: 15,
+                            height: 1.4)),
+                  ]),
+            ),
+            const SizedBox(height: Tokens.s16),
+            Wrap(spacing: Tokens.s8, runSpacing: Tokens.s8, children: [
+              _Tag(emoji: '🎲', text: S.of('nightTag1')),
+              _Tag(emoji: '🗳️', text: S.of('nightTag2')),
+              _Tag(emoji: '🏆', text: S.of('nightTag3')),
+            ]),
+            const SizedBox(height: Tokens.s20),
+            Row(children: [
+              Expanded(
+                flex: 3,
+                child: GameButton(
+                    key: const Key('nightStart'),
+                    label: S.of('nightStart'),
+                    icon: Icons.nightlight_round,
+                    color: Tokens.sun,
+                    busy: _busy == 'start',
+                    onPressed: idle
+                        ? () => _go(
+                            'start',
+                            (a) => GameSession.createPrivate(a.api, a.client,
+                                gameId: nightId))
+                        : null),
+              ),
+              const SizedBox(width: Tokens.s12),
+              Expanded(
+                flex: 2,
+                child: GameButton(
+                    key: const Key('nightJoin'),
+                    label: S.of('nightJoinCode'),
+                    color: Tokens.sky,
+                    busy: _busy == 'join',
+                    onPressed: idle ? _joinDialog : null),
+              ),
+            ]),
+            if (_error != null) ...[
+              const SizedBox(height: Tokens.s12),
+              Text(_error!,
+                  style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w800)),
+            ],
+          ]),
+        ),
+      ]),
+    );
+  }
 }

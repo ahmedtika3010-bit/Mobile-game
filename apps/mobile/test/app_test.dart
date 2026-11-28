@@ -39,7 +39,22 @@ void main() {
       (tester) async {
     await tester.pumpWidget(SahraApp(state: _state()));
     await _settle(tester);
-    await tester.tap(find.text('العب دلوقتي').first);
+    final play = find.text('العب دلوقتي').first;
+    await tester.ensureVisible(play);
+    await _settle(tester);
+    await tester.tap(play);
+    await _settle(tester);
+    expect(find.byType(SignInScreen), findsOneWidget);
+  });
+
+  testWidgets('starting a Game Night as a guest asks to sign in first',
+      (tester) async {
+    await tester.pumpWidget(SahraApp(state: _state()));
+    await _settle(tester);
+    final start = find.byKey(const Key('nightStart'));
+    await tester.ensureVisible(start);
+    await _settle(tester);
+    await tester.tap(start);
     await _settle(tester);
     expect(find.byType(SignInScreen), findsOneWidget);
   });
