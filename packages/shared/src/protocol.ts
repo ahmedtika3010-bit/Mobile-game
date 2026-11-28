@@ -3,6 +3,7 @@
  * The server never sends secret state to a player who must not see it: each
  * client receives its own `RoomView`, built by the server per viewer.
  */
+import type { NightView } from './night';
 import type { CommMode } from './age';
 
 export type GameId = 'quiz' | 'spy' | 'liar' | 'who' | 'emoji' | 'stop' | 'memory' | 'draw' | 'football' | 'acting';
@@ -11,7 +12,7 @@ export type MatchMode = 'casual' | 'ranked' | 'private' | 'practice';
 export type Difficulty = 'easy' | 'medium' | 'hard';
 export type SessionLength = 'quick' | 'standard' | 'extended';
 
-export type RoomPhase = 'lobby' | 'countdown' | 'playing' | 'results' | 'closed';
+export type RoomPhase = 'lobby' | 'countdown' | 'playing' | 'results' | 'closed' | 'vote' | 'summary';
 
 export interface PublicPlayer {
   playerId: string;
@@ -43,6 +44,8 @@ export interface RoomView<GameView = unknown> {
   /** The saved match being played (null in practice); lets reports point at it. */
   matchId: string | null;
   game: GameView | null;
+  /** Game Night rooms only (see night.ts); the current game is gameId. */
+  night?: NightView | null;
 }
 
 /* ---------- Client -> server messages ---------- */

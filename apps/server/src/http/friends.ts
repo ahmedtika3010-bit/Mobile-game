@@ -17,7 +17,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import type { Presence } from '@colyseus/core';
 import type { User } from '@prisma/client';
-import { matchmakingAgeBucket } from '@sahra/shared';
+import { NIGHT_ID, matchmakingAgeBucket } from '@sahra/shared';
 import { config } from '../config';
 import { prisma } from '../db';
 import { getGame } from '../games/registry';
@@ -255,7 +255,7 @@ export function friendsRouter(presence: Presence) {
     const recent = await prisma.friendInvite.count({ where: { fromId: id, createdAt: { gte: new Date(Date.now() - 3_600_000) } } });
     if (recent >= config.social.invitesPerHour) throw new HttpError(429, 'too_many_invites');
     const asked = z.object({ gameId: z.string().max(32).default('') }).parse(req.body).gameId;
-    const gameId = getGame(asked) ? asked : '';
+    const gameId = getGame(asked) || asked === NIGHT_ID ? asked : '';
     const expiresAt = new Date(Date.now() + config.social.inviteTtlMs);
     await prisma.friendInvite.upsert({
       where: { fromId_toId: { fromId: id, toId: to } },

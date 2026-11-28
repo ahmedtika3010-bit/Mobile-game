@@ -1,6 +1,6 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { join } from 'node:path';
-import { computeAgeBand, matchmakingAgeBucket, type MatchMode } from '@sahra/shared';
+import { NIGHT_ID, computeAgeBand, matchmakingAgeBucket, type MatchMode } from '@sahra/shared';
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 import type { AdminRoleKind } from '@prisma/client';
@@ -218,17 +218,20 @@ export function createApp(presence: Presence) {
   /* ------------------------------ matchmaking ------------------------------ */
   app.post('/matchmaking/ticket', requireAuth, wrap(async (req, res) => {
     const { gameId, mode } = ticketSchema.parse(req.body);
-    const game = getGame(gameId);
-    if (!game) throw new HttpError(404, 'unknown_game');
-    if (mode === 'ranked' && !game.capabilities.ranked) throw new HttpError(400, 'ranked_unavailable');
-    if (mode === 'practice' && !game.botPlan) throw new HttpError(400, 'practice_unavailable');
+    const night = gameId === NIGHT_ID;
+    if (night && mode !== 'private') throw new HttpError(400, 'night_private_only');
+    const game = night ? null : getGame(gameId);
+    if (!game && !night) throw new HttpError(404, 'unknown_game');
+    if (mode === 'ranked' && !game?.capabilities.ranked) throw new HttpError(400, 'ranked_unavailable');
+    if (mode === 'practice' && !game?.botPlan) throw new HttpError(400, 'practice_unavailable');
     const u = await prisma.user.findUniqueOrThrow({ where: { id: req.userId! } });
     if (!u.onboarded || u.status !== 'active' || u.ageBand === 'under_13' || u.ageBand === 'unknown') {
       throw new HttpError(403, 'account_not_eligible');
     }
     const ageBucket = matchmakingAgeBucket(u.ageBand);
     // Games without a tested Safe Mode are for adults only (practice against bots excepted).
-    if (!game.capabilities.safeModeReady && mode !== 'practice' && u.ageBand !== 'adult') {
+    // (Game Night offers only games that fit the room instead.)
+    if (game && !game.capabilities.safeModeReady && mode !== 'practice' && u.ageBand !== 'adult') {
       throw new HttpError(403, 'safe_mode_unavailable');
     }
     const ticket = await signSeatTicket({ userId: u.id, gameId, mode, ageBucket });
@@ -245,7 +248,9 @@ export function createApp(presence: Presence) {
     if (!/^[A-Z0-9]{6}$/.test(code)) throw new HttpError(400, 'bad_code');
     const roomId = await presence.hget('room_codes', code);
     if (!roomId) throw new HttpError(404, 'room_not_found');
-    res.json({ roomId });
+    // Which game the room's tickets name (a Game Night room says 'night').
+    const gameId = await presence.hget('room_code_games', code);
+    res.json({ roomId, gameId });
   }));
 
   app.use('/safety', requireAuth, safetyRouter());
