@@ -30,6 +30,7 @@ enum AuthProvider {
   google
   apple
   dev // local development only, disabled unless DEV_AUTH=1
+  tester // closed test: invite code + a random key kept on the player's device
 }
 
 model User {
@@ -41,6 +42,13 @@ model User {
   ageBand       AgeBand        @default(unknown)
   status        AccountStatus  @default(active)
   onboarded     Boolean        @default(false)
+  /// Short code a player shares so friends can add them (made on first use).
+  friendCode    String?        @unique
+  /// Privacy: who may send friend requests and see online status.
+  allowFriendRequests Boolean  @default(true)
+  showPresence  Boolean        @default(true)
+  /// Equipped cosmetics: { frame, title, theme, effect } item ids.
+  loadout       Json           @default("{}")
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   identities    AuthIdentity[]
@@ -55,6 +63,12 @@ model User {
   blockedBy     Block[]        @relation("blocked")
   sanctions     Sanction[]
   adminRole     AdminRole?
+  friendsAsked  Friendship[]   @relation("friendRequester")
+  friendsAsking Friendship[]   @relation("friendAddressee")
+  invitesSent   FriendInvite[] @relation("inviteFrom")
+  invitesGot    FriendInvite[] @relation("inviteTo")
+  cosmetics     OwnedCosmetic[]
+  claims        RewardClaim[]
 }
 
 model AuthIdentity {
@@ -160,6 +174,8 @@ model Match {
   seed        String
   state       MatchState    @default(in_progress)
   integrityOk Boolean       @default(true)
+  /// Played inside a Game Night room.
+  night       Boolean       @default(false)
   startedAt   DateTime      @default(now())
   endedAt     DateTime?
   players     MatchPlayer[]
@@ -345,4 +361,64 @@ model AuditLog {
   at        DateTime @default(now())
 
   @@index([targetType, targetId])
+}
+
+enum FriendshipStatus {
+  pending
+  accepted
+}
+
+/// One row per pair of players: the request (pending) or the friendship (accepted).
+model Friendship {
+  requesterId String
+  requester   User             @relation("friendRequester", fields: [requesterId], references: [id])
+  addresseeId String
+  addressee   User             @relation("friendAddressee", fields: [addresseeId], references: [id])
+  status      FriendshipStatus @default(pending)
+  createdAt   DateTime         @default(now())
+  acceptedAt  DateTime?
+
+  @@id([requesterId, addresseeId])
+  @@index([addresseeId, status])
+}
+
+/// An invitation from a friend to join a private room (by its code); short-lived.
+model FriendInvite {
+  id        String   @id @default(uuid())
+  fromId    String
+  from      User     @relation("inviteFrom", fields: [fromId], references: [id])
+  toId      String
+  to        User     @relation("inviteTo", fields: [toId], references: [id])
+  roomCode  String
+  gameId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@unique([fromId, toId])
+  @@index([toId, expiresAt])
+}
+
+// ---------------- Cosmetics, missions and achievements ----------------
+
+/// Cosmetics bought or earned (items unlocked by level are derived, not stored).
+model OwnedCosmetic {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  itemId    String
+  /// purchase | achievement:<id> | admin
+  source    String
+  createdAt DateTime @default(now())
+
+  @@id([userId, itemId])
+}
+
+/// One row per claimed reward (mission, achievement, login day); the key makes claims idempotent.
+model RewardClaim {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  /// e.g. mission:d:2026-11-28:0, ach:wins_25, login:2026-11-28, welcome:2026-11-28
+  key       String
+  createdAt DateTime @default(now())
+
+  @@id([userId, key])
 }

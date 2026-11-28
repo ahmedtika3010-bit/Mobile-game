@@ -1,12 +1,27 @@
 import type { GameModule } from './engine';
 import { quizModule } from './quiz';
+import { liarModule } from './liar';
+import { spyModule } from './spy';
+import { whoModule } from './who';
+import { emojiModule } from './emoji';
+import { stopModule } from './stop';
+import { memoryModule } from './memory';
+import { drawModule } from './draw';
+import { footballModule } from './football';
+import { actingModule } from './acting';
 
-/**
- * Games playable in this build. The other nine launch games are not
- * implemented yet and are deliberately absent, so nothing can start them.
- */
+/** All ten launch games. Only games listed here can be started. */
 const GAMES: Record<string, GameModule<any, any, any>> = {
   quiz: quizModule,
+  spy: spyModule,
+  liar: liarModule,
+  who: whoModule,
+  emoji: emojiModule,
+  stop: stopModule,
+  memory: memoryModule,
+  draw: drawModule,
+  football: footballModule,
+  acting: actingModule,
 };
 
 export function getGame(id: string): GameModule<any, any, any> | undefined {

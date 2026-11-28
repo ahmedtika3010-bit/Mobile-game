@@ -25,6 +25,8 @@ export interface QuizRevealView {
   explanation: string | null;
   /** Points each player earned for this question. */
   points: Record<string, number>;
+  /** What each player picked (sent only after the question closes). */
+  picks: Record<string, number>;
 }
 
 export interface QuizView {

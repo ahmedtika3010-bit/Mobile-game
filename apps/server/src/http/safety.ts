@@ -5,6 +5,7 @@ import { config } from '../config';
 import { prisma } from '../db';
 import { audit } from '../safety/audit';
 import { HttpError, wrap } from './app';
+import { unlinkPlayers } from './friends';
 
 export const REPORT_REASONS: Record<string, ReportSeverity> = {
   child_safety: 'critical',
@@ -71,6 +72,7 @@ export function safetyRouter() {
       create: { blockerId: reporterId, blockedId: body.reportedUserId },
       update: {},
     });
+    await unlinkPlayers(reporterId, body.reportedUserId);
     res.status(201).json({ reportId: report.id, severity });
   }));
 
@@ -90,6 +92,7 @@ export function safetyRouter() {
       create: { blockerId: req.userId!, blockedId: userId },
       update: {},
     });
+    await unlinkPlayers(req.userId!, userId);
     res.status(204).end();
   }));
 

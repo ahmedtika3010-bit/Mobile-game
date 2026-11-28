@@ -10,7 +10,7 @@ export async function selectContent(req: ContentRequest, rng: Rng, now = new Dat
     where: {
       gameId: req.gameId,
       status: 'approved',
-      difficulty: req.difficulty,
+      ...(req.difficulty === 'mixed' ? {} : { difficulty: req.difficulty }),
       ...(req.category === 'mixed' ? {} : { category: req.category }),
       OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
     },

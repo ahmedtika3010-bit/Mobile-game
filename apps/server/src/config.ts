@@ -20,6 +20,12 @@ export const config = {
   googleClientIds: list(process.env.GOOGLE_CLIENT_IDS),
   appleBundleIds: list(process.env.APPLE_BUNDLE_IDS),
   devAuth: process.env.DEV_AUTH === '1' && process.env.NODE_ENV !== 'production',
+  /**
+   * Closed test: friends sign in with this invite code (no Google/Apple yet).
+   * Each device keeps its own random key, so accounts cannot be taken over by
+   * typing someone's name. Empty = disabled.
+   */
+  closedTestCode: (process.env.CLOSED_TEST_CODE ?? '').trim(),
   accessTokenTtlSec: 15 * 60,
   refreshTokenTtlDays: 30,
   reconnectSeconds: 90,
@@ -29,8 +35,21 @@ export const config = {
   },
   rating: { provisionalMatches: 10 },
   reportEvidenceRetentionDays: 90,
+  /** Friends and invitations (tunable; the admin dashboard will edit these). */
+  social: {
+    maxFriends: 200,
+    maxPendingOutgoing: 50,
+    requestsPerDay: 30,
+    /** Players who shared a match this recently can add each other without a code. */
+    playedWithDays: 14,
+    /** A player counts as online for this long after the app's last ping. */
+    onlineWindowMs: 90_000,
+    inviteTtlMs: 10 * 60_000,
+    invitesPerHour: 40,
+  },
 };
 
 export function assertConfig() {
   if (config.jwtSecret.length < 32) throw new Error('JWT_SECRET must be set (at least 32 characters)');
+  if (config.closedTestCode && config.closedTestCode.length < 6) throw new Error('CLOSED_TEST_CODE must be at least 6 characters');
 }

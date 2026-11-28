@@ -1,0 +1,28 @@
+# Render Blueprint for the closed test (friends' APK). See docs/deploy-render.md.
+# The database is external (Neon free Postgres): paste its URL as DATABASE_URL.
+services:
+  - type: web
+    name: sahra-server
+    runtime: node
+    plan: free
+    region: frankfurt
+    branch: feat/foundation-and-quiz-slice
+    buildCommand: npm ci --include=dev && cd apps/server && npx prisma generate
+    startCommand: sh apps/server/scripts/render-start.sh
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: "1"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SEED_APPROVED_CONTENT
+        value: "1"
+      - key: DATABASE_URL
+        sync: false
+      - key: CLOSED_TEST_CODE
+        sync: false

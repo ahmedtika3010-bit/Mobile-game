@@ -3,14 +3,17 @@
  * The server never sends secret state to a player who must not see it: each
  * client receives its own `RoomView`, built by the server per viewer.
  */
+import type { NightView } from './night';
 import type { CommMode } from './age';
+import type { PublicCosmetics } from './progress';
 
-export type GameId = 'quiz';
-export type MatchMode = 'casual' | 'ranked' | 'private';
+export type GameId = 'quiz' | 'spy' | 'liar' | 'who' | 'emoji' | 'stop' | 'memory' | 'draw' | 'football' | 'acting';
+/** practice = one player against labelled bots; no rewards, nothing saved. */
+export type MatchMode = 'casual' | 'ranked' | 'private' | 'practice';
 export type Difficulty = 'easy' | 'medium' | 'hard';
 export type SessionLength = 'quick' | 'standard' | 'extended';
 
-export type RoomPhase = 'lobby' | 'countdown' | 'playing' | 'results' | 'closed';
+export type RoomPhase = 'lobby' | 'countdown' | 'playing' | 'results' | 'closed' | 'vote' | 'summary';
 
 export interface PublicPlayer {
   playerId: string;
@@ -21,6 +24,10 @@ export interface PublicPlayer {
   isHost: boolean;
   /** Joined mid-match: waits in the lobby until the next match. */
   waiting: boolean;
+  /** A computer player (practice mode only); always shown as a bot. */
+  isBot?: boolean;
+  /** Equipped frame, title and victory effect (looks only, never gameplay). */
+  cosmetics?: PublicCosmetics;
 }
 
 export interface RoomView<GameView = unknown> {
@@ -37,7 +44,11 @@ export interface RoomView<GameView = unknown> {
   countdownEndsAt: number | null;
   /** Estimated match duration in seconds, shown before entry. */
   expectedDurationSec: number;
+  /** The saved match being played (null in practice); lets reports point at it. */
+  matchId: string | null;
   game: GameView | null;
+  /** Game Night rooms only (see night.ts); the current game is gameId. */
+  night?: NightView | null;
 }
 
 /* ---------- Client -> server messages ---------- */
@@ -46,7 +57,9 @@ export type ClientMessage =
   | { type: 'start' }
   | { type: 'action'; action: unknown }
   | { type: 'quickChat'; phraseId: string }
-  | { type: 'ping'; clientTime: number };
+  | { type: 'ping'; clientTime: number }
+  /** Ask the room to resend the current stream from the start (after a gap). */
+  | { type: 'resync' };
 
 /* ---------- Server -> client messages ---------- */
 export type ServerMessage =
@@ -54,7 +67,9 @@ export type ServerMessage =
   | { type: 'pong'; clientTime: number; serverTime: number }
   | { type: 'quickChat'; from: string; phraseId: string }
   | { type: 'error'; code: string; message: string }
-  | { type: 'matchSummary'; summary: MatchSummary };
+  | { type: 'matchSummary'; summary: MatchSummary }
+  /** Append-only game data sent outside the view (Draw and Guess strokes). */
+  | { type: 'stream'; key: string; from: number; items: unknown[] };
 
 export interface MatchSummary {
   matchId: string;

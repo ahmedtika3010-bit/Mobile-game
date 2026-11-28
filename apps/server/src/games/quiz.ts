@@ -31,6 +31,9 @@ export const QUIZ_TIMING = {
   maxLatencyCompMs: 1500,
   correctPoints: 100,
   maxSpeedBonus: 50,
+  /** Practice bots answer between this delay and this share of the answer window. */
+  botMinDelayMs: 1500,
+  botMaxShare: 0.8,
 };
 
 export interface QuizConfig {
@@ -220,6 +223,24 @@ export const quizModule: GameModule<QuizState, QuizConfig, QuizView> = {
     }
   },
 
+  botPlan(s, botId, rng, skill) {
+    if (s.stage !== 'question' || s.answers[s.index]!.has(botId)) return null;
+    const q = s.questions[s.index]!;
+    const window = s.config.answerSeconds * 1000;
+    // Bots answer somewhere between 1.5 s and 80% of the time, and are right
+    // with probability `skill`, so a human can win but has to try.
+    const min = QUIZ_TIMING.botMinDelayMs;
+    const at = s.revealAt + min + Math.floor(rng.next() * Math.max(1, window * QUIZ_TIMING.botMaxShare - min));
+    const right = rng.next() < skill;
+    const wrong = q.choices.map((_, i) => i).filter((i) => i !== q.correct);
+    const choice = right || wrong.length === 0 ? q.correct : wrong[rng.int(wrong.length)]!;
+    return {
+      key: String(s.index),
+      at,
+      action: { kind: 'answer', questionIndex: s.index, choice, clientElapsedMs: at - s.revealAt },
+    };
+  },
+
   nextWakeAt(s) {
     if (s.stage === 'question') return s.deadline;
     if (s.stage === 'reveal') return s.revealEndsAt;
@@ -250,7 +271,13 @@ export const quizModule: GameModule<QuizState, QuizConfig, QuizView> = {
       // The correct answer is only included after the question closes.
       reveal:
         s.stage === 'reveal' && q
-          ? { index: s.index, correctChoice: q.correct, explanation: q.explanation, points: s.lastPoints }
+          ? {
+              index: s.index,
+              correctChoice: q.correct,
+              explanation: q.explanation,
+              points: s.lastPoints,
+              picks: Object.fromEntries([...(answers ?? new Map())].map(([p, a]) => [p, a.choice])),
+            }
           : null,
       scores,
       final: finished ? { ranking: this.results(s).ranking.map((r) => ({ ...r, correct: r.correct ?? 0 })), ratingApplied: false } : null,

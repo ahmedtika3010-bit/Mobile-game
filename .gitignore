@@ -5,3 +5,11 @@ dist/
 coverage/
 .dart_tool/
 build/
+
+# Dart
+.packages
+pubspec.lock.bak
+
+# Local test builds
+*.apk
+*.aab

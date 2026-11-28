@@ -5,7 +5,12 @@
 import { Router } from 'express';
 import { parse } from 'csv-parse/sync';
 import { z } from 'zod';
-import { QUIZ_CATEGORIES } from '@sahra/shared';
+import { ACT_CATEGORIES, DRAW_CATEGORIES, EMOJI_CATEGORIES, FOOTBALL_MODES, STOP_CATEGORIES, LIAR_CATEGORIES, QUIZ_CATEGORIES, SPY_CATEGORIES, WHO_CATEGORIES } from '@sahra/shared';
+import { emojiPayloadSchema } from '../games/emoji';
+import { drawPayloadSchema } from '../games/draw';
+import { footballPayloadSchema } from '../games/football';
+import { actPayloadSchema } from '../games/acting';
+import { stopPayloadSchema } from '../games/stop';
 import { prisma } from '../db';
 import { audit } from '../safety/audit';
 import { HttpError, requireAdmin, wrap } from './app';
@@ -20,7 +25,110 @@ const quizPayload = z
   .refine((p) => p.correct < p.choices.length, { message: 'correct out of range' })
   .refine((p) => new Set(p.choices).size === p.choices.length, { message: 'duplicate choices' });
 
-const itemSchema = z.object({
+/** Spy: one reviewable pack per category (secret words + approved questions). */
+const spyPayload = z
+  .object({
+    words: z.array(z.string().trim().min(1).max(40)).min(8).max(60),
+    questions: z.array(z.string().trim().min(5).max(120)).min(6).max(60),
+  })
+  .refine((p) => new Set(p.words).size === p.words.length, { message: 'duplicate words' });
+
+const spyItemSchema = z.object({
+  gameId: z.literal('spy'),
+  category: z.enum(SPY_CATEGORIES as [string, ...string[]]),
+  difficulty: z.literal('medium').default('medium'),
+  language: z.string().default('ar'),
+  locale: z.string().optional(),
+  payload: spyPayload,
+  source: z.enum(['human', 'ai_suggested']).default('human'),
+});
+
+const liarPayload = z
+  .object({
+    main: z.string().trim().min(5).max(140),
+    odd: z.string().trim().min(5).max(140),
+    options: z.array(z.string().trim().min(1).max(40)).min(3).max(6),
+  })
+  .refine((p) => p.main !== p.odd, { message: 'questions must differ' })
+  .refine((p) => new Set(p.options).size === p.options.length, { message: 'duplicate options' });
+
+const liarItemSchema = z.object({
+  gameId: z.literal('liar'),
+  category: z.enum(LIAR_CATEGORIES as [string, ...string[]]),
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+  language: z.string().default('ar'),
+  locale: z.string().optional(),
+  payload: liarPayload,
+  source: z.enum(['human', 'ai_suggested']).default('human'),
+});
+
+const whoItemSchema = z.object({
+  gameId: z.literal('who'),
+  category: z.enum(WHO_CATEGORIES as [string, ...string[]]),
+  difficulty: z.literal('medium').default('medium'),
+  language: z.string().default('ar'),
+  locale: z.string().optional(),
+  payload: z.object({ text: z.string().trim().min(8).max(140) }),
+  source: z.enum(['human', 'ai_suggested']).default('human'),
+});
+
+const emojiItemSchema = z.object({
+  gameId: z.literal('emoji'),
+  category: z.enum(EMOJI_CATEGORIES as [string, ...string[]]),
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+  language: z.string().default('ar'),
+  locale: z.string().optional(),
+  payload: emojiPayloadSchema,
+  source: z.enum(['human', 'ai_suggested']).default('human'),
+});
+
+/** Stop: dictionary words for one category (a full list, or one appealed word). */
+const stopItemSchema = z.object({
+  gameId: z.literal('stop'),
+  category: z.enum(STOP_CATEGORIES as [string, ...string[]]),
+  difficulty: z.literal('medium').default('medium'),
+  language: z.string().default('ar'),
+  locale: z.string().optional(),
+  payload: stopPayloadSchema,
+  source: z.enum(['human', 'ai_suggested']).default('human'),
+});
+
+/** Draw and Guess: one word with its approved variants (and an optional bot sketch). */
+const drawItemSchema = z.object({
+  gameId: z.literal('draw'),
+  category: z.enum(DRAW_CATEGORIES as [string, ...string[]]),
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+  language: z.string().default('ar'),
+  locale: z.string().optional(),
+  payload: drawPayloadSchema,
+  source: z.enum(['human', 'ai_suggested']).default('human'),
+});
+
+/** Acting and Guessing: one word with the moves and hint cards that make it solvable. */
+const actingItemSchema = z.object({
+  gameId: z.literal('acting'),
+  category: z.enum(ACT_CATEGORIES as [string, ...string[]]),
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+  language: z.string().default('ar'),
+  locale: z.string().optional(),
+  payload: actPayloadSchema,
+  source: z.enum(['human', 'ai_suggested']).default('human'),
+});
+
+/** Football: one dated item; the category is its mode and must match the payload. */
+const footballItemSchema = z
+  .object({
+    gameId: z.literal('football'),
+    category: z.enum(FOOTBALL_MODES as [string, ...string[]]),
+    difficulty: z.enum(['easy', 'medium', 'hard']),
+    language: z.string().default('ar'),
+    locale: z.string().optional(),
+    payload: footballPayloadSchema,
+    expiresAt: z.string().date().optional(),
+    source: z.enum(['human', 'ai_suggested']).default('human'),
+  });
+
+const quizItemSchema = z.object({
   gameId: z.literal('quiz'),
   category: z.enum(QUIZ_CATEGORIES as [string, ...string[]]),
   difficulty: z.enum(['easy', 'medium', 'hard']),
@@ -31,6 +139,8 @@ const itemSchema = z.object({
   expiresAt: z.string().date().optional(),
   source: z.enum(['human', 'ai_suggested']).default('human'),
 });
+
+const itemSchema = z.discriminatedUnion('gameId', [quizItemSchema, spyItemSchema, liarItemSchema, whoItemSchema, emojiItemSchema, stopItemSchema, drawItemSchema, footballItemSchema, actingItemSchema]);
 
 /** CSV columns for quiz imports (UTF-8, header row required). */
 export const QUIZ_CSV_COLUMNS = [
@@ -43,8 +153,9 @@ export function adminRouter() {
   /* ---------------- content ---------------- */
   r.get('/content', requireAdmin('content_editor'), wrap(async (req, res) => {
     const status = z.enum(['draft', 'in_review', 'approved', 'rejected', 'retired']).optional().parse(req.query.status);
+    const gameId = z.enum(['quiz', 'spy', 'liar', 'who', 'emoji', 'stop', 'memory', 'draw', 'football', 'acting']).default('quiz').parse(req.query.gameId);
     const items = await prisma.contentItem.findMany({
-      where: { gameId: 'quiz', ...(status ? { status } : {}) },
+      where: { gameId, ...(status ? { status } : {}) },
       orderBy: { createdAt: 'desc' },
       take: 200,
     });
@@ -53,6 +164,9 @@ export function adminRouter() {
 
   r.post('/content', requireAdmin('content_editor'), wrap(async (req, res) => {
     const body = itemSchema.parse(req.body);
+    if (body.gameId === 'football' && body.payload.mode !== body.category) throw new HttpError(400, 'category_must_match_mode');
+    const factAsOf = body.gameId === 'quiz' ? body.factAsOf : body.gameId === 'football' ? body.payload.asOf : undefined;
+    const expiresAt = body.gameId === 'quiz' || body.gameId === 'football' ? body.expiresAt : undefined;
     const item = await prisma.$transaction(async (tx) => {
       const created = await tx.contentItem.create({
         data: {
@@ -64,8 +178,8 @@ export function adminRouter() {
           payload: body.payload,
           source: body.source,
           status: 'in_review',
-          factAsOf: body.factAsOf ? new Date(body.factAsOf) : null,
-          expiresAt: body.expiresAt ? new Date(body.expiresAt) : null,
+          factAsOf: factAsOf ? new Date(factAsOf) : null,
+          expiresAt: expiresAt ? new Date(expiresAt) : null,
         },
       });
       await audit(tx, req.userId!, 'content_create', 'content', created.id);
@@ -84,10 +198,10 @@ export function adminRouter() {
       throw new HttpError(400, 'csv_unreadable');
     }
     const errors: { row: number; error: string }[] = [];
-    const valid: z.infer<typeof itemSchema>[] = [];
+    const valid: z.infer<typeof quizItemSchema>[] = [];
     rows.forEach((row, i) => {
       const choices = [row.choice1, row.choice2, row.choice3, row.choice4].filter((c): c is string => !!c);
-      const parsed = itemSchema.safeParse({
+      const parsed = quizItemSchema.safeParse({
         gameId: 'quiz',
         category: row.category,
         difficulty: row.difficulty,

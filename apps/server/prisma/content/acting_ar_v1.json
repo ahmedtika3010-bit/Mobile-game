@@ -1,0 +1,2364 @@
+[
+ {
+  "category": "jobs",
+  "difficulty": "easy",
+  "word": "طبيب",
+  "accepted": [
+   "دكتور"
+  ],
+  "moves": [
+   "inject",
+   "sick",
+   "listen"
+  ],
+  "cards": [
+   "بيشتغل في مستشفى",
+   "بيلبس بالطو أبيض",
+   "بيكتب روشتة"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "easy",
+  "word": "مدرس",
+  "accepted": [
+   "معلم",
+   "أستاذ",
+   "مدرّس"
+  ],
+  "moves": [
+   "teach",
+   "write",
+   "read"
+  ],
+  "cards": [
+   "شغله في الفصل مع التلاميذ",
+   "بيصحح الامتحانات"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "easy",
+  "word": "طباخ",
+  "accepted": [
+   "شيف",
+   "طبّاخ"
+  ],
+  "moves": [
+   "cook",
+   "eat",
+   "hot"
+  ],
+  "cards": [
+   "بيحضّر الأكل في المطاعم",
+   "بيلبس طاقية بيضا طويلة"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "easy",
+  "word": "سواق",
+  "accepted": [
+   "سائق",
+   "سوّاق"
+  ],
+  "moves": [
+   "drive",
+   "fast",
+   "money"
+  ],
+  "cards": [
+   "بيوصّل الناس",
+   "شغله طول اليوم ورا الدركسيون"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "easy",
+  "word": "مصور",
+  "accepted": [
+   "مصوّر",
+   "فوتوغرافر"
+  ],
+  "moves": [
+   "photo",
+   "look",
+   "one"
+  ],
+  "cards": [
+   "معاه كاميرا",
+   "بيحضر الأفراح والحفلات"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "easy",
+  "word": "حلاق",
+  "accepted": [
+   "حلّاق",
+   "كوافير"
+  ],
+  "moves": [
+   "cut",
+   "wash",
+   "happy"
+  ],
+  "cards": [
+   "بيقص الشعر",
+   "عنده كرسي ومراية"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "easy",
+  "word": "نجار",
+  "accepted": [
+   "نجّار"
+  ],
+  "moves": [
+   "hammer",
+   "cut",
+   "heavy"
+  ],
+  "cards": [
+   "بيشتغل في الخشب",
+   "بيعمل دواليب وترابيزات"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "easy",
+  "word": "مطرب",
+  "accepted": [
+   "مغني",
+   "مغنية",
+   "مطربة"
+  ],
+  "moves": [
+   "sing",
+   "happy",
+   "many"
+  ],
+  "cards": [
+   "بيقف على مسرح",
+   "الناس بتسمع أغانيه"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "easy",
+  "word": "رسام",
+  "accepted": [
+   "رسّام",
+   "فنان"
+  ],
+  "moves": [
+   "paint",
+   "thinking",
+   "look"
+  ],
+  "cards": [
+   "معاه فرشة وألوان",
+   "بيعمل لوحات"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "medium",
+  "word": "ميكانيكي",
+  "accepted": [
+   "ميكانيكى"
+  ],
+  "moves": [
+   "fix",
+   "drive",
+   "push"
+  ],
+  "cards": [
+   "بيصلّح العربيات",
+   "إيده دايماً فيها شحم"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "medium",
+  "word": "رائد فضاء",
+  "accepted": [
+   "رائد الفضاء",
+   "رواد فضاء"
+  ],
+  "moves": [
+   "fly",
+   "up",
+   "light"
+  ],
+  "cards": [
+   "بيلبس بدلة وخوذة",
+   "بيسافر بعيد عن الأرض"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "medium",
+  "word": "طيار",
+  "accepted": [
+   "طيّار",
+   "كابتن طيار"
+  ],
+  "moves": [
+   "fly",
+   "up",
+   "fast"
+  ],
+  "cards": [
+   "شغله في السما",
+   "بيلبس كاب وبدلة وبيكلم البرج"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "medium",
+  "word": "بياع",
+  "accepted": [
+   "بائع",
+   "تاجر",
+   "بيّاع"
+  ],
+  "moves": [
+   "sell",
+   "money",
+   "count"
+  ],
+  "cards": [
+   "عنده محل",
+   "بينادي على بضاعته"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "medium",
+  "word": "صياد",
+  "accepted": [
+   "صيّاد"
+  ],
+  "moves": [
+   "fish",
+   "water",
+   "quiet"
+  ],
+  "cards": [
+   "بيقعد على الشط بالساعات",
+   "بيرجع بالسمك"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "medium",
+  "word": "خياط",
+  "accepted": [
+   "ترزي",
+   "خيّاط"
+  ],
+  "moves": [
+   "sew",
+   "cut",
+   "count"
+  ],
+  "cards": [
+   "بيفصّل الهدوم",
+   "بياخد المقاسات بشريط"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "medium",
+  "word": "مزارع",
+  "accepted": [
+   "فلاح",
+   "فلّاح"
+  ],
+  "moves": [
+   "dig",
+   "water",
+   "day"
+  ],
+  "cards": [
+   "شغله في الأرض",
+   "بيزرع القمح والخضار"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "medium",
+  "word": "رجل إطفاء",
+  "accepted": [
+   "إطفائي",
+   "عسكري مطافي"
+  ],
+  "moves": [
+   "fire",
+   "water",
+   "run"
+  ],
+  "cards": [
+   "بيطفي الحرايق",
+   "بيركب عربية حمرا كبيرة"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "medium",
+  "word": "ممرضة",
+  "accepted": [
+   "ممرض",
+   "ممرّضة"
+  ],
+  "moves": [
+   "inject",
+   "sick",
+   "walk"
+  ],
+  "cards": [
+   "بتساعد الدكتور",
+   "بتشتغل في المستشفى بالليل والنهار"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "medium",
+  "word": "حكم",
+  "accepted": [
+   "حكم الماتش"
+  ],
+  "moves": [
+   "whistle",
+   "run",
+   "point"
+  ],
+  "cards": [
+   "معاه صفارة وكروت",
+   "بيدير الماتش"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "hard",
+  "word": "مذيع",
+  "accepted": [
+   "مذيعة",
+   "مقدم برامج"
+  ],
+  "moves": [
+   "read",
+   "listen",
+   "loud"
+  ],
+  "cards": [
+   "بيظهر على التلفزيون",
+   "بيقرا الأخبار"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "hard",
+  "word": "مهندس",
+  "accepted": [
+   "مهندسة"
+  ],
+  "moves": [
+   "write",
+   "thinking",
+   "big"
+  ],
+  "cards": [
+   "بيعمل رسومات للعماير",
+   "بيلبس خوذة صفرا في الموقع"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "hard",
+  "word": "محامي",
+  "accepted": [
+   "محامى",
+   "محامية"
+  ],
+  "moves": [
+   "point",
+   "loud",
+   "thinking"
+  ],
+  "cards": [
+   "بيدافع عن الناس",
+   "شغله في المحكمة"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "hard",
+  "word": "مرشد سياحي",
+  "accepted": [
+   "مرشد",
+   "مرشدة سياحية"
+  ],
+  "moves": [
+   "walk",
+   "point",
+   "teach"
+  ],
+  "cards": [
+   "بيلف مع السياح",
+   "بيشرح تاريخ الأماكن"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "hard",
+  "word": "ساعي البريد",
+  "accepted": [
+   "بوسطجي",
+   "ساعي بريد"
+  ],
+  "moves": [
+   "walk",
+   "point",
+   "many"
+  ],
+  "cards": [
+   "بيوصّل الجوابات",
+   "بيلف على البيوت كل يوم"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "hard",
+  "word": "غواص",
+  "accepted": [
+   "غوّاص"
+  ],
+  "moves": [
+   "swim",
+   "down",
+   "water"
+  ],
+  "cards": [
+   "بينزل تحت البحر",
+   "بيلبس نضارة وأنبوبة هوا"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "hard",
+  "word": "جراح",
+  "accepted": [
+   "جرّاح",
+   "دكتور جراحة"
+  ],
+  "moves": [
+   "cut",
+   "quiet",
+   "thinking"
+  ],
+  "cards": [
+   "بيعمل عمليات",
+   "بيلبس ماسك وجوانتي"
+  ]
+ },
+ {
+  "category": "jobs",
+  "difficulty": "hard",
+  "word": "مدرب",
+  "accepted": [
+   "مدرّب",
+   "كوتش"
+  ],
+  "moves": [
+   "whistle",
+   "run",
+   "point"
+  ],
+  "cards": [
+   "بيجهز الفريق قبل الماتش",
+   "بيقف جنب الملعب ويزعق"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "easy",
+  "word": "قطة",
+  "accepted": [
+   "قط",
+   "بسة",
+   "قطّة"
+  ],
+  "moves": [
+   "scratch",
+   "quiet",
+   "sleep"
+  ],
+  "cards": [
+   "بتقول مياو",
+   "بتحب السمك"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "easy",
+  "word": "كلب",
+  "accepted": [
+   "كلبة"
+  ],
+  "moves": [
+   "loud",
+   "run",
+   "scratch"
+  ],
+  "cards": [
+   "بيهوهو",
+   "بيحرس البيت"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "easy",
+  "word": "أسد",
+  "accepted": [
+   "اسد"
+  ],
+  "moves": [
+   "loud",
+   "big",
+   "proud"
+  ],
+  "cards": [
+   "ملك الغابة",
+   "عنده شعر كتير حوالين راسه"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "easy",
+  "word": "فيل",
+  "accepted": [
+   "فيلة"
+  ],
+  "moves": [
+   "big",
+   "heavy",
+   "water"
+  ],
+  "cards": [
+   "عنده خرطوم طويل",
+   "ودانه كبيرة أوي"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "easy",
+  "word": "عصفورة",
+  "accepted": [
+   "عصفور"
+  ],
+  "moves": [
+   "fly",
+   "flap",
+   "small"
+  ],
+  "cards": [
+   "بتزقزق",
+   "بتعمل عش فوق الشجرة"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "easy",
+  "word": "سمكة",
+  "accepted": [
+   "سمك"
+  ],
+  "moves": [
+   "swim",
+   "water",
+   "quiet"
+  ],
+  "cards": [
+   "عايشة في البحر",
+   "ليها زعانف وديل"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "easy",
+  "word": "قرد",
+  "accepted": [
+   "قردة",
+   "سعدان"
+  ],
+  "moves": [
+   "climb",
+   "jump",
+   "eat"
+  ],
+  "cards": [
+   "بيحب الموز",
+   "بيتنطط بين الشجر"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "easy",
+  "word": "بقرة",
+  "accepted": [
+   "بقره"
+  ],
+  "moves": [
+   "eat",
+   "big",
+   "slow"
+  ],
+  "cards": [
+   "بتدينا لبن",
+   "بتقول مووو"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "medium",
+  "word": "زرافة",
+  "accepted": [
+   "زرافه"
+  ],
+  "moves": [
+   "tall",
+   "eat",
+   "walk"
+  ],
+  "cards": [
+   "رقبتها طويلة أوي",
+   "جسمها فيه بقع بني"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "medium",
+  "word": "حصان",
+  "accepted": [
+   "حصانة",
+   "خيل"
+  ],
+  "moves": [
+   "ride",
+   "run",
+   "fast"
+  ],
+  "cards": [
+   "بنركبه في السباقات",
+   "بياكل برسيم وشعير"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "medium",
+  "word": "جمل",
+  "accepted": [
+   "ناقة"
+  ],
+  "moves": [
+   "walk",
+   "hot",
+   "slow"
+  ],
+  "cards": [
+   "سفينة الصحرا",
+   "له سنام على ضهره"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "medium",
+  "word": "أرنب",
+  "accepted": [
+   "ارنب",
+   "أرانب"
+  ],
+  "moves": [
+   "jump",
+   "eat",
+   "fast"
+  ],
+  "cards": [
+   "بيحب الجزر",
+   "ودانه طويلة"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "medium",
+  "word": "بطريق",
+  "accepted": [
+   "بطاريق",
+   "بطريء"
+  ],
+  "moves": [
+   "walk",
+   "cold",
+   "swim"
+  ],
+  "cards": [
+   "عايش في التلج",
+   "لونه أسود وأبيض ومش بيطير"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "medium",
+  "word": "تمساح",
+  "accepted": [
+   "تماسيح"
+  ],
+  "moves": [
+   "swim",
+   "big",
+   "scared"
+  ],
+  "cards": [
+   "عايش في النيل والمستنقعات",
+   "سنانه كتير وحادة"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "medium",
+  "word": "ثعبان",
+  "accepted": [
+   "تعبان",
+   "حية"
+  ],
+  "moves": [
+   "crawl",
+   "quiet",
+   "scared"
+  ],
+  "cards": [
+   "مالوش رجلين",
+   "بيعمل صوت ششش"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "medium",
+  "word": "خروف",
+  "accepted": [
+   "خروفة",
+   "نعجة"
+  ],
+  "moves": [
+   "eat",
+   "walk",
+   "many"
+  ],
+  "cards": [
+   "صوفه بيتعمل منه هدوم",
+   "بنشوفه كتير في العيد الكبير"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "hard",
+  "word": "خفاش",
+  "accepted": [
+   "وطواط"
+  ],
+  "moves": [
+   "fly",
+   "night",
+   "flap"
+  ],
+  "cards": [
+   "بينام وهو متشعلق مقلوب",
+   "بيطلع بالليل"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "hard",
+  "word": "أخطبوط",
+  "accepted": [
+   "اخطبوط"
+  ],
+  "moves": [
+   "swim",
+   "many",
+   "water"
+  ],
+  "cards": [
+   "له 8 رجلين",
+   "بيطلع حبر أسود"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "hard",
+  "word": "كنغر",
+  "accepted": [
+   "كانجارو",
+   "كنجارو"
+  ],
+  "moves": [
+   "jump",
+   "fast",
+   "big"
+  ],
+  "cards": [
+   "عايش في أستراليا",
+   "شايل ابنه في جيب قدامه"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "hard",
+  "word": "طاووس",
+  "accepted": [
+   "طاوس"
+  ],
+  "moves": [
+   "proud",
+   "round",
+   "walk"
+  ],
+  "cards": [
+   "ريشه ملون وبيفرده",
+   "بيتمختر في الجنينة"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "hard",
+  "word": "نحلة",
+  "accepted": [
+   "نحل"
+  ],
+  "moves": [
+   "fly",
+   "small",
+   "many"
+  ],
+  "cards": [
+   "بتعمل عسل",
+   "بتلسع لو خفت منها"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "hard",
+  "word": "سلحفاة",
+  "accepted": [
+   "سلحفة",
+   "زلحفة"
+  ],
+  "moves": [
+   "slow",
+   "crawl",
+   "heavy"
+  ],
+  "cards": [
+   "بيتها على ضهرها",
+   "بتعيش سنين طويلة"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "hard",
+  "word": "بومة",
+  "accepted": [
+   "بومه"
+  ],
+  "moves": [
+   "night",
+   "look",
+   "thinking"
+  ],
+  "cards": [
+   "عينيها كبيرة وبتلف راسها",
+   "بتسهر بالليل"
+  ]
+ },
+ {
+  "category": "animals",
+  "difficulty": "hard",
+  "word": "دولفين",
+  "accepted": [
+   "دلفين",
+   "دولفن"
+  ],
+  "moves": [
+   "swim",
+   "jump",
+   "happy"
+  ],
+  "cards": [
+   "ذكي جداً وعايش في البحر",
+   "بيعمل عروض في الأكواريوم"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "easy",
+  "word": "كرة القدم",
+  "accepted": [
+   "كورة",
+   "كورة قدم",
+   "كرة قدم",
+   "فوتبول"
+  ],
+  "moves": [
+   "kick",
+   "run",
+   "many"
+  ],
+  "cards": [
+   "11 لاعب في كل فريق",
+   "فيها جون وحارس مرمى"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "easy",
+  "word": "سباحة",
+  "accepted": [
+   "عوم",
+   "العوم"
+  ],
+  "moves": [
+   "swim",
+   "water",
+   "fast"
+  ],
+  "cards": [
+   "بتتلعب في البيسين",
+   "بنلبس نضارة ومايوه"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "easy",
+  "word": "جري",
+  "accepted": [
+   "العدو",
+   "الجري"
+  ],
+  "moves": [
+   "run",
+   "fast",
+   "tired"
+  ],
+  "cards": [
+   "سباق على تراك",
+   "بتحتاج نفَس طويل"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "easy",
+  "word": "كرة السلة",
+  "accepted": [
+   "باسكت",
+   "باسكت بول",
+   "سلة"
+  ],
+  "moves": [
+   "jump",
+   "throw",
+   "tall"
+  ],
+  "cards": [
+   "بنرمي الكورة في شبكة عالية",
+   "اللعيبة طوال أوي"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "easy",
+  "word": "تنس",
+  "accepted": [
+   "تنس أرضي"
+  ],
+  "moves": [
+   "throw",
+   "run",
+   "catch"
+  ],
+  "cards": [
+   "مضرب وكورة صغيرة صفرا",
+   "شبكة في نص الملعب"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "easy",
+  "word": "كاراتيه",
+  "accepted": [
+   "كاراتية"
+  ],
+  "moves": [
+   "kick",
+   "push",
+   "proud"
+  ],
+  "cards": [
+   "حزام أسود",
+   "رياضة يابانية بالإيد والرجل"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "medium",
+  "word": "رفع أثقال",
+  "accepted": [
+   "رفع الأثقال",
+   "حديد"
+  ],
+  "moves": [
+   "lift",
+   "heavy",
+   "proud"
+  ],
+  "cards": [
+   "بنشيل بار تقيل",
+   "بتحتاج عضلات قوية"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "medium",
+  "word": "ملاكمة",
+  "accepted": [
+   "بوكس",
+   "ملاكمه"
+  ],
+  "moves": [
+   "push",
+   "jump",
+   "angry"
+  ],
+  "cards": [
+   "بنلبس جوانتي كبير",
+   "حلبة بحبال"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "medium",
+  "word": "كرة طائرة",
+  "accepted": [
+   "الكرة الطائرة",
+   "فولي",
+   "فولي بول",
+   "كرة طايرة"
+  ],
+  "moves": [
+   "jump",
+   "catch",
+   "up"
+  ],
+  "cards": [
+   "شبكة عالية في النص",
+   "6 لاعيبة في كل ناحية"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "medium",
+  "word": "تجديف",
+  "accepted": [
+   "التجديف"
+  ],
+  "moves": [
+   "row",
+   "water",
+   "many"
+  ],
+  "cards": [
+   "قارب ومجاديف",
+   "بيتلعب في النهر"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "medium",
+  "word": "جمباز",
+  "accepted": [
+   "جمباظ"
+  ],
+  "moves": [
+   "jump",
+   "round",
+   "light"
+  ],
+  "cards": [
+   "شقلبة وتوازن",
+   "بيتلعب على بساط وعارضة"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "medium",
+  "word": "رمي الرمح",
+  "accepted": [
+   "الرمح"
+  ],
+  "moves": [
+   "throw",
+   "run",
+   "aim"
+  ],
+  "cards": [
+   "حاجة طويلة بنرميها لأبعد مسافة",
+   "من ألعاب القوى"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "medium",
+  "word": "بولينج",
+  "accepted": [
+   "بولنج"
+  ],
+  "moves": [
+   "throw",
+   "round",
+   "many"
+  ],
+  "cards": [
+   "بنوقع عشر قطع",
+   "كورة تقيلة بخروم"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "hard",
+  "word": "شطرنج",
+  "accepted": [
+   "الشطرنج"
+  ],
+  "moves": [
+   "thinking",
+   "quiet",
+   "one"
+  ],
+  "cards": [
+   "ملك ووزير وعساكر",
+   "لوحة مربعات أبيض وأسود"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "hard",
+  "word": "تسلق الجبال",
+  "accepted": [
+   "تسلق"
+  ],
+  "moves": [
+   "climb",
+   "up",
+   "cold"
+  ],
+  "cards": [
+   "حبال وخطاطيف",
+   "بنطلع لقمة عالية"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "hard",
+  "word": "غطس",
+  "accepted": [
+   "الغطس"
+  ],
+  "moves": [
+   "swim",
+   "down",
+   "jump"
+  ],
+  "cards": [
+   "بنقفز من منصة عالية في المية",
+   "الحكام بيدوا درجات"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "hard",
+  "word": "مبارزة",
+  "accepted": [
+   "سلاح",
+   "المبارزة"
+  ],
+  "moves": [
+   "push",
+   "jump",
+   "proud"
+  ],
+  "cards": [
+   "سيف رفيع وقناع",
+   "لعبة الفرسان"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "hard",
+  "word": "رماية",
+  "accepted": [
+   "الرماية"
+  ],
+  "moves": [
+   "aim",
+   "one",
+   "quiet"
+  ],
+  "cards": [
+   "هدف بدواير",
+   "بنستخدم قوس وسهم"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "hard",
+  "word": "تزلج",
+  "accepted": [
+   "تزحلق",
+   "التزلج"
+  ],
+  "moves": [
+   "cold",
+   "fast",
+   "down"
+  ],
+  "cards": [
+   "على التلج",
+   "لوح أو زحافات في الرجلين"
+  ]
+ },
+ {
+  "category": "sports",
+  "difficulty": "hard",
+  "word": "جولف",
+  "accepted": [
+   "جولف",
+   "الجولف"
+  ],
+  "moves": [
+   "aim",
+   "walk",
+   "quiet"
+  ],
+  "cards": [
+   "حفرة صغيرة وعشب أخضر",
+   "مضرب طويل وكورة بيضا صغيرة"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "easy",
+  "word": "نوم",
+  "accepted": [
+   "ينام",
+   "النوم"
+  ],
+  "moves": [
+   "sleep",
+   "night",
+   "tired"
+  ],
+  "cards": [
+   "بنعمله على السرير",
+   "بنقفل عينينا"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "easy",
+  "word": "أكل",
+  "accepted": [
+   "ياكل",
+   "الأكل",
+   "اكل"
+  ],
+  "moves": [
+   "eat",
+   "hungry",
+   "happy"
+  ],
+  "cards": [
+   "بنعمله 3 مرات في اليوم",
+   "فطار وغدا وعشا"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "easy",
+  "word": "غسيل السنان",
+  "accepted": [
+   "تفريش السنان",
+   "يغسل سنانه",
+   "غسيل الأسنان"
+  ],
+  "moves": [
+   "wash",
+   "night",
+   "happy"
+  ],
+  "cards": [
+   "فرشة ومعجون",
+   "قبل النوم وبعد الصحيان"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "easy",
+  "word": "طبخ",
+  "accepted": [
+   "يطبخ",
+   "الطبخ"
+  ],
+  "moves": [
+   "cook",
+   "hot",
+   "smell"
+  ],
+  "cards": [
+   "حلة على البوتاجاز",
+   "بنحضّر الغدا"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "easy",
+  "word": "قراءة",
+  "accepted": [
+   "يقرا",
+   "القراية",
+   "قراية"
+  ],
+  "moves": [
+   "read",
+   "quiet",
+   "thinking"
+  ],
+  "cards": [
+   "كتاب أو جرنال",
+   "بنعملها في المكتبة"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "easy",
+  "word": "مكالمة",
+  "accepted": [
+   "تليفون",
+   "مكالمة تليفون"
+  ],
+  "moves": [
+   "phone",
+   "listen",
+   "happy"
+  ],
+  "cards": [
+   "بنقول ألو",
+   "بنكلم حد بعيد"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "easy",
+  "word": "رقص",
+  "accepted": [
+   "يرقص",
+   "الرقص"
+  ],
+  "moves": [
+   "dance",
+   "happy",
+   "many"
+  ],
+  "cards": [
+   "في الأفراح",
+   "على المزيكا"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "easy",
+  "word": "استحمام",
+  "accepted": [
+   "حمام",
+   "دش",
+   "يستحمى"
+  ],
+  "moves": [
+   "wash",
+   "water",
+   "cold"
+  ],
+  "cards": [
+   "مية وصابون",
+   "بندخل البانيو"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "medium",
+  "word": "تسوق",
+  "accepted": [
+   "شوبينج",
+   "مشتريات",
+   "التسوق"
+  ],
+  "moves": [
+   "walk",
+   "money",
+   "many"
+  ],
+  "cards": [
+   "بنروح المول",
+   "بنشتري حاجات"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "medium",
+  "word": "عيد ميلاد",
+  "accepted": [
+   "عيد الميلاد",
+   "بيرث داي"
+  ],
+  "moves": [
+   "happy",
+   "clap",
+   "round"
+  ],
+  "cards": [
+   "تورتة وشمع",
+   "بنغني هابي"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "medium",
+  "word": "مذاكرة",
+  "accepted": [
+   "يذاكر",
+   "المذاكرة"
+  ],
+  "moves": [
+   "read",
+   "write",
+   "tired"
+  ],
+  "cards": [
+   "قبل الامتحان",
+   "كتب وكشاكيل"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "medium",
+  "word": "كوي الهدوم",
+  "accepted": [
+   "كوي",
+   "مكواة",
+   "مكوى"
+  ],
+  "moves": [
+   "push",
+   "hot",
+   "wide"
+  ],
+  "cards": [
+   "بنفرد القميص على الترابيزة",
+   "بنشغل الفيشة ونستنى تسخن"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "medium",
+  "word": "سفر",
+  "accepted": [
+   "يسافر",
+   "السفر"
+  ],
+  "moves": [
+   "walk",
+   "fly",
+   "lift"
+  ],
+  "cards": [
+   "شنطة وتذكرة",
+   "مطار أو محطة"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "medium",
+  "word": "سيلفي",
+  "accepted": [
+   "صورة سيلفي"
+  ],
+  "moves": [
+   "photo",
+   "happy",
+   "one"
+  ],
+  "cards": [
+   "صورة لنفسك",
+   "بالموبايل وإيدك ممدودة"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "medium",
+  "word": "غسيل العربية",
+  "accepted": [
+   "غسيل عربية",
+   "يغسل العربية"
+  ],
+  "moves": [
+   "wash",
+   "water",
+   "drive"
+  ],
+  "cards": [
+   "خرطوم وصابون",
+   "بنلمّع الكاوتش والإزاز"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "medium",
+  "word": "زراعة",
+  "accepted": [
+   "يزرع",
+   "الزراعة"
+  ],
+  "moves": [
+   "dig",
+   "water",
+   "day"
+  ],
+  "cards": [
+   "بذور وتراب",
+   "الشجرة بتكبر"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "hard",
+  "word": "حفلة تخرج",
+  "accepted": [
+   "تخرج",
+   "حفلة التخرج"
+  ],
+  "moves": [
+   "clap",
+   "proud",
+   "happy"
+  ],
+  "cards": [
+   "روب وطاقية",
+   "بعد آخر سنة في الجامعة"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "hard",
+  "word": "خطوبة",
+  "accepted": [
+   "الخطوبة",
+   "شبكة"
+  ],
+  "moves": [
+   "love",
+   "happy",
+   "round"
+  ],
+  "cards": [
+   "دبلة",
+   "فستان وبدلة وتورتة"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "hard",
+  "word": "تخييم",
+  "accepted": [
+   "معسكر",
+   "كامب",
+   "التخييم"
+  ],
+  "moves": [
+   "night",
+   "fire",
+   "sleep"
+  ],
+  "cards": [
+   "خيمة في الصحرا",
+   "نار ونجوم"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "hard",
+  "word": "زحمة",
+  "accepted": [
+   "زحمة المرور",
+   "الزحمة"
+  ],
+  "moves": [
+   "many",
+   "slow",
+   "angry"
+  ],
+  "cards": [
+   "عربيات واقفة كتير",
+   "ساعة الذروة"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "hard",
+  "word": "عزومة",
+  "accepted": [
+   "العزومة"
+  ],
+  "moves": [
+   "eat",
+   "many",
+   "happy"
+  ],
+  "cards": [
+   "الأكل كتير والضيوف جايين",
+   "سفرة مليانة"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "hard",
+  "word": "مقابلة شغل",
+  "accepted": [
+   "انترفيو",
+   "مقابلة عمل"
+  ],
+  "moves": [
+   "thinking",
+   "scared",
+   "one"
+  ],
+  "cards": [
+   "بدلة وسيرة ذاتية",
+   "أسئلة عن خبرتك"
+  ]
+ },
+ {
+  "category": "daily",
+  "difficulty": "hard",
+  "word": "صيام",
+  "accepted": [
+   "الصيام",
+   "صوم"
+  ],
+  "moves": [
+   "hungry",
+   "day",
+   "time"
+  ],
+  "cards": [
+   "من الفجر للمغرب",
+   "بنفطر على تمر"
+  ]
+ },
+ {
+  "category": "transport",
+  "difficulty": "easy",
+  "word": "عربية",
+  "accepted": [
+   "سيارة",
+   "عربيه"
+  ],
+  "moves": [
+   "drive",
+   "fast",
+   "many"
+  ],
+  "cards": [
+   "4 عجل",
+   "بنركنها في الجراج"
+  ]
+ },
+ {
+  "category": "transport",
+  "difficulty": "easy",
+  "word": "قطر",
+  "accepted": [
+   "قطار"
+  ],
+  "moves": [
+   "ride",
+   "fast",
+   "many"
+  ],
+  "cards": [
+   "ماشي على قضبان",
+   "له محطات كتير"
+  ]
+ },
+ {
+  "category": "transport",
+  "difficulty": "easy",
+  "word": "طيارة",
+  "accepted": [
+   "طائرة",
+   "طياره"
+  ],
+  "moves": [
+   "fly",
+   "up",
+   "fast"
+  ],
+  "cards": [
+   "بنركبها في المطار",
+   "ليها جناحين"
+  ]
+ },
+ {
+  "category": "transport",
+  "difficulty": "easy",
+  "word": "مركب",
+  "accepted": [
+   "سفينة",
+   "قارب"
+  ],
+  "moves": [
+   "row",
+   "water",
+   "fast"
+  ],
+  "cards": [
+   "في البحر أو النيل",
+   "ليها شراع"
+  ]
+ },
+ {
+  "category": "transport",
+  "difficulty": "easy",
+  "word": "عجلة",
+  "accepted": [
+   "دراجة",
+   "بسكلتة",
+   "عجله"
+  ],
+  "moves": [
+   "ride",
+   "fast",
+   "round"
+  ],
+  "cards": [
+   "بندوس على البدال",
+   "بنحافظ على توازننا وهي ماشية"
+  ]
+ },
+ {
+  "category": "transport",
+  "difficulty": "easy",
+  "word": "أتوبيس",
+  "accepted": [
+   "باص",
+   "اتوبيس"
+  ],
+  "moves": [
+   "drive",
+   "many",
+   "big"
+  ],
+  "cards": [
+   "ليه محطات وناس كتير",
+   "مواصلات عامة"
+  ]
+ },
+ {
+  "category": "transport",
+  "difficulty": "medium",
+  "word": "مترو",
+  "accepted": [
+   "مترو الأنفاق"
+  ],
+  "moves": [
+   "ride",
+   "down",
+   "many"
+  ],
+  "cards": [
+   "تحت الأرض",
+   "بنشتري تذكرة ونعدي البوابة"
+  ]
+ },
+ {
+  "category": "transport",
+  "difficulty": "medium",
+  "word": "تاكسي",
+  "accepted": [
+   "تكسي"
+  ],
+  "moves": [
+   "drive",
+   "money",
+   "wave"
+  ],
+  "cards": [
+   "لونه أبيض وأسود أو أصفر",
+   "بنشاور له في الشارع"
+  ]
+ },
+ {
+  "category": "transport",
+  "difficulty": "medium",
+  "word": "موتوسيكل",
+  "accepted": [
+   "موتسيكل",
+   "دراجة نارية",
+   "موتوسيكلات"
+  ],
+  "moves": [
+   "ride",
+   "fast",
+   "loud"
+  ],
+  "cards": [
+   "ليه عجلتين وموتور",
+   "بنلبس خوذة"
+  ]
+ },
+ {
+  "category": "transport",
+  "difficulty": "medium",
+  "word": "إسعاف",
+  "accepted": [
+   "عربية إسعاف",
+   "اسعاف"
+  ],
+  "moves": [
+   "drive",
+   "sick",
+   "loud"
+  ],
+  "cards": [
+   "صوت سارينة",
+   "بتنقل العيانين للمستشفى"
+  ]
+ },
+ {
+  "category": "transport",
+  "difficulty": "medium",
+  "word": "توكتوك",
+  "accepted": [
+   "توك توك",
+   "تكتك"
+  ],
+  "moves": [
+   "drive",
+   "small",
+   "loud"
+  ],
+  "cards": [
+   "3 عجل",
+   "منتشر في الحواري"
+  ]
+ },
+ {
+  "category": "transport",
+  "difficulty": "medium",
+  "word": "هليكوبتر",
+  "accepted": [
+   "هيليكوبتر",
+   "طيارة هليكوبتر"
+  ],
+  "moves": [
+   "fly",
+   "round",
+   "up"
+  ],
+  "cards": [
+   "مروحة كبيرة فوقها",
+   "بتنزل على سطح مبنى"
+  ]
+ },
+ {
+  "category": "transport",
+  "difficulty": "medium",
+  "word": "غواصة",
+  "accepted": [
+   "غواصه"
+  ],
+  "moves": [
+   "swim",
+   "down",
+   "quiet"
+  ],
+  "cards": [
+   "بتمشي تحت المية",
+   "ليها منظار"
+  ]
+ },
+ {
+  "category": "transport",
+  "difficulty": "hard",
+  "word": "صاروخ",
+  "accepted": [
+   "صواريخ"
+  ],
+  "moves": [
+   "up",
+   "fast",
+   "fire"
+  ],
+  "cards": [
+   "بيطلع للفضا",
+   "عد تنازلي 3 2 1"
+  ]
+ },
+ {
+  "category": "transport",
+  "difficulty": "hard",
+  "word": "منطاد",
+  "accepted": [
+   "بالون طاير"
+  ],
+  "moves": [
+   "fly",
+   "light",
+   "up"
+  ],
+  "cards": [
+   "بالونة كبيرة فيها سلة",
+   "بيطير بالهوا السخن"
+  ]
+ },
+ {
+  "category": "transport",
+  "difficulty": "hard",
+  "word": "حنطور",
+  "accepted": [
+   "عربية حنطور"
+  ],
+  "moves": [
+   "ride",
+   "slow",
+   "walk"
+  ],
+  "cards": [
+   "حصان بيشدها",
+   "منتشرة في الأقصر وعلى الكورنيش"
+  ]
+ },
+ {
+  "category": "transport",
+  "difficulty": "hard",
+  "word": "تلفريك",
+  "accepted": [
+   "تليفريك"
+  ],
+  "moves": [
+   "up",
+   "fly",
+   "look"
+  ],
+  "cards": [
+   "عربية صغيرة متعلقة في سلك",
+   "بتطلع على الجبل"
+  ]
+ },
+ {
+  "category": "transport",
+  "difficulty": "hard",
+  "word": "يخت",
+  "accepted": [
+   "اليخت"
+  ],
+  "moves": [
+   "water",
+   "money",
+   "happy"
+  ],
+  "cards": [
+   "مركب فخمة للأغنيا",
+   "فيه حفلات في البحر"
+  ]
+ },
+ {
+  "category": "transport",
+  "difficulty": "hard",
+  "word": "سكوتر",
+  "accepted": [
+   "اسكوتر"
+  ],
+  "moves": [
+   "ride",
+   "push",
+   "fast"
+  ],
+  "cards": [
+   "رجل واحدة بتزق",
+   "له مقود وعجلتين صغيرين"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "easy",
+  "word": "مدرسة",
+  "accepted": [
+   "المدرسة",
+   "مدرسه"
+  ],
+  "moves": [
+   "teach",
+   "read",
+   "many"
+  ],
+  "cards": [
+   "فصول وتلاميذ",
+   "جرس الفسحة"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "easy",
+  "word": "مستشفى",
+  "accepted": [
+   "المستشفى",
+   "مستشفي"
+  ],
+  "moves": [
+   "sick",
+   "inject",
+   "walk"
+  ],
+  "cards": [
+   "دكاترة وممرضات",
+   "أوضة عمليات"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "easy",
+  "word": "بحر",
+  "accepted": [
+   "البحر",
+   "شط"
+  ],
+  "moves": [
+   "swim",
+   "water",
+   "hot"
+  ],
+  "cards": [
+   "موج ورملة",
+   "بنروحه في الصيف"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "easy",
+  "word": "مطعم",
+  "accepted": [
+   "المطعم"
+  ],
+  "moves": [
+   "eat",
+   "sell",
+   "money"
+  ],
+  "cards": [
+   "منيو وجرسون",
+   "بنطلب أكل ونحاسب"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "easy",
+  "word": "جنينة",
+  "accepted": [
+   "حديقة",
+   "جنينه"
+  ],
+  "moves": [
+   "walk",
+   "smell",
+   "day"
+  ],
+  "cards": [
+   "ورد وشجر",
+   "بنتفسح فيها"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "easy",
+  "word": "سوق",
+  "accepted": [
+   "السوق"
+  ],
+  "moves": [
+   "sell",
+   "money",
+   "many"
+  ],
+  "cards": [
+   "بياعين كتير",
+   "خضار وفاكهة"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "medium",
+  "word": "مطار",
+  "accepted": [
+   "المطار"
+  ],
+  "moves": [
+   "fly",
+   "walk",
+   "lift"
+  ],
+  "cards": [
+   "طيارات وشنط",
+   "جوازات وبوابات"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "medium",
+  "word": "سينما",
+  "accepted": [
+   "السينما"
+  ],
+  "moves": [
+   "look",
+   "quiet",
+   "night"
+  ],
+  "cards": [
+   "شاشة كبيرة وفشار",
+   "بنقطع تذكرة للفيلم"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "medium",
+  "word": "ملعب",
+  "accepted": [
+   "استاد",
+   "استاد كورة"
+  ],
+  "moves": [
+   "kick",
+   "run",
+   "loud"
+  ],
+  "cards": [
+   "جمهور ومدرجات",
+   "عشب أخضر وجوانين"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "medium",
+  "word": "مكتبة",
+  "accepted": [
+   "المكتبة",
+   "مكتبه"
+  ],
+  "moves": [
+   "read",
+   "quiet",
+   "many"
+  ],
+  "cards": [
+   "كتب كتير على الرفوف",
+   "ممنوع الدوشة"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "medium",
+  "word": "صحراء",
+  "accepted": [
+   "صحرا",
+   "الصحراء"
+  ],
+  "moves": [
+   "hot",
+   "walk",
+   "slow"
+  ],
+  "cards": [
+   "رملة كتير وجمال",
+   "مفيش مية خالص"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "medium",
+  "word": "جبل",
+  "accepted": [
+   "الجبل",
+   "جبال"
+  ],
+  "moves": [
+   "climb",
+   "up",
+   "cold"
+  ],
+  "cards": [
+   "عالي أوي وفيه صخور",
+   "بنطلع على قمته"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "medium",
+  "word": "الهرم",
+  "accepted": [
+   "الأهرامات",
+   "أهرامات",
+   "هرم"
+  ],
+  "moves": [
+   "big",
+   "tall",
+   "hot"
+  ],
+  "cards": [
+   "في الجيزة",
+   "بناه المصريين القدماء"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "hard",
+  "word": "متحف",
+  "accepted": [
+   "المتحف"
+  ],
+  "moves": [
+   "look",
+   "quiet",
+   "time"
+  ],
+  "cards": [
+   "آثار وتماثيل",
+   "ممنوع نلمس الحاجات"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "hard",
+  "word": "سيرك",
+  "accepted": [
+   "السيرك"
+  ],
+  "moves": [
+   "jump",
+   "happy",
+   "many"
+  ],
+  "cards": [
+   "مهرج وأكروبات",
+   "خيمة كبيرة وألعاب"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "hard",
+  "word": "جزيرة",
+  "accepted": [
+   "جزيره"
+  ],
+  "moves": [
+   "swim",
+   "water",
+   "one"
+  ],
+  "cards": [
+   "أرض والمية حواليها من كل ناحية",
+   "بنروحها بالمركب"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "hard",
+  "word": "بنك",
+  "accepted": [
+   "البنك"
+  ],
+  "moves": [
+   "money",
+   "count",
+   "quiet"
+  ],
+  "cards": [
+   "خزنة وفلوس",
+   "بنسحب ونحوّل"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "hard",
+  "word": "فندق",
+  "accepted": [
+   "الفندق",
+   "أوتيل"
+  ],
+  "moves": [
+   "sleep",
+   "money",
+   "lift"
+  ],
+  "cards": [
+   "أوض ومفاتيح",
+   "ريسبشن وحجز"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "hard",
+  "word": "كوبري",
+  "accepted": [
+   "جسر",
+   "الكوبري"
+  ],
+  "moves": [
+   "walk",
+   "up",
+   "water"
+  ],
+  "cards": [
+   "بيعدي فوق النيل",
+   "العربيات بتعدي عليه"
+  ]
+ },
+ {
+  "category": "places",
+  "difficulty": "hard",
+  "word": "بنزينة",
+  "accepted": [
+   "محطة بنزين"
+  ],
+  "moves": [
+   "drive",
+   "money",
+   "fire"
+  ],
+  "cards": [
+   "بنملا العربية",
+   "خراطيم ومضخة"
+  ]
+ }
+]

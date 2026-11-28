@@ -26,6 +26,8 @@ export interface GameResults {
   ranking: { playerId: string; score: number; place: number; correct?: number }[];
   /** 0..1 normalized performance per player, for cross-game summaries. */
   performance: Record<string, number>;
+  /** Words players asked to add to the content (appeals); saved for human review. */
+  suggestions?: { gameId: string; category: string; word: string; userId: string }[];
 }
 
 export interface GameCapabilities {
@@ -35,6 +37,8 @@ export interface GameCapabilities {
   /** Must be true (after Safe Mode testing) before the game is offered to mixed-age rooms. */
   safeModeReady: boolean;
   spectators: 'none' | 'public_only';
+  /** 'participation': no winners; small flat rewards for taking part. */
+  rewards?: 'performance' | 'participation';
 }
 
 export interface GameModule<State, Config, View> {
@@ -54,6 +58,23 @@ export interface GameModule<State, Config, View> {
   viewFor(state: State, viewer: string, now: number): View;
   isFinished(state: State): boolean;
   results(state: State): GameResults;
+  /**
+   * Optional: what a practice bot does next. `key` identifies the decision
+   * (e.g. the question index) so the room schedules each one only once.
+   */
+  botPlan?(state: State, botId: string, rng: Rng, skill: number): { key: string; at: number; action: unknown } | null;
+  /**
+   * Optional: append-only data sent outside the view (Draw and Guess strokes).
+   * The room sends each player only the items they have not received for the
+   * current key; a new key starts over.
+   */
+  streamFor?(state: State, viewer: string): { key: string; items: readonly unknown[] } | null;
+}
+
+/** Practice bots' player ids (accounts are UUIDs, so these never collide). */
+export const PRACTICE_BOT_PREFIX = 'bot_';
+export function isPracticeBot(playerId: string) {
+  return playerId.startsWith(PRACTICE_BOT_PREFIX);
 }
 
 /** Small deterministic PRNG (mulberry32) seeded from a string; seeds are stored per match. */

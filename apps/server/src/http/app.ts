@@ -1,6 +1,7 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { join } from 'node:path';
-import { computeAgeBand, matchmakingAgeBucket, type MatchMode } from '@sahra/shared';
+import { NIGHT_ID, computeAgeBand, matchmakingAgeBucket, type MatchMode } from '@sahra/shared';
+import { createHash, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 import type { AdminRoleKind } from '@prisma/client';
 import type { Presence } from '@colyseus/core';
@@ -11,6 +12,9 @@ import { verifyAppleIdToken, verifyGoogleIdToken, type VerifiedIdentity } from '
 import { balances } from '../economy/ledger';
 import { getGame, listGames } from '../games/registry';
 import { adminRouter } from './admin';
+import { friendsRouter } from './friends';
+import { progressRouter } from './progress';
+import { publicCosmetics } from '../progress/service';
 import { safetyRouter } from './safety';
 import { displayRating } from '../rating/rating';
 
@@ -64,7 +68,7 @@ export function requireAdmin(...roles: AdminRoleKind[]) {
   };
 }
 
-async function signIn(identity: VerifiedIdentity | { provider: 'dev'; subject: string; email: null }) {
+async function signIn(identity: VerifiedIdentity | { provider: 'dev' | 'tester'; subject: string; email: null }) {
   const existing = await prisma.authIdentity.findUnique({
     where: { provider_subject: { provider: identity.provider, subject: identity.subject } },
     include: { user: true },
@@ -81,9 +85,17 @@ async function signIn(identity: VerifiedIdentity | { provider: 'dev'; subject: s
   };
 }
 
-function publicMe(u: { id: string; displayName: string | null; avatarId: string; ageBand: string; onboarded: boolean; status: string }) {
+function publicMe(u: { id: string; displayName: string | null; avatarId: string; ageBand: string; onboarded: boolean; status: string; loadout: unknown }) {
   // Date of birth is never returned; only the derived eligibility band.
-  return { id: u.id, displayName: u.displayName, avatarId: u.avatarId, ageBand: u.ageBand, onboarded: u.onboarded, status: u.status };
+  return {
+    id: u.id,
+    displayName: u.displayName,
+    avatarId: u.avatarId,
+    ageBand: u.ageBand,
+    onboarded: u.onboarded,
+    status: u.status,
+    cosmetics: publicCosmetics(u.loadout),
+  };
 }
 
 const profileSchema = z.object({
@@ -94,12 +106,14 @@ const profileSchema = z.object({
 
 const ticketSchema = z.object({
   gameId: z.string(),
-  mode: z.enum(['casual', 'ranked', 'private']),
+  mode: z.enum(['casual', 'ranked', 'private', 'practice']),
 });
 
 export function createApp(presence: Presence) {
   const app = express();
   app.disable('x-powered-by');
+  // Behind a hosting proxy (Render, Railway...), use the client's real IP.
+  if (process.env.TRUST_PROXY === '1') app.set('trust proxy', 1);
   app.use(express.json({ limit: '256kb' }));
   app.use(express.text({ type: 'text/csv', limit: '5mb' }));
 
@@ -111,7 +125,7 @@ export function createApp(presence: Presence) {
       games: listGames().map((g) => {
         const game = getGame(g.id)!;
         const def = game.defaultConfig('casual');
-        return { ...g, expectedDurationSec: game.expectedDurationSec(def) };
+        return { ...g, expectedDurationSec: game.expectedDurationSec(def), practice: Boolean(game.botPlan) };
       }),
     });
   });
@@ -131,6 +145,26 @@ export function createApp(presence: Presence) {
       throw new HttpError(e.message === 'apple_not_configured' ? 503 : 401, e.message === 'apple_not_configured' ? e.message : 'invalid_apple_token');
     });
     res.json(await signIn(identity));
+  }));
+
+  // Closed test: invite code + a random key generated and kept on the device.
+  const testerFailures = new Map<string, { n: number; until: number }>();
+  app.post('/auth/tester', wrap(async (req, res) => {
+    if (!config.closedTestCode) throw new HttpError(404, 'not_found');
+    const ip = req.ip ?? 'unknown';
+    const now = Date.now();
+    const f = testerFailures.get(ip);
+    if (f && f.n >= 10 && f.until > now) throw new HttpError(429, 'too_many_attempts');
+    const body = z.object({ code: z.string().max(64), deviceKey: z.string().min(32).max(128) }).parse(req.body);
+    const digest = (v: string) => createHash('sha256').update(v.trim().toUpperCase()).digest();
+    if (!timingSafeEqual(digest(body.code), digest(config.closedTestCode))) {
+      const next = f && f.until > now ? f.n + 1 : 1;
+      if (testerFailures.size > 10_000) testerFailures.clear(); // keep memory bounded
+      testerFailures.set(ip, { n: next, until: now + 10 * 60_000 });
+      throw new HttpError(403, 'wrong_invite_code');
+    }
+    const subject = createHash('sha256').update(body.deviceKey).digest('hex');
+    res.json(await signIn({ provider: 'tester', subject, email: null }));
   }));
 
   // Local development and automated tests only. Disabled in production.
@@ -194,20 +228,28 @@ export function createApp(presence: Presence) {
   /* ------------------------------ matchmaking ------------------------------ */
   app.post('/matchmaking/ticket', requireAuth, wrap(async (req, res) => {
     const { gameId, mode } = ticketSchema.parse(req.body);
-    const game = getGame(gameId);
-    if (!game) throw new HttpError(404, 'unknown_game');
-    if (mode === 'ranked' && !game.capabilities.ranked) throw new HttpError(400, 'ranked_unavailable');
+    const night = gameId === NIGHT_ID;
+    if (night && mode !== 'private') throw new HttpError(400, 'night_private_only');
+    const game = night ? null : getGame(gameId);
+    if (!game && !night) throw new HttpError(404, 'unknown_game');
+    if (mode === 'ranked' && !game?.capabilities.ranked) throw new HttpError(400, 'ranked_unavailable');
+    if (mode === 'practice' && !game?.botPlan) throw new HttpError(400, 'practice_unavailable');
     const u = await prisma.user.findUniqueOrThrow({ where: { id: req.userId! } });
     if (!u.onboarded || u.status !== 'active' || u.ageBand === 'under_13' || u.ageBand === 'unknown') {
       throw new HttpError(403, 'account_not_eligible');
     }
     const ageBucket = matchmakingAgeBucket(u.ageBand);
+    // Games without a tested Safe Mode are for adults only (practice against bots excepted).
+    // (Game Night offers only games that fit the room instead.)
+    if (game && !game.capabilities.safeModeReady && mode !== 'practice' && u.ageBand !== 'adult') {
+      throw new HttpError(403, 'safe_mode_unavailable');
+    }
     const ticket = await signSeatTicket({ userId: u.id, gameId, mode, ageBucket });
     res.json({
       ticket,
       roomName: 'game',
       // Clients pass these as join options; the room re-checks them against the ticket.
-      options: { gameId, mode: mode as MatchMode, ageBucket: mode === 'private' ? 'any' : ageBucket },
+      options: { gameId, mode: mode as MatchMode, ageBucket: mode === 'private' || mode === 'practice' ? 'any' : ageBucket },
     });
   }));
 
@@ -216,12 +258,20 @@ export function createApp(presence: Presence) {
     if (!/^[A-Z0-9]{6}$/.test(code)) throw new HttpError(400, 'bad_code');
     const roomId = await presence.hget('room_codes', code);
     if (!roomId) throw new HttpError(404, 'room_not_found');
-    res.json({ roomId });
+    // Which game the room's tickets name (a Game Night room says 'night').
+    const gameId = await presence.hget('room_code_games', code);
+    res.json({ roomId, gameId });
   }));
 
   app.use('/safety', requireAuth, safetyRouter());
+  app.use('/friends', requireAuth, friendsRouter(presence));
+  app.use('/progress', requireAuth, progressRouter());
   app.use('/admin', requireAuth, adminRouter());
   app.use('/admin-ui', express.static(join(__dirname, '..', '..', 'admin-ui')));
+  if (config.devAuth) {
+    // Local development only: serve the Flutter web build (flutter build web --base-href /play/).
+    app.use('/play', express.static(join(__dirname, '..', '..', '..', 'mobile', 'build', 'web')));
+  }
 
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof HttpError) return res.status(err.status).json({ error: err.code });
