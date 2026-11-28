@@ -37,18 +37,30 @@ void main() {
 
   testWidgets('playing without an account asks the guest to sign in',
       (tester) async {
+    tester.view.physicalSize = const Size(1170, 6000);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(SahraApp(state: _state()));
     await _settle(tester);
     final play = find.text('العب دلوقتي').first;
-    await tester.ensureVisible(play);
-    await _settle(tester);
     await tester.tap(play);
+    await _settle(tester);
+    expect(find.byType(SignInScreen), findsOneWidget);
+  });
+
+  testWidgets('the shop button asks a guest to sign in first', (tester) async {
+    await tester.pumpWidget(SahraApp(state: _state()));
+    await _settle(tester);
+    await tester.tap(find.byKey(const Key('hub_shop')));
     await _settle(tester);
     expect(find.byType(SignInScreen), findsOneWidget);
   });
 
   testWidgets('starting a Game Night as a guest asks to sign in first',
       (tester) async {
+    tester.view.physicalSize = const Size(1170, 6000);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(SahraApp(state: _state()));
     await _settle(tester);
     final start = find.byKey(const Key('nightStart'));

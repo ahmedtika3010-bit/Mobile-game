@@ -14,6 +14,7 @@ import { getGame, listGames } from '../games/registry';
 import { adminRouter } from './admin';
 import { friendsRouter } from './friends';
 import { progressRouter } from './progress';
+import { publicCosmetics } from '../progress/service';
 import { safetyRouter } from './safety';
 import { displayRating } from '../rating/rating';
 
@@ -84,9 +85,17 @@ async function signIn(identity: VerifiedIdentity | { provider: 'dev' | 'tester';
   };
 }
 
-function publicMe(u: { id: string; displayName: string | null; avatarId: string; ageBand: string; onboarded: boolean; status: string }) {
+function publicMe(u: { id: string; displayName: string | null; avatarId: string; ageBand: string; onboarded: boolean; status: string; loadout: unknown }) {
   // Date of birth is never returned; only the derived eligibility band.
-  return { id: u.id, displayName: u.displayName, avatarId: u.avatarId, ageBand: u.ageBand, onboarded: u.onboarded, status: u.status };
+  return {
+    id: u.id,
+    displayName: u.displayName,
+    avatarId: u.avatarId,
+    ageBand: u.ageBand,
+    onboarded: u.onboarded,
+    status: u.status,
+    cosmetics: publicCosmetics(u.loadout),
+  };
 }
 
 const profileSchema = z.object({

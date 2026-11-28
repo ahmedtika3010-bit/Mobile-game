@@ -2,6 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:sahra_client/sahra_client.dart' show CosmeticLook;
+
+import 'cosmetics.dart';
 import 'tokens.dart';
 
 /// A character's art. The designer's set (assets/characters) has one
@@ -55,9 +58,13 @@ class ChibiAvatar extends StatelessWidget {
       this.size = 56,
       this.expression = ChibiExpression.happy,
       this.dimmed = false,
-      this.badge = true});
+      this.badge = true,
+      this.frame});
 
   final String avatarId;
+
+  /// An equipped cosmetic frame drawn around the avatar (same outer size).
+  final CosmeticLook? frame;
   final double size;
   final ChibiExpression expression;
   final bool dimmed;
@@ -120,6 +127,18 @@ class ChibiAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final f = frame;
+    if (f != null && f.colors.isNotEmpty && size >= 24) {
+      return FrameRing(
+          look: f,
+          size: size,
+          builder: (inner) => ChibiAvatar(
+              avatarId: avatarId,
+              size: inner,
+              expression: expression,
+              dimmed: dimmed,
+              badge: badge));
+    }
     final art = artFor(avatarId);
     final Widget child = art == null
         ? SizedBox.square(

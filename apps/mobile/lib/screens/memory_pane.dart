@@ -386,6 +386,7 @@ class _MemoryPaneState extends State<MemoryPane> {
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               ChibiAvatar(
                   avatarId: p.avatarId,
+                  frame: p.cosmetics?.frame,
                   size: 28,
                   expression: reveal == null
                       ? ChibiExpression.neutral

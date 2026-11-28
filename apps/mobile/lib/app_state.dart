@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:sahra_client/sahra_client.dart';
 
 import 'config.dart';
+import 'design/cosmetics.dart';
 
 class SecureTokenStore implements TokenStore {
   static const _s = FlutterSecureStorage();
@@ -33,15 +34,42 @@ class AppState extends ChangeNotifier {
   List<FriendInvite> invites = const [];
   Timer? _friendsTimer;
 
+  /// Rewards waiting to be claimed (home badges).
+  ProgressSummary progress = const ProgressSummary.empty();
+
   bool get signedIn => user != null;
+
+  void _setUser(UserProfile? u) {
+    user = u;
+    MyLooks.frame = u?.cosmetics?.frame;
+    MyLooks.title = u?.cosmetics?.title;
+    MyLooks.effect = u?.cosmetics?.effect;
+  }
+
+  /// Reloads the profile (after equipping a cosmetic).
+  Future<void> refreshMe() async {
+    try {
+      _setUser(await api.me());
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  Future<void> refreshProgress() async {
+    if (!canPlay) return;
+    try {
+      progress = await api.progressSummary();
+      notifyListeners();
+    } catch (_) {}
+  }
+
   bool get canPlay => user?.onboarded == true && user?.status == 'active';
 
   Future<void> init() async {
     try {
-      if (await api.isSignedIn) user = await api.me();
+      if (await api.isSignedIn) _setUser(await api.me());
       if (canPlay) await refreshWallet(notify: false);
     } catch (_) {
-      user = null;
+      _setUser(null);
     } finally {
       loading = false;
       _syncFriends();
@@ -55,6 +83,7 @@ class AppState extends ChangeNotifier {
       _friendsTimer ??=
           Timer.periodic(const Duration(seconds: 45), (_) => pingFriends());
       pingFriends();
+      refreshProgress();
     } else {
       _friendsTimer?.cancel();
       _friendsTimer = null;
@@ -86,7 +115,7 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> afterSignIn(UserProfile p) async {
-    user = p;
+    _setUser(p);
     if (canPlay) await refreshWallet(notify: false);
     _syncFriends();
     notifyListeners();
@@ -105,10 +134,11 @@ class AppState extends ChangeNotifier {
       {required String displayName,
       required String dob,
       required String avatarId}) async {
-    user = await api.updateProfile(
+    final updated = await api.updateProfile(
         displayName: displayName,
         dateOfBirth: user?.ageBand == 'unknown' ? dob : null,
         avatarId: avatarId);
+    _setUser(updated);
     if (canPlay) await refreshWallet(notify: false);
     _syncFriends();
     notifyListeners();
@@ -116,7 +146,8 @@ class AppState extends ChangeNotifier {
 
   Future<void> signOut() async {
     await api.signOut();
-    user = null;
+    _setUser(null);
+    progress = const ProgressSummary.empty();
     wallet = null;
     _syncFriends();
     notifyListeners();

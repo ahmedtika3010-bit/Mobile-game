@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import 'friends.dart';
 import 'models.dart';
+import 'progress.dart';
 
 class ApiException implements Exception {
   ApiException(this.status, this.code);
@@ -175,6 +176,65 @@ class SahraApi {
       _call('POST', '/safety/blocks', body: {'userId': userId});
 
   // Friends
+  /* ----------------------- shop, missions, rankings ----------------------- */
+
+  Future<ShopView> shop() async =>
+      ShopView.fromJson(((await _call('GET', '/progress/shop')) as Map).cast());
+
+  Future<ShopView> buyItem(String itemId) async => ShopView.fromJson(
+      ((await _call('POST', '/progress/shop/buy', body: {'itemId': itemId}))
+              as Map)
+          .cast());
+
+  Future<ShopView> equipItem(String kind, String itemId) async =>
+      ShopView.fromJson(((await _call('POST', '/progress/shop/equip',
+              body: {'kind': kind, 'itemId': itemId})) as Map)
+          .cast());
+
+  Future<MissionsView> missions() async => MissionsView.fromJson(
+      ((await _call('GET', '/progress/missions')) as Map).cast());
+
+  Future<Reward> claimMission(String id) async => Reward.fromJson(
+      (((await _call('POST', '/progress/missions/claim', body: {'id': id}))
+              as Map)['reward'] as Map)
+          .cast());
+
+  /// Today's login reward and, after a long break, the welcome-back bonus.
+  Future<(Reward, Reward?)> claimLogin() async {
+    final r =
+        ((await _call('POST', '/progress/login/claim', body: const {})) as Map)
+            .cast<String, dynamic>();
+    final wb = r['welcomeBack'];
+    return (
+      Reward.fromJson((r['reward'] as Map).cast()),
+      wb is Map ? Reward.fromJson(wb.cast()) : null
+    );
+  }
+
+  Future<List<Achievement>> achievements() async =>
+      (((await _call('GET', '/progress/achievements')) as Map)['achievements']
+              as List)
+          .map((e) => Achievement.fromJson((e as Map).cast()))
+          .toList();
+
+  Future<Reward> claimAchievement(String id) async => Reward.fromJson(
+      (((await _call('POST', '/progress/achievements/claim', body: {'id': id}))
+              as Map)['reward'] as Map)
+          .cast());
+
+  Future<LeaderboardView> leaderboard(
+          {String game = 'all',
+          String period = 'week',
+          String scope = 'global',
+          String metric = 'points'}) async =>
+      LeaderboardView.fromJson(((await _call('GET',
+                  '/progress/leaderboards?game=$game&period=$period&scope=$scope&metric=$metric'))
+              as Map)
+          .cast());
+
+  Future<ProgressSummary> progressSummary() async => ProgressSummary.fromJson(
+      ((await _call('GET', '/progress/summary')) as Map).cast());
+
   Future<FriendsOverview> friends() async => FriendsOverview.fromJson(
       ((await _call('GET', '/friends')) as Map).cast());
 

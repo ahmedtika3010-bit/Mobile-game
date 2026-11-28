@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../app_state.dart';
 import '../design/chibi_avatar.dart';
+import '../design/cosmetics.dart';
 import '../design/sfx.dart';
 import '../design/tokens.dart';
 import '../design/widgets.dart';
@@ -503,11 +504,13 @@ class _RoomScreenState extends State<RoomScreen> {
           padding:
               const EdgeInsets.fromLTRB(Tokens.s24, 0, Tokens.s24, Tokens.s24),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            ChibiAvatar(avatarId: p.avatarId, size: 88),
+            ChibiAvatar(
+                avatarId: p.avatarId, frame: p.cosmetics?.frame, size: 88),
             const SizedBox(height: Tokens.s8),
             Text(p.displayName,
                 style:
                     const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            TitleTag(look: p.cosmetics?.title, fontSize: 14),
             const SizedBox(height: Tokens.s16),
             if (!p.playerId.startsWith('bot_')) ...[
               _SheetButton(
@@ -978,7 +981,10 @@ class _PlayerSeat extends StatelessWidget {
                 amplitude: 3,
                 phase: (p.playerId.hashCode % 100) / 100,
                 child: ChibiAvatar(
-                    avatarId: p.avatarId, size: 62, dimmed: !p.connected)),
+                    avatarId: p.avatarId,
+                    frame: p.cosmetics?.frame,
+                    size: 62,
+                    dimmed: !p.connected)),
           ),
           if (p.isHost)
             const Positioned(
@@ -1027,6 +1033,7 @@ class _PlayerSeat extends StatelessWidget {
                 color: isMe ? Tokens.sun : Colors.white,
                 fontSize: 13.5,
                 fontWeight: FontWeight.w800)),
+        if (!p.isBot) TitleTag(look: p.cosmetics?.title, fontSize: 11),
       ]),
     );
   }
@@ -1172,7 +1179,10 @@ class _Countdown extends StatelessWidget {
             Bob(
                 phase: i * 0.2,
                 child: Column(children: [
-                  ChibiAvatar(avatarId: p.avatarId, size: 52),
+                  ChibiAvatar(
+                      avatarId: p.avatarId,
+                      frame: p.cosmetics?.frame,
+                      size: 52),
                   const SizedBox(height: 2),
                   Text(p.displayName,
                       style: const TextStyle(
@@ -1904,7 +1914,10 @@ class _ScoreStrip extends StatelessWidget {
                             fontSize: 14, fontWeight: FontWeight.w800)),
                     const SizedBox(width: 4),
                     ChibiAvatar(
-                        avatarId: p.avatarId, size: 32, dimmed: !p.connected),
+                        avatarId: p.avatarId,
+                        frame: p.cosmetics?.frame,
+                        size: 32,
+                        dimmed: !p.connected),
                     const SizedBox(width: 6),
                     Text('${scores[p.playerId] ?? 0}',
                         style: const TextStyle(

@@ -349,7 +349,8 @@ class DuelBar extends StatelessWidget {
     Widget side(PublicPlayer p) => Expanded(
           child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             Stack(clipBehavior: Clip.none, children: [
-              ChibiAvatar(avatarId: p.avatarId, size: 40),
+              ChibiAvatar(
+                  avatarId: p.avatarId, frame: p.cosmetics?.frame, size: 40),
               if (winner == p.playerId)
                 const Positioned(
                     top: -14,

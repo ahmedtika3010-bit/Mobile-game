@@ -787,6 +787,7 @@ class PartyPlayerGrid extends StatelessWidget {
                         ),
                         child: ChibiAvatar(
                             avatarId: p.avatarId,
+                            frame: p.cosmetics?.frame,
                             size: 56,
                             dimmed: !p.connected),
                       ),

@@ -273,7 +273,8 @@ class _LiarPaneState extends State<LiarPane> {
             padding:
                 const EdgeInsets.symmetric(horizontal: Tokens.s8, vertical: 6),
             child: Row(children: [
-              ChibiAvatar(avatarId: p.avatarId, size: 32),
+              ChibiAvatar(
+                  avatarId: p.avatarId, frame: p.cosmetics?.frame, size: 32),
               const SizedBox(width: Tokens.s8),
               Expanded(
                 child: Text(

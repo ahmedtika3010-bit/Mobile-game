@@ -716,6 +716,7 @@ class _DrawPaneState extends State<DrawPane> {
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 ChibiAvatar(
                     avatarId: p.avatarId,
+                    frame: p.cosmetics?.frame,
                     size: 28,
                     expression: turn.guessed.contains(p.playerId)
                         ? ChibiExpression.happy

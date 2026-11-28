@@ -282,7 +282,10 @@ class _StopPaneState extends State<StopPane> {
                   border: Border.all(color: Tokens.glassBorder),
                 ),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  ChibiAvatar(avatarId: p.avatarId, size: 30),
+                  ChibiAvatar(
+                      avatarId: p.avatarId,
+                      frame: p.cosmetics?.frame,
+                      size: 30),
                   const SizedBox(width: 6),
                   Text('+${r.points[p.playerId] ?? 0}',
                       style: const TextStyle(
@@ -332,7 +335,7 @@ class _StopPaneState extends State<StopPane> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(children: [
-        ChibiAvatar(avatarId: p.avatarId, size: 26),
+        ChibiAvatar(avatarId: p.avatarId, frame: p.cosmetics?.frame, size: 26),
         const SizedBox(width: 6),
         Expanded(
           child: Text(text,

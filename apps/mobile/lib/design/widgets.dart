@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../config.dart';
+import 'package:sahra_client/sahra_client.dart' show CosmeticLook;
+
+import 'cosmetics.dart';
 import 'sfx.dart';
 import 'tokens.dart';
 
@@ -675,7 +678,10 @@ class CountUp extends StatelessWidget {
 
 /// One burst of falling confetti.
 class Confetti extends StatefulWidget {
-  const Confetti({super.key});
+  const Confetti({super.key, this.look});
+
+  /// The winner's equipped victory effect; null or "confetti" = paper bits.
+  final CosmeticLook? look;
   @override
   State<Confetti> createState() => _ConfettiState();
 }
@@ -694,6 +700,14 @@ class _ConfettiState extends State<Confetti>
   @override
   Widget build(BuildContext context) {
     if (_reduceMotion(context)) return const SizedBox.shrink();
+    final look = widget.look ?? MyLooks.effect;
+    if (look != null && look.emojis.isNotEmpty) {
+      return IgnorePointer(
+          child: EmojiShower(
+              animation: _c,
+              emojis: look.emojis,
+              burst: look.style == 'burst'));
+    }
     return IgnorePointer(
         child: CustomPaint(painter: _ConfettiPainter(_c), size: Size.infinite));
   }

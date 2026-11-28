@@ -4,11 +4,16 @@ import 'package:sahra_client/sahra_client.dart';
 
 import '../app_state.dart';
 import '../design/chibi_avatar.dart';
+import '../design/cosmetics.dart';
 import '../design/sfx.dart';
 import '../design/tokens.dart';
 import '../design/widgets.dart';
 import '../l10n/strings.dart';
+import 'achievements.dart';
+import 'leaderboards.dart';
+import 'missions.dart';
 import 'onboarding.dart';
+import 'shop.dart';
 import 'room.dart';
 import 'friends.dart';
 import 'game_hub.dart';
@@ -180,6 +185,35 @@ class HomeScreen extends StatelessWidget {
     }
   }
 
+  static const _hubs = [
+    ('missions', '🎯', 'hubMissions', Tokens.sun),
+    ('shop', '🛍️', 'hubShop', Tokens.pink),
+    ('achievements', '🏆', 'hubAchievements', Tokens.grape),
+    ('leaderboards', '📊', 'hubLeaderboards', Tokens.sky),
+  ];
+
+  Future<void> _openHub(BuildContext context, String id) async {
+    final app = AppScope.read(context);
+    final nav = Navigator.of(context);
+    if (!app.signedIn) {
+      await nav.push(SoftRoute(const SignInScreen()));
+      return;
+    }
+    if (!app.canPlay) {
+      await nav.push(SoftRoute(const OnboardingScreen()));
+      return;
+    }
+    final Widget screen = switch (id) {
+      'missions' => const MissionsScreen(),
+      'shop' => const ShopScreen(),
+      'achievements' => const AchievementsScreen(),
+      _ => const LeaderboardsScreen(),
+    };
+    await nav.push(SoftRoute(screen));
+    app.refreshWallet();
+    app.refreshProgress();
+  }
+
   void _profileSheet(BuildContext context) {
     final app = AppScope.read(context);
     final u = app.user!;
@@ -270,7 +304,10 @@ class HomeScreen extends StatelessWidget {
                           BorderSide(color: Tokens.glassBorder)),
                     ),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      ChibiAvatar(avatarId: user.avatarId, size: 36),
+                      ChibiAvatar(
+                          avatarId: user.avatarId,
+                          size: 36,
+                          frame: MyLooks.frame),
                       const SizedBox(width: Tokens.s8),
                       ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 110),
@@ -341,6 +378,40 @@ class HomeScreen extends StatelessWidget {
                           ]),
                     ],
                   ]),
+            ),
+          ),
+        ),
+        SliverPadding(
+          padding:
+              const EdgeInsets.fromLTRB(Tokens.s20, 0, Tokens.s20, Tokens.s20),
+          sliver: SliverToBoxAdapter(
+            child: FadeSlideIn(
+              delay: const Duration(milliseconds: 40),
+              child: Column(children: [
+                Row(children: [
+                  for (final (i, h) in _hubs.indexed) ...[
+                    if (i > 0) const SizedBox(width: Tokens.s8),
+                    Expanded(
+                      child: _HubTile(
+                        key: Key('hub_${h.$1}'),
+                        emoji: h.$2,
+                        label: S.of(h.$3),
+                        color: h.$4,
+                        badge: switch (h.$1) {
+                          'missions' => app.progress.missionsReady,
+                          'achievements' => app.progress.achievementsReady,
+                          _ => 0,
+                        },
+                        onTap: () => _openHub(context, h.$1),
+                      ),
+                    ),
+                  ],
+                ]),
+                if (app.canPlay && app.progress.loginReady) ...[
+                  const SizedBox(height: Tokens.s12),
+                  _GiftBanner(onTap: () => _openHub(context, 'missions')),
+                ],
+              ]),
             ),
           ),
         ),
@@ -860,4 +931,108 @@ class _NightCardState extends State<_NightCard> {
       ]),
     );
   }
+}
+
+class _HubTile extends StatelessWidget {
+  const _HubTile(
+      {super.key,
+      required this.emoji,
+      required this.label,
+      required this.color,
+      required this.onTap,
+      this.badge = 0});
+  final String emoji;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+  final int badge;
+
+  @override
+  Widget build(BuildContext context) {
+    return Pressable(
+      onTap: onTap,
+      semanticLabel: badge > 0 ? '$label ($badge)' : label,
+      child: Stack(clipBehavior: Clip.none, children: [
+        Container(
+          height: 82,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Tokens.r20),
+            gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  color.withValues(alpha: 0.32),
+                  color.withValues(alpha: 0.12)
+                ]),
+            border: Border.all(color: color.withValues(alpha: 0.45)),
+          ),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Text(emoji, style: const TextStyle(fontSize: 28)),
+            const SizedBox(height: 4),
+            FittedBox(
+              child: Text(label,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w800, fontSize: 13)),
+            ),
+          ]),
+        ),
+        if (badge > 0)
+          PositionedDirectional(
+            top: -6,
+            end: -4,
+            child: PopIn(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                    color: Tokens.danger,
+                    borderRadius: const BorderRadius.all(Radius.circular(99)),
+                    border: Border.all(color: Tokens.night, width: 2)),
+                child: Text('$badge',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                        color: Colors.white)),
+              ),
+            ),
+          ),
+      ]),
+    );
+  }
+}
+
+class _GiftBanner extends StatelessWidget {
+  const _GiftBanner({required this.onTap});
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) => Pressable(
+        onTap: onTap,
+        semanticLabel: S.of('loginReadyHome'),
+        child: Container(
+          key: const Key('giftBanner'),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Tokens.r20),
+            gradient: const LinearGradient(colors: [Tokens.sun, Tokens.orange]),
+            boxShadow: [
+              BoxShadow(
+                  color: Tokens.orange.withValues(alpha: 0.4),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6)),
+            ],
+          ),
+          child: Row(children: [
+            const Bob(child: Text('🎁', style: TextStyle(fontSize: 28))),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(S.of('loginReadyHome'),
+                  style: const TextStyle(
+                      color: Tokens.ink,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16)),
+            ),
+            const Icon(Icons.chevron_left_rounded, color: Tokens.ink),
+          ]),
+        ),
+      );
 }

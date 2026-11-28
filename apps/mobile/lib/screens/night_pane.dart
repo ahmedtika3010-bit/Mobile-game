@@ -260,6 +260,7 @@ class NightLobby extends StatelessWidget {
                       Stack(clipBehavior: Clip.none, children: [
                         ChibiAvatar(
                             avatarId: p.avatarId,
+                            frame: p.cosmetics?.frame,
                             size: 52,
                             dimmed: !p.connected),
                         if (p.isHost)

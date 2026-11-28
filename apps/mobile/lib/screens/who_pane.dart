@@ -347,7 +347,10 @@ class WhoResults extends StatelessWidget {
                     border: Border.all(color: Tokens.glassBorder),
                   ),
                   child: Row(children: [
-                    ChibiAvatar(avatarId: p.avatarId, size: 40),
+                    ChibiAvatar(
+                        avatarId: p.avatarId,
+                        frame: p.cosmetics?.frame,
+                        size: 40),
                     const SizedBox(width: Tokens.s8),
                     Expanded(
                       child: Text(

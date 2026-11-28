@@ -2,6 +2,7 @@
 /// packages/shared/src/protocol.ts and quiz.ts.
 library;
 
+import 'progress.dart';
 import 'night.dart';
 
 class PublicPlayer {
@@ -13,7 +14,8 @@ class PublicPlayer {
         ready = j['ready'] as bool,
         isHost = j['isHost'] as bool,
         waiting = j['waiting'] as bool,
-        isBot = j['isBot'] == true;
+        isBot = j['isBot'] == true,
+        cosmetics = PublicCosmetics.maybe(j['cosmetics']);
   final String playerId;
   final String displayName;
   final String avatarId;
@@ -24,6 +26,9 @@ class PublicPlayer {
 
   /// Practice-mode computer player.
   final bool isBot;
+
+  /// Equipped frame, title and victory effect (looks only).
+  final PublicCosmetics? cosmetics;
 }
 
 class QuizQuestion {
@@ -915,13 +920,17 @@ class UserProfile {
         avatarId = j['avatarId'] as String,
         ageBand = j['ageBand'] as String,
         onboarded = j['onboarded'] as bool,
-        status = j['status'] as String;
+        status = j['status'] as String,
+        cosmetics = PublicCosmetics.maybe(j['cosmetics']);
   final String id;
   final String? displayName;
   final String avatarId;
   final String ageBand;
   final bool onboarded;
   final String status;
+
+  /// Your equipped frame, title and victory effect.
+  final PublicCosmetics? cosmetics;
 }
 
 int _int(Object? v) => (v as num).toInt();
