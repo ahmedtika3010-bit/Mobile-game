@@ -118,6 +118,8 @@ describe('quiz vertical slice', () => {
     const token = tc.room.reconnectionToken;
     tc.room.connection.close();
     await waitFor(() => ta.last()?.players.find((p) => p.playerId === c.id)?.connected === false, 5_000, 'carol shown disconnected');
+    // Everyone shows their equipped looks (defaults here): frame and title, never gameplay data.
+    expect(ta.last()!.players[0]!.cosmetics).toMatchObject({ frame: { colors: ['#FFFFFF'] }, title: { text: 'لسه جديد' } });
     // The room keeps going without her: alice and bob answer Q2.
     await Promise.all([answerCurrent(ta, true), answerCurrent(tb, false)]);
     const reconnected = track(await new Client(wsUrl).reconnect(token));

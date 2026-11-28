@@ -1,7 +1,7 @@
 import { prisma } from '../src/db';
 
 export async function resetDb() {
-  await prisma.$executeRawUnsafe(`TRUNCATE "FriendInvite","Friendship","AuditLog","LedgerEntry","RatingChange","SkillRating","Progression","MatchEvent","MatchPlayer","Match","Report","Block","Sanction","AdminRole","ContentReview","ContentItem","ImportBatch","RefreshToken","AuthIdentity","User" CASCADE`);
+  await prisma.$executeRawUnsafe(`TRUNCATE "RewardClaim","OwnedCosmetic","FriendInvite","Friendship","AuditLog","LedgerEntry","RatingChange","SkillRating","Progression","MatchEvent","MatchPlayer","Match","Report","Block","Sanction","AdminRole","ContentReview","ContentItem","ImportBatch","RefreshToken","AuthIdentity","User" CASCADE`);
 }
 
 export async function seedApprovedQuiz(n = 12) {

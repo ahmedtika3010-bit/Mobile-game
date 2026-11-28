@@ -5,6 +5,7 @@
  */
 import type { NightView } from './night';
 import type { CommMode } from './age';
+import type { PublicCosmetics } from './progress';
 
 export type GameId = 'quiz' | 'spy' | 'liar' | 'who' | 'emoji' | 'stop' | 'memory' | 'draw' | 'football' | 'acting';
 /** practice = one player against labelled bots; no rewards, nothing saved. */
@@ -25,6 +26,8 @@ export interface PublicPlayer {
   waiting: boolean;
   /** A computer player (practice mode only); always shown as a bot. */
   isBot?: boolean;
+  /** Equipped frame, title and victory effect (looks only, never gameplay). */
+  cosmetics?: PublicCosmetics;
 }
 
 export interface RoomView<GameView = unknown> {

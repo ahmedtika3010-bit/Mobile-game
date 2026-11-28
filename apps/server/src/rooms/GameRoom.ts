@@ -14,6 +14,7 @@ import {
   NIGHT_ID,
   NIGHT_LIMITS,
   type MatchMode,
+  type PublicCosmetics,
   type PublicPlayer,
   type RoomPhase,
   type RoomView,
@@ -29,6 +30,7 @@ import { type GameModule, PRACTICE_BOT_PREFIX, Rng } from '../games/engine';
 import { getGame } from '../games/registry';
 import { finalizeMatch, saveMatchLog, type ActionLogEntry } from './finalize';
 import { IN_GAME_KEY } from '../social/keys';
+import { publicCosmetics } from '../progress/service';
 import { type NightState, eligibleGames, newNight, nightView, pickRandom, recordGame, topVoted } from './night';
 
 export const ROOM_NAME = 'game';
@@ -43,6 +45,8 @@ interface Member {
   displayName: string;
   avatarId: string;
   ageBand: AgeBand;
+  /** Equipped frame, title and victory effect (looks only). */
+  cosmetics?: PublicCosmetics;
   ready: boolean;
   connected: boolean;
   waiting: boolean;
@@ -72,6 +76,7 @@ interface AuthData {
   displayName: string;
   avatarId: string;
   ageBand: AgeBand;
+  cosmetics: PublicCosmetics;
 }
 
 export const ROOM_TIMING = {
@@ -211,7 +216,7 @@ export class GameRoom extends Room {
       });
       if (conflict > 0) throw new Error('blocked_conflict');
     }
-    return { userId: user.id, displayName: user.displayName, avatarId: user.avatarId, ageBand: user.ageBand };
+    return { userId: user.id, displayName: user.displayName, avatarId: user.avatarId, ageBand: user.ageBand, cosmetics: publicCosmetics(user.loadout) };
   }
 
   onJoin(client: Client, _options: unknown, auth: AuthData) {
@@ -228,6 +233,7 @@ export class GameRoom extends Room {
       displayName: auth.displayName,
       avatarId: auth.avatarId,
       ageBand: auth.ageBand,
+      cosmetics: auth.cosmetics,
       ready: existing?.ready ?? false,
       connected: true,
       // Players joining mid-match wait in the lobby until the next match.
@@ -466,6 +472,7 @@ export class GameRoom extends Room {
             commMode: this.commMode,
             config: this.gameConfig as object,
             seed,
+            night: this.night !== null,
             players: { create: this.matchPlayers.map((userId) => ({ userId })) },
           },
         });
@@ -736,6 +743,7 @@ export class GameRoom extends Room {
       isHost: m.userId === this.hostId,
       waiting: m.waiting,
       ...(m.isBot ? { isBot: true } : {}),
+      ...(m.cosmetics ? { cosmetics: m.cosmetics } : {}),
     }));
   }
 

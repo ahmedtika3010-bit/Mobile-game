@@ -47,6 +47,8 @@ model User {
   /// Privacy: who may send friend requests and see online status.
   allowFriendRequests Boolean  @default(true)
   showPresence  Boolean        @default(true)
+  /// Equipped cosmetics: { frame, title, theme, effect } item ids.
+  loadout       Json           @default("{}")
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   identities    AuthIdentity[]
@@ -65,6 +67,8 @@ model User {
   friendsAsking Friendship[]   @relation("friendAddressee")
   invitesSent   FriendInvite[] @relation("inviteFrom")
   invitesGot    FriendInvite[] @relation("inviteTo")
+  cosmetics     OwnedCosmetic[]
+  claims        RewardClaim[]
 }
 
 model AuthIdentity {
@@ -170,6 +174,8 @@ model Match {
   seed        String
   state       MatchState    @default(in_progress)
   integrityOk Boolean       @default(true)
+  /// Played inside a Game Night room.
+  night       Boolean       @default(false)
   startedAt   DateTime      @default(now())
   endedAt     DateTime?
   players     MatchPlayer[]
@@ -390,4 +396,29 @@ model FriendInvite {
 
   @@unique([fromId, toId])
   @@index([toId, expiresAt])
+}
+
+// ---------------- Cosmetics, missions and achievements ----------------
+
+/// Cosmetics bought or earned (items unlocked by level are derived, not stored).
+model OwnedCosmetic {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  itemId    String
+  /// purchase | achievement:<id> | admin
+  source    String
+  createdAt DateTime @default(now())
+
+  @@id([userId, itemId])
+}
+
+/// One row per claimed reward (mission, achievement, login day); the key makes claims idempotent.
+model RewardClaim {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  /// e.g. mission:d:2026-11-28:0, ach:wins_25, login:2026-11-28, welcome:2026-11-28
+  key       String
+  createdAt DateTime @default(now())
+
+  @@id([userId, key])
 }
