@@ -452,13 +452,12 @@ class _RoundReveal extends StatelessWidget {
       PopIn(
         child: Stack(clipBehavior: Clip.none, children: [
           Bob(
-              child:
-                  ChibiFullBody(
-                      avatarId: liar?.avatarId ?? '',
-                      height: 150,
-                      expression: r.caught
-                          ? ChibiExpression.surprised
-                          : ChibiExpression.happy)),
+              child: ChibiFullBody(
+                  avatarId: liar?.avatarId ?? '',
+                  height: 150,
+                  expression: r.caught
+                      ? ChibiExpression.surprised
+                      : ChibiExpression.happy)),
           const PositionedDirectional(
               top: 0,
               end: -6,

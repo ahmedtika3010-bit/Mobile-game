@@ -42,6 +42,11 @@ model User {
   ageBand       AgeBand        @default(unknown)
   status        AccountStatus  @default(active)
   onboarded     Boolean        @default(false)
+  /// Short code a player shares so friends can add them (made on first use).
+  friendCode    String?        @unique
+  /// Privacy: who may send friend requests and see online status.
+  allowFriendRequests Boolean  @default(true)
+  showPresence  Boolean        @default(true)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   identities    AuthIdentity[]
@@ -56,6 +61,10 @@ model User {
   blockedBy     Block[]        @relation("blocked")
   sanctions     Sanction[]
   adminRole     AdminRole?
+  friendsAsked  Friendship[]   @relation("friendRequester")
+  friendsAsking Friendship[]   @relation("friendAddressee")
+  invitesSent   FriendInvite[] @relation("inviteFrom")
+  invitesGot    FriendInvite[] @relation("inviteTo")
 }
 
 model AuthIdentity {
@@ -346,4 +355,39 @@ model AuditLog {
   at        DateTime @default(now())
 
   @@index([targetType, targetId])
+}
+
+enum FriendshipStatus {
+  pending
+  accepted
+}
+
+/// One row per pair of players: the request (pending) or the friendship (accepted).
+model Friendship {
+  requesterId String
+  requester   User             @relation("friendRequester", fields: [requesterId], references: [id])
+  addresseeId String
+  addressee   User             @relation("friendAddressee", fields: [addresseeId], references: [id])
+  status      FriendshipStatus @default(pending)
+  createdAt   DateTime         @default(now())
+  acceptedAt  DateTime?
+
+  @@id([requesterId, addresseeId])
+  @@index([addresseeId, status])
+}
+
+/// An invitation from a friend to join a private room (by its code); short-lived.
+model FriendInvite {
+  id        String   @id @default(uuid())
+  fromId    String
+  from      User     @relation("inviteFrom", fields: [fromId], references: [id])
+  toId      String
+  to        User     @relation("inviteTo", fields: [toId], references: [id])
+  roomCode  String
+  gameId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@unique([fromId, toId])
+  @@index([toId, expiresAt])
 }

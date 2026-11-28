@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:sahra_client/sahra_client.dart';
@@ -26,6 +28,11 @@ class AppState extends ChangeNotifier {
   /// Coins, gems, xp and level from the server; null until loaded.
   Map<String, dynamic>? wallet;
 
+  /// Friends: pending requests and live room invitations (from the ping).
+  int friendRequests = 0;
+  List<FriendInvite> invites = const [];
+  Timer? _friendsTimer;
+
   bool get signedIn => user != null;
   bool get canPlay => user?.onboarded == true && user?.status == 'active';
 
@@ -37,13 +44,51 @@ class AppState extends ChangeNotifier {
       user = null;
     } finally {
       loading = false;
+      _syncFriends();
       notifyListeners();
     }
+  }
+
+  /// Starts or stops the friends ping (online status + invitations).
+  void _syncFriends() {
+    if (canPlay) {
+      _friendsTimer ??=
+          Timer.periodic(const Duration(seconds: 45), (_) => pingFriends());
+      pingFriends();
+    } else {
+      _friendsTimer?.cancel();
+      _friendsTimer = null;
+      friendRequests = 0;
+      invites = const [];
+    }
+  }
+
+  Future<void> pingFriends() async {
+    if (!canPlay) return;
+    try {
+      final p = await api.pingFriends();
+      final changed = p.incoming != friendRequests ||
+          p.invites.map((i) => i.id).join() != invites.map((i) => i.id).join();
+      friendRequests = p.incoming;
+      invites = p.invites;
+      if (changed) notifyListeners();
+    } catch (_) {
+      // Offline for a moment: keep the last values.
+    }
+  }
+
+  Future<void> dismissInvite(FriendInvite i) async {
+    invites = invites.where((x) => x.id != i.id).toList();
+    notifyListeners();
+    try {
+      await api.dismissInvite(i.id);
+    } catch (_) {}
   }
 
   Future<void> afterSignIn(UserProfile p) async {
     user = p;
     if (canPlay) await refreshWallet(notify: false);
+    _syncFriends();
     notifyListeners();
   }
 
@@ -65,6 +110,7 @@ class AppState extends ChangeNotifier {
         dateOfBirth: user?.ageBand == 'unknown' ? dob : null,
         avatarId: avatarId);
     if (canPlay) await refreshWallet(notify: false);
+    _syncFriends();
     notifyListeners();
   }
 
@@ -72,6 +118,7 @@ class AppState extends ChangeNotifier {
     await api.signOut();
     user = null;
     wallet = null;
+    _syncFriends();
     notifyListeners();
   }
 }

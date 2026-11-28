@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import 'friends.dart';
 import 'models.dart';
 
 class ApiException implements Exception {
@@ -164,4 +165,45 @@ class SahraApi {
 
   Future<void> block(String userId) =>
       _call('POST', '/safety/blocks', body: {'userId': userId});
+
+  // Friends
+  Future<FriendsOverview> friends() async => FriendsOverview.fromJson(
+      ((await _call('GET', '/friends')) as Map).cast());
+
+  /// Sends a request by friend code or to someone you played with.
+  /// Returns 'requested' or 'friends' (when they had already asked you).
+  Future<String> addFriend({String? code, String? userId}) async =>
+      ((await _call('POST', '/friends/requests', body: {
+        if (code != null) 'code': code,
+        if (userId != null) 'userId': userId,
+      })) as Map)['status'] as String;
+
+  Future<void> acceptFriend(String userId) =>
+      _call('POST', '/friends/requests/$userId/accept', body: const {});
+  Future<void> declineFriend(String userId) =>
+      _call('POST', '/friends/requests/$userId/decline', body: const {});
+  Future<void> cancelFriendRequest(String userId) =>
+      _call('DELETE', '/friends/requests/$userId');
+  Future<void> removeFriend(String userId) =>
+      _call('DELETE', '/friends/$userId');
+
+  Future<FriendsSettings> updateFriendsSettings(
+          {bool? allowFriendRequests, bool? showPresence}) async =>
+      FriendsSettings.fromJson(
+          ((await _call('PATCH', '/friends/settings', body: {
+        if (allowFriendRequests != null)
+          'allowFriendRequests': allowFriendRequests,
+        if (showPresence != null) 'showPresence': showPresence,
+      })) as Map)['settings']
+              .cast<String, dynamic>());
+
+  /// Marks you online; returns pending request count and live invitations.
+  Future<FriendsPing> pingFriends() async => FriendsPing.fromJson(
+      ((await _call('POST', '/friends/ping', body: const {})) as Map).cast());
+
+  Future<void> inviteFriend(String userId, String roomCode, String gameId) =>
+      _call('POST', '/friends/$userId/invite',
+          body: {'roomCode': roomCode, 'gameId': gameId});
+  Future<void> dismissInvite(String inviteId) =>
+      _call('DELETE', '/friends/invites/$inviteId');
 }

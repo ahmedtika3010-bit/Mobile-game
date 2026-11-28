@@ -25,6 +25,7 @@ import { selectContent } from '../content/select';
 import { type GameModule, PRACTICE_BOT_PREFIX, Rng } from '../games/engine';
 import { getGame } from '../games/registry';
 import { finalizeMatch, saveMatchLog, type ActionLogEntry } from './finalize';
+import { IN_GAME_KEY } from '../social/keys';
 
 export const ROOM_NAME = 'game';
 const CODE_KEY = 'room_codes';
@@ -209,6 +210,8 @@ export class GameRoom extends Room {
       waiting: (this.phase === 'playing' || this.phase === 'countdown') && !inMatch,
     };
     this.members.set(auth.userId, member);
+    // Friends see "in a game" (with which game) while you are in a room.
+    void this.presence.hset(IN_GAME_KEY, auth.userId, JSON.stringify({ gameId: this.gameId, mode: this.mode, roomId: this.roomId }));
     if (!this.hostId || !this.members.get(this.hostId)?.connected) this.hostId = auth.userId;
     if (this.mode === 'practice' && ![...this.members.values()].some((m) => m.isBot)) {
       this.addPracticeBots();
@@ -251,7 +254,10 @@ export class GameRoom extends Room {
       this.logEvent(member.userId, consented ? 'left' : 'abandoned', {});
     }
     // Remove unless the same account already came back on a newer connection.
-    if (this.members.get(member.userId) === member) this.members.delete(member.userId);
+    if (this.members.get(member.userId) === member) {
+      this.members.delete(member.userId);
+      void this.clearInGame(member.userId);
+    }
     this.reassignHostIfNeeded();
     this.cancelCountdownIfTooFew();
     this.afterStateChange();
@@ -298,8 +304,15 @@ export class GameRoom extends Room {
     this.botTimers.clear();
   }
 
+  /** Clears the "in a game" status, unless the player is already in another room. */
+  private async clearInGame(userId: string) {
+    const v = await this.presence.hget(IN_GAME_KEY, userId);
+    if (v && (JSON.parse(v) as { roomId?: string }).roomId === this.roomId) await this.presence.hdel(IN_GAME_KEY, userId);
+  }
+
   async onDispose() {
     this.clearBotTimers();
+    for (const m of this.members.values()) if (!m.isBot) await this.clearInGame(m.userId);
     if (this.code) await this.presence.hdel(CODE_KEY, this.code);
     if (this.phase === 'playing' && this.matchId) {
       const matchId = this.matchId;

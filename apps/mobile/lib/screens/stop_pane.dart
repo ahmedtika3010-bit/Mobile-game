@@ -389,8 +389,8 @@ class _StopPaneState extends State<StopPane> {
             border: Border.all(color: color),
           ),
           child: Text(badge,
-              style: const TextStyle(
-                  fontSize: 12.5, fontWeight: FontWeight.w900)),
+              style:
+                  const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w900)),
         ),
       ]),
     );

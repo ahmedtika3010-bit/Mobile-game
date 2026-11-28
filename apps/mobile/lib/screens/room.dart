@@ -16,6 +16,7 @@ import '../l10n/strings.dart';
 import 'liar_pane.dart';
 import 'acting_pane.dart';
 import 'draw_pane.dart';
+import 'friends.dart';
 import 'football_card.dart';
 import 'memory_pane.dart';
 import 'stop_pane.dart';
@@ -481,6 +482,27 @@ class _RoomScreenState extends State<RoomScreen> {
                 style:
                     const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
             const SizedBox(height: Tokens.s16),
+            if (!p.playerId.startsWith('bot_')) ...[
+              _SheetButton(
+                icon: Icons.person_add_alt_1_rounded,
+                color: Tokens.mint,
+                label: S.of('friendsAddFromPlayer'),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  try {
+                    final status = await api.addFriend(userId: p.playerId);
+                    _toast(S.of(status == 'friends'
+                        ? 'friendsNowFriends'
+                        : 'friendsRequested'));
+                  } on ApiException catch (e) {
+                    _toast(friendErrorText(e.code));
+                  } catch (_) {
+                    _toast(S.of('error'));
+                  }
+                },
+              ),
+              const SizedBox(height: Tokens.s8),
+            ],
             _SheetButton(
               icon: Icons.flag_rounded,
               color: Tokens.coral,
@@ -650,7 +672,12 @@ class _Lobby extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(Tokens.s20, 0, Tokens.s20, Tokens.s16),
       child: Column(children: [
         if (private && view.code != null)
-          FadeSlideIn(child: _CodeCard(code: view.code!, onCopy: onCopy))
+          FadeSlideIn(
+              child: _CodeCard(
+                  code: view.code!,
+                  onCopy: onCopy,
+                  onInvite: () =>
+                      showInviteFriendsSheet(context, view.code!, view.gameId)))
         else if (practice)
           const FadeSlideIn(child: _PracticeCard())
         else
@@ -724,9 +751,11 @@ class _PracticeCard extends StatelessWidget {
 }
 
 class _CodeCard extends StatelessWidget {
-  const _CodeCard({required this.code, required this.onCopy});
+  const _CodeCard(
+      {required this.code, required this.onCopy, required this.onInvite});
   final String code;
   final VoidCallback onCopy;
+  final VoidCallback onInvite;
   @override
   Widget build(BuildContext context) => GlassCard(
         padding: const EdgeInsets.all(Tokens.s20),
@@ -765,13 +794,24 @@ class _CodeCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: Tokens.s16),
-          GameButton(
-              label: S.of('copyCode'),
-              icon: Icons.copy_rounded,
-              color: Tokens.grape,
-              size: GameButtonSize.medium,
-              expand: false,
-              onPressed: onCopy),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            GameButton(
+                key: const Key('inviteFriends'),
+                label: S.of('inviteFriends'),
+                icon: Icons.group_add_rounded,
+                color: Tokens.sun,
+                size: GameButtonSize.medium,
+                expand: false,
+                onPressed: onInvite),
+            const SizedBox(width: Tokens.s8),
+            GameButton(
+                label: S.of('copyCode'),
+                icon: Icons.copy_rounded,
+                color: Tokens.grape,
+                size: GameButtonSize.medium,
+                expand: false,
+                onPressed: onCopy),
+          ]),
         ]),
       );
 }

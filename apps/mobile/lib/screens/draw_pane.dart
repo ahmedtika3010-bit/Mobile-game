@@ -256,9 +256,8 @@ class _DrawPaneState extends State<DrawPane> {
     if (text.isEmpty || turn == null || g.stage != 'draw') return;
     final seen = _drawSeenLocal;
     widget.session.drawGuess(turn.turn, text,
-        elapsedMs: seen == null
-            ? null
-            : DateTime.now().millisecondsSinceEpoch - seen);
+        elapsedMs:
+            seen == null ? null : DateTime.now().millisecondsSinceEpoch - seen);
     _guess.clear();
     HapticFeedback.selectionClick();
   }
@@ -354,7 +353,9 @@ class _DrawPaneState extends State<DrawPane> {
               key: const Key('drawHeader'),
               textAlign: TextAlign.center,
               style: const TextStyle(
-                  fontSize: 22, color: Tokens.sun, fontWeight: FontWeight.w900)),
+                  fontSize: 22,
+                  color: Tokens.sun,
+                  fontWeight: FontWeight.w900)),
           Text(S.of('drawEnded_$ended'),
               style: const TextStyle(color: Tokens.textDim, fontSize: 14)),
         ]);
@@ -526,7 +527,9 @@ class _DrawPaneState extends State<DrawPane> {
       return Text(S.of('drawGotIt'),
           key: const Key('drawGotIt'),
           style: const TextStyle(
-              fontSize: 20, color: Tokens.success, fontWeight: FontWeight.w900));
+              fontSize: 20,
+              color: Tokens.success,
+              fontWeight: FontWeight.w900));
     }
     return Column(mainAxisSize: MainAxisSize.min, children: [
       Row(children: [
@@ -563,7 +566,9 @@ class _DrawPaneState extends State<DrawPane> {
                 Padding(
                   padding: const EdgeInsetsDirectional.only(end: 6),
                   child: Pill(
-                      text: S.of('drawClose'), color: Tokens.orange, solid: true),
+                      text: S.of('drawClose'),
+                      color: Tokens.orange,
+                      solid: true),
                 ),
               for (final w in turn.yourGuesses.reversed.take(8))
                 Padding(
@@ -665,8 +670,8 @@ class _DrawPaneState extends State<DrawPane> {
           width: 44,
           height: 44,
           margin: const EdgeInsets.symmetric(horizontal: 3),
-          decoration: const BoxDecoration(
-              color: Tokens.glass, shape: BoxShape.circle),
+          decoration:
+              const BoxDecoration(color: Tokens.glass, shape: BoxShape.circle),
           child: Icon(icon, color: Colors.white),
         ),
       );
@@ -713,8 +718,8 @@ class _DrawPaneState extends State<DrawPane> {
                     avatarId: p.avatarId,
                     size: 28,
                     expression: turn.guessed.contains(p.playerId)
-                            ? ChibiExpression.happy
-                            : ChibiExpression.neutral),
+                        ? ChibiExpression.happy
+                        : ChibiExpression.neutral),
                 const SizedBox(width: 4),
                 if (p.playerId == turn.drawer)
                   const Text('✏️ ', style: TextStyle(fontSize: 14)),
@@ -745,7 +750,9 @@ class _Shape extends StatelessWidget {
     if (word != null) {
       return Text(word!,
           style: const TextStyle(
-              fontSize: 24, color: Tokens.success, fontWeight: FontWeight.w900));
+              fontSize: 24,
+              color: Tokens.success,
+              fontWeight: FontWeight.w900));
     }
     final letters = shape.where((c) => c != ' ').length;
     return Semantics(

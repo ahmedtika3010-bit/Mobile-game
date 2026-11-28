@@ -7,6 +7,7 @@ import '../design/tokens.dart';
 import '../design/widgets.dart';
 import '../l10n/strings.dart';
 import 'onboarding.dart';
+import 'friends.dart';
 import 'game_hub.dart';
 import 'safety_center.dart';
 import 'sign_in.dart';
@@ -249,6 +250,10 @@ class HomeScreen extends StatelessWidget {
                     child: Logo(size: 30)),
               ),
               const Spacer(),
+              if (app.canPlay) ...[
+                _FriendsButton(count: app.friendRequests),
+                const SizedBox(width: Tokens.s8),
+              ],
               if (user != null)
                 Pressable(
                   semanticLabel: user.displayName,
@@ -286,6 +291,15 @@ class HomeScreen extends StatelessWidget {
             ]),
           ),
         ),
+        if (app.invites.isNotEmpty)
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+                Tokens.s20, Tokens.s16, Tokens.s20, 0),
+            sliver: SliverList.list(children: [
+              for (final i in app.invites)
+                InviteCard(key: ValueKey(i.id), invite: i),
+            ]),
+          ),
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(
               Tokens.s20, Tokens.s24, Tokens.s20, Tokens.s16),
@@ -588,4 +602,52 @@ class _ComingTile extends StatelessWidget {
       ),
     );
   }
+}
+
+class _FriendsButton extends StatelessWidget {
+  const _FriendsButton({required this.count});
+  final int count;
+  @override
+  Widget build(BuildContext context) => Pressable(
+        key: const Key('friendsButton'),
+        semanticLabel: S.of('friends'),
+        onTap: () async {
+          final app = AppScope.read(context);
+          await Navigator.of(context).push(SoftRoute(const FriendsScreen()));
+          app.pingFriends();
+        },
+        child: Stack(clipBehavior: Clip.none, children: [
+          Container(
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              color: Tokens.glass,
+              shape: BoxShape.circle,
+              border:
+                  Border.fromBorderSide(BorderSide(color: Tokens.glassBorder)),
+            ),
+            child: const Text('👥', style: TextStyle(fontSize: 21)),
+          ),
+          if (count > 0)
+            PositionedDirectional(
+              top: -4,
+              end: -4,
+              child: PopIn(
+                child: Container(
+                  constraints: const BoxConstraints(minWidth: 20),
+                  height: 20,
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                      color: Tokens.coral,
+                      borderRadius: BorderRadius.all(Radius.circular(99))),
+                  child: Text('$count',
+                      style: const TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w900)),
+                ),
+              ),
+            ),
+        ]),
+      );
 }

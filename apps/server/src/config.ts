@@ -35,6 +35,18 @@ export const config = {
   },
   rating: { provisionalMatches: 10 },
   reportEvidenceRetentionDays: 90,
+  /** Friends and invitations (tunable; the admin dashboard will edit these). */
+  social: {
+    maxFriends: 200,
+    maxPendingOutgoing: 50,
+    requestsPerDay: 30,
+    /** Players who shared a match this recently can add each other without a code. */
+    playedWithDays: 14,
+    /** A player counts as online for this long after the app's last ping. */
+    onlineWindowMs: 90_000,
+    inviteTtlMs: 10 * 60_000,
+    invitesPerHour: 40,
+  },
 };
 
 export function assertConfig() {

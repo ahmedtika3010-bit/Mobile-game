@@ -12,6 +12,7 @@ import { verifyAppleIdToken, verifyGoogleIdToken, type VerifiedIdentity } from '
 import { balances } from '../economy/ledger';
 import { getGame, listGames } from '../games/registry';
 import { adminRouter } from './admin';
+import { friendsRouter } from './friends';
 import { safetyRouter } from './safety';
 import { displayRating } from '../rating/rating';
 
@@ -248,6 +249,7 @@ export function createApp(presence: Presence) {
   }));
 
   app.use('/safety', requireAuth, safetyRouter());
+  app.use('/friends', requireAuth, friendsRouter(presence));
   app.use('/admin', requireAuth, adminRouter());
   app.use('/admin-ui', express.static(join(__dirname, '..', '..', 'admin-ui')));
   if (config.devAuth) {
