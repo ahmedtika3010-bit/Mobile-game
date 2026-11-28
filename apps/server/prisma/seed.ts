@@ -11,7 +11,8 @@
  * (prisma/content/emoji_ar_v1.json) and the Stop dictionary
  * (prisma/content/stop_ar_v1.json) and Draw and Guess words
  * (prisma/content/draw_ar_v1.json) and Football Challenges items
- * (prisma/content/football_ar_v1.json, each with the date its facts hold) follow
+ * (prisma/content/football_ar_v1.json, each with the date its facts hold) and
+ * Acting and Guessing words (prisma/content/acting_ar_v1.json) follow
  * the same rule: AI-assisted, `in_review` until approved.
  * For local testing only, `npm run db:seed -- --approve-for-local-testing`
  * approves everything directly. Re-running only adds questions whose prompt
@@ -223,6 +224,28 @@ async function seedFootball(approve: boolean) {
   console.log(`inserted ${fresh.length} football items as ${approve ? 'approved (local testing)' : 'in_review'}`);
 }
 
+type ActFile = { category: string; difficulty: string; word: string; accepted: string[]; moves: string[]; cards: string[] }[];
+
+async function seedActing(approve: boolean) {
+  const items: ActFile = JSON.parse(readFileSync(join(__dirname, 'content', 'acting_ar_v1.json'), 'utf8'));
+  const existing = await prisma.contentItem.findMany({ where: { gameId: 'acting' }, select: { payload: true } });
+  const have = new Set(existing.map((e) => (e.payload as { word?: string }).word));
+  const fresh = items.filter((w) => !have.has(w.word));
+  if (fresh.length === 0) return console.log(`acting content up to date (${existing.length} words)`);
+  await prisma.contentItem.createMany({
+    data: fresh.map((w) => ({
+      gameId: 'acting',
+      category: w.category,
+      difficulty: w.difficulty,
+      payload: { word: w.word, accepted: w.accepted, moves: w.moves, cards: w.cards },
+      source: 'ai_suggested' as const,
+      status: approve ? ('approved' as const) : ('in_review' as const),
+      publishedAt: approve ? new Date() : null,
+    })),
+  });
+  console.log(`inserted ${fresh.length} acting words as ${approve ? 'approved (local testing)' : 'in_review'}`);
+}
+
 async function main() {
   const approve = process.argv.includes('--approve-for-local-testing');
   await seedSpy(approve);
@@ -232,6 +255,7 @@ async function main() {
   await seedStop(approve);
   await seedDraw(approve);
   await seedFootball(approve);
+  await seedActing(approve);
   const all: Row[] = [
     ...QUESTIONS.map(([category, difficulty, prompt, choices, explanation]) => ({
       category, difficulty, prompt, choices, correct: 0, explanation: explanation ?? null, source: 'human' as const,

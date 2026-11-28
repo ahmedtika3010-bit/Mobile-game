@@ -5,10 +5,11 @@
 import { Router } from 'express';
 import { parse } from 'csv-parse/sync';
 import { z } from 'zod';
-import { DRAW_CATEGORIES, EMOJI_CATEGORIES, FOOTBALL_MODES, STOP_CATEGORIES, LIAR_CATEGORIES, QUIZ_CATEGORIES, SPY_CATEGORIES, WHO_CATEGORIES } from '@sahra/shared';
+import { ACT_CATEGORIES, DRAW_CATEGORIES, EMOJI_CATEGORIES, FOOTBALL_MODES, STOP_CATEGORIES, LIAR_CATEGORIES, QUIZ_CATEGORIES, SPY_CATEGORIES, WHO_CATEGORIES } from '@sahra/shared';
 import { emojiPayloadSchema } from '../games/emoji';
 import { drawPayloadSchema } from '../games/draw';
 import { footballPayloadSchema } from '../games/football';
+import { actPayloadSchema } from '../games/acting';
 import { stopPayloadSchema } from '../games/stop';
 import { prisma } from '../db';
 import { audit } from '../safety/audit';
@@ -103,6 +104,17 @@ const drawItemSchema = z.object({
   source: z.enum(['human', 'ai_suggested']).default('human'),
 });
 
+/** Acting and Guessing: one word with the moves and hint cards that make it solvable. */
+const actingItemSchema = z.object({
+  gameId: z.literal('acting'),
+  category: z.enum(ACT_CATEGORIES as [string, ...string[]]),
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+  language: z.string().default('ar'),
+  locale: z.string().optional(),
+  payload: actPayloadSchema,
+  source: z.enum(['human', 'ai_suggested']).default('human'),
+});
+
 /** Football: one dated item; the category is its mode and must match the payload. */
 const footballItemSchema = z
   .object({
@@ -128,7 +140,7 @@ const quizItemSchema = z.object({
   source: z.enum(['human', 'ai_suggested']).default('human'),
 });
 
-const itemSchema = z.discriminatedUnion('gameId', [quizItemSchema, spyItemSchema, liarItemSchema, whoItemSchema, emojiItemSchema, stopItemSchema, drawItemSchema, footballItemSchema]);
+const itemSchema = z.discriminatedUnion('gameId', [quizItemSchema, spyItemSchema, liarItemSchema, whoItemSchema, emojiItemSchema, stopItemSchema, drawItemSchema, footballItemSchema, actingItemSchema]);
 
 /** CSV columns for quiz imports (UTF-8, header row required). */
 export const QUIZ_CSV_COLUMNS = [
@@ -141,7 +153,7 @@ export function adminRouter() {
   /* ---------------- content ---------------- */
   r.get('/content', requireAdmin('content_editor'), wrap(async (req, res) => {
     const status = z.enum(['draft', 'in_review', 'approved', 'rejected', 'retired']).optional().parse(req.query.status);
-    const gameId = z.enum(['quiz', 'spy', 'liar', 'who', 'emoji', 'stop', 'memory', 'draw', 'football']).default('quiz').parse(req.query.gameId);
+    const gameId = z.enum(['quiz', 'spy', 'liar', 'who', 'emoji', 'stop', 'memory', 'draw', 'football', 'acting']).default('quiz').parse(req.query.gameId);
     const items = await prisma.contentItem.findMany({
       where: { gameId, ...(status ? { status } : {}) },
       orderBy: { createdAt: 'desc' },

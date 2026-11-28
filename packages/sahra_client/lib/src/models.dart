@@ -140,8 +140,7 @@ class QuizView {
             : QuizQuestion.fromJson((j['question'] as Map).cast()),
         yourChoice = j['yourChoice'] == null ? null : _int(j['yourChoice']),
         answeredCount = _int(j['answeredCount']),
-        yourGuesses =
-            ((j['yourGuesses'] as List?) ?? const []).cast<String>(),
+        yourGuesses = ((j['yourGuesses'] as List?) ?? const []).cast<String>(),
         reveal = j['reveal'] == null
             ? null
             : QuizReveal.fromJson((j['reveal'] as Map).cast()),
@@ -209,7 +208,10 @@ class RoomView {
             : MemoryView.fromJson((j['game'] as Map).cast()),
         draw = j['game'] == null || j['gameId'] != 'draw'
             ? null
-            : DrawView.fromJson((j['game'] as Map).cast());
+            : DrawView.fromJson((j['game'] as Map).cast()),
+        acting = j['game'] == null || j['gameId'] != 'acting'
+            ? null
+            : ActView.fromJson((j['game'] as Map).cast());
   final String roomId;
   final String? code;
   final String gameId;
@@ -231,6 +233,7 @@ class RoomView {
   final StopView? stop;
   final MemoryView? memory;
   final DrawView? draw;
+  final ActView? acting;
 
   PublicPlayer? get me => players.where((p) => p.playerId == you).firstOrNull;
   bool get isSafeMode => commMode == 'safe';
@@ -468,8 +471,8 @@ class MemoryReveal {
         correct = (j['correct'] as Map).map((k, v) => MapEntry('$k', _int(v))),
         parts = _int(j['parts']),
         points = (j['points'] as Map).map((k, v) => MapEntry('$k', _int(v))),
-        answers = (j['answers'] as Map).map(
-            (k, v) => MapEntry('$k', (v as List).map(_int).toList()));
+        answers = (j['answers'] as Map)
+            .map((k, v) => MapEntry('$k', (v as List).map(_int).toList()));
   final List<int> answer;
   final Map<String, int> correct;
   final int parts;
@@ -604,9 +607,7 @@ class DrawView {
                 .toList(),
         finalTeamScores = (j['final'] as Map?)?['teamScores'] == null
             ? null
-            : (((j['final'] as Map)['teamScores']) as List)
-                .map(_int)
-                .toList();
+            : (((j['final'] as Map)['teamScores']) as List).map(_int).toList();
 
   /// choose | draw | reveal | finished
   final String stage;
@@ -619,6 +620,109 @@ class DrawView {
   final List<int>? teamScores;
   final List<RankingEntry>? ranking;
   final List<int>? finalTeamScores;
+}
+
+/// Acting and Guessing (مثّل وخمّن). See packages/shared/src/acting.ts.
+class ActBeat {
+  ActBeat.fromJson(Map<String, dynamic> j)
+      : kind = j['kind'] as String,
+        move = j['move'] as String?,
+        text = j['text'] as String?,
+        at = _int(j['at']);
+
+  /// move | card
+  final String kind;
+  final String? move;
+  final String? text;
+  final int at;
+}
+
+class ActCard {
+  ActCard.fromJson(Map<String, dynamic> j)
+      : text = j['text'] as String,
+        shown = j['shown'] == true;
+  final String text;
+  final bool shown;
+}
+
+class ActTurn {
+  ActTurn.fromJson(Map<String, dynamic> j)
+      : turn = _int(j['turn']),
+        total = _int(j['total']),
+        actor = j['actor'] as String,
+        chooseEndsAt = _int(j['chooseEndsAt']),
+        startedAt = _int(j['startedAt']),
+        deadline = _int(j['deadline']),
+        choices = (j['choices'] as List?)
+            ?.map((e) => DrawChoice.fromJson((e as Map).cast()))
+            .toList(),
+        word = j['word'] as String?,
+        category = j['category'] as String?,
+        difficulty = j['difficulty'] as String?,
+        shape = (j['shape'] as List?)?.cast<String>(),
+        beats = (j['beats'] as List)
+            .map((e) => ActBeat.fromJson((e as Map).cast()))
+            .toList(),
+        cards = (j['cards'] as List?)
+            ?.map((e) => ActCard.fromJson((e as Map).cast()))
+            .toList(),
+        suggested = (j['suggested'] as List?)?.cast<String>(),
+        guessed = (j['guessed'] as List).cast<String>(),
+        youGuessed = j['youGuessed'] == true,
+        yourGuesses = ((j['yourGuesses'] as List?) ?? const []).cast<String>(),
+        close = j['close'] == true;
+  final int turn;
+  final int total;
+  final String actor;
+  final int chooseEndsAt;
+  final int startedAt;
+  final int deadline;
+
+  /// Actor only, while choosing (same shape as Draw and Guess choices).
+  final List<DrawChoice>? choices;
+  final String? word;
+  final String? category;
+  final String? difficulty;
+  final List<String>? shape;
+
+  /// Everything the actor did this turn, in order.
+  final List<ActBeat> beats;
+
+  /// Actor only: the word's hint cards.
+  final List<ActCard>? cards;
+
+  /// Actor only: moves suggested for the word.
+  final List<String>? suggested;
+  final List<String> guessed;
+  final bool youGuessed;
+  final List<String> yourGuesses;
+  final bool close;
+}
+
+class ActView {
+  ActView.fromJson(Map<String, dynamic> j)
+      : stage = j['stage'] as String,
+        turn = j['turn'] == null
+            ? null
+            : ActTurn.fromJson((j['turn'] as Map).cast()),
+        reveal = j['reveal'] == null
+            ? null
+            : DrawReveal.fromJson((j['reveal'] as Map).cast()),
+        scores = (j['scores'] as Map).map((k, v) => MapEntry('$k', _int(v))),
+        ranking = j['final'] == null
+            ? null
+            : ((j['final'] as Map)['ranking'] as List)
+                .map((e) => RankingEntry.fromJson((e as Map).cast()))
+                .toList();
+
+  /// choose | act | reveal | finished
+  final String stage;
+  final ActTurn? turn;
+
+  /// Same shape as Draw and Guess (ended: all_guessed | time | actor_left | skipped).
+  final DrawReveal? reveal;
+  final Map<String, int> scores;
+  final List<RankingEntry>? ranking;
 }
 
 /// Stop / Atobees Complete (أتوبيس كومبليت). See packages/shared/src/stop.ts.
@@ -644,8 +748,8 @@ class StopRoundResult {
         letter = j['letter'] as String,
         cells = (j['cells'] as Map).map((c, row) => MapEntry(
             '$c',
-            (row as Map).map((p, cell) => MapEntry(
-                '$p', StopCell.fromJson((cell as Map).cast()))))),
+            (row as Map).map((p, cell) =>
+                MapEntry('$p', StopCell.fromJson((cell as Map).cast()))))),
         points = (j['points'] as Map).map((k, v) => MapEntry('$k', _int(v)));
   final int round;
   final String letter;

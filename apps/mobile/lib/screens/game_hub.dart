@@ -58,6 +58,13 @@ const _hubs = {
     ('🎲', 'fbRule4'),
     ('⚔️', 'fbRule5'),
   ]),
+  'acting': _HubInfo('🎭', Tokens.grape, {}, rules: [
+    ('🎭', 'actRule1'),
+    ('🤸', 'actRule2'),
+    ('🤫', 'actRule3'),
+    ('⭐', 'actRule4'),
+    ('🤖', 'actRule5'),
+  ]),
   'memory': _HubInfo('🧩', Tokens.mint, {
     'rounds': 6
   }, rules: [
@@ -110,6 +117,8 @@ class _GameHubScreenState extends State<GameHubScreen> {
   String _fbMode = 'mixed';
   String _fbDiff = 'mixed';
   String _fbFormat = 'group';
+  String _actDiff = 'mixed';
+  String _actSecs = '80';
 
   String get gameId => widget.gameId;
   _HubInfo get info => _hubs[gameId]!;
@@ -273,6 +282,10 @@ class _GameHubScreenState extends State<GameHubScreen> {
                                 },
                                 if (gameId == 'emoji')
                                   'answerMode': _answerMode,
+                                if (gameId == 'acting') ...{
+                                  'difficulty': _actDiff,
+                                  'actSeconds': int.parse(_actSecs),
+                                },
                                 if (gameId == 'football') ...{
                                   'modes': _fbMode,
                                   'difficulty': _fbDiff,
@@ -335,6 +348,27 @@ class _GameHubScreenState extends State<GameHubScreen> {
                 textOf: (n) => '$n ${S.of('drawSecs')}',
                 value: _drawSecs,
                 onChanged: (n) => setState(() => _drawSecs = n)),
+          ],
+          if (gameId == 'acting') ...[
+            const SizedBox(height: Tokens.s8),
+            _ChipPicker(
+                label: S.of('drawDiffLabel'),
+                options: const {
+                  'mixed': '🎲',
+                  'easy': '🙂',
+                  'medium': '😎',
+                  'hard': '🔥'
+                },
+                textOf: (d) => S.of('drawDiff_$d'),
+                value: _actDiff,
+                onChanged: (d) => setState(() => _actDiff = d)),
+            const SizedBox(height: Tokens.s8),
+            _ChipPicker(
+                label: S.of('actTimeLabel'),
+                options: const {'60': '⏱️', '80': '⏱️', '100': '⏱️'},
+                textOf: (n) => '$n ${S.of('drawSecs')}',
+                value: _actSecs,
+                onChanged: (n) => setState(() => _actSecs = n)),
           ],
           if (gameId == 'football') ...[
             const SizedBox(height: Tokens.s8),

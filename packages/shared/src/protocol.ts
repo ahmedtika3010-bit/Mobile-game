@@ -5,7 +5,7 @@
  */
 import type { CommMode } from './age';
 
-export type GameId = 'quiz' | 'spy' | 'liar' | 'who' | 'emoji' | 'stop' | 'memory' | 'draw' | 'football';
+export type GameId = 'quiz' | 'spy' | 'liar' | 'who' | 'emoji' | 'stop' | 'memory' | 'draw' | 'football' | 'acting';
 /** practice = one player against labelled bots; no rewards, nothing saved. */
 export type MatchMode = 'casual' | 'ranked' | 'private' | 'practice';
 export type Difficulty = 'easy' | 'medium' | 'hard';

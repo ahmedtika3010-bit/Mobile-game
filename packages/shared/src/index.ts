@@ -10,3 +10,4 @@ export * from './stop';
 export * from './memory';
 export * from './draw';
 export * from './football';
+export * from './acting';

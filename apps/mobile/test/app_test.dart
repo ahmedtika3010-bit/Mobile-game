@@ -32,7 +32,7 @@ void main() {
         TextDirection.rtl);
     expect(find.text('تحدي المعلومات'), findsOneWidget);
     // The other three games are visible but clearly not playable yet.
-    expect(find.textContaining('قريباً'), findsNWidgets(1));
+    expect(find.textContaining('قريباً'), findsNothing);
   });
 
   testWidgets('playing without an account asks the guest to sign in',

@@ -22,7 +22,11 @@ void main() {
           }
         ]),
         isTrue);
-    expect(c.apply('t1', 5, [const {'t': 'x'}]), isFalse); // missed chunks
+    expect(
+        c.apply('t1', 5, [
+          const {'t': 'x'}
+        ]),
+        isFalse); // missed chunks
     // The room resends the whole drawing from 0 with the same key.
     expect(
         c.apply('t1', 0, [
@@ -64,6 +68,11 @@ void main() {
     final strokes = DrawCanvas.strokesOf(ops);
     expect(strokes, hasLength(1));
     expect(pts(strokes), [1, 1, 2, 2]);
-    expect(DrawCanvas.strokesOf([...ops, {'t': 'x'}]), isEmpty);
+    expect(
+        DrawCanvas.strokesOf([
+          ...ops,
+          {'t': 'x'}
+        ]),
+        isEmpty);
   });
 }

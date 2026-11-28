@@ -145,7 +145,19 @@ final _games = [
         ('⚽', S.of('tagFbModes')),
         ('⚔️', S.of('tagFbDuel')),
       ]),
-  const _GameInfo('acting', 'مثّل وخمّن', '🎭', Tokens.grape),
+  _GameInfo('acting', S.of('game_acting'), '🎭', Tokens.grape,
+      playable: true,
+      desc: S.of('game_acting_desc'),
+      gradient: const [
+        Color(0xFFFF8BD1),
+        Color(0xFFB04DFF),
+        Color(0xFF5B3DFF)
+      ],
+      tags: [
+        ('👥', S.of('tagPlayers')),
+        ('🤸', S.of('tagActMoves')),
+        ('📵', S.of('tagActNoCamera')),
+      ]),
 ];
 
 class HomeScreen extends StatelessWidget {

@@ -2,6 +2,7 @@
 /// connection, typed views and a reconnecting game session.
 library;
 
+export 'src/act_moves.dart';
 export 'src/api.dart';
 export 'src/colyseus.dart';
 export 'src/models.dart';

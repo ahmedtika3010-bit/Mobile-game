@@ -8,11 +8,9 @@ import { stopModule } from './stop';
 import { memoryModule } from './memory';
 import { drawModule } from './draw';
 import { footballModule } from './football';
+import { actingModule } from './acting';
 
-/**
- * Games playable in this build. Acting and Guessing is not implemented yet
- * and is deliberately absent, so nothing can start it.
- */
+/** All ten launch games. Only games listed here can be started. */
 const GAMES: Record<string, GameModule<any, any, any>> = {
   quiz: quizModule,
   spy: spyModule,
@@ -23,6 +21,7 @@ const GAMES: Record<string, GameModule<any, any, any>> = {
   memory: memoryModule,
   draw: drawModule,
   football: footballModule,
+  acting: actingModule,
 };
 
 export function getGame(id: string): GameModule<any, any, any> | undefined {

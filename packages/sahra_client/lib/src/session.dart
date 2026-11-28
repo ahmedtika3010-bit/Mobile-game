@@ -254,6 +254,20 @@ class GameSession {
       });
   void drawHide(int turn) => action({'kind': 'hide', 'turn': turn});
 
+  // Acting and Guessing
+  void actChoose(int turn, int choice) =>
+      action({'kind': 'choose', 'turn': turn, 'choice': choice});
+  void actMove(int turn, String move) =>
+      action({'kind': 'move', 'turn': turn, 'move': move});
+  void actCard(int turn, int card) =>
+      action({'kind': 'card', 'turn': turn, 'card': card});
+  void actGuess(int turn, String text, {int? elapsedMs}) => action({
+        'kind': 'guess',
+        'turn': turn,
+        'text': text,
+        if (elapsedMs != null) 'clientElapsedMs': elapsedMs
+      });
+
   void setReady(bool ready) => _room.send('ready', {'ready': ready});
   void start() => _room.send('start', {});
   void sendPhrase(String phraseId) =>
